@@ -1,0 +1,18 @@
+import { createBrowserRouter } from "react-router";
+import { PracticeMode } from "./pages/PracticeMode";
+import { LearningMode } from "./pages/LearningMode";
+
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    Component: PracticeMode,
+  },
+  {
+    path: "/practice",
+    Component: PracticeMode,
+  },
+  {
+    path: "/learning",
+    Component: LearningMode,
+  },
+]);
