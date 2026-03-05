@@ -83,7 +83,7 @@ function FloatingStat({
           textTransform: "uppercase",
         }}
       >
-        {label}
+        {label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label}
       </span>
     </div>
   );
@@ -146,7 +146,7 @@ function ResultOverlay({ wpm, accuracy, onRestart }: ResultOverlayProps) {
               marginTop: "6px",
             }}
           >
-            wpm
+            слов/мин
           </div>
         </div>
 
@@ -173,7 +173,7 @@ function ResultOverlay({ wpm, accuracy, onRestart }: ResultOverlayProps) {
               marginTop: "6px",
             }}
           >
-            acc
+            точн
           </div>
         </div>
       </div>
@@ -188,17 +188,17 @@ function ResultOverlay({ wpm, accuracy, onRestart }: ResultOverlayProps) {
       >
         {[
           {
-            label: "raw",
+            label: "чистая",
             value: Math.round(wpm * 1.08),
             color: "rgba(224,224,224,0.4)",
           },
           {
-            label: "consistency",
+            label: "стабильность",
             value: `${Math.min(99, 80 + Math.floor(Math.random() * 18))}%`,
             color: "rgba(224,224,224,0.4)",
           },
           {
-            label: "errors",
+            label: "ошибки",
             value: Math.floor((100 - accuracy) * 0.8),
             color:
               accuracy < 95 ? "rgba(255,107,53,0.6)" : "rgba(224,224,224,0.4)",
@@ -263,7 +263,7 @@ function ResultOverlay({ wpm, accuracy, onRestart }: ResultOverlayProps) {
         }}
       >
         <RotateCcw size={13} />
-        new test
+        новый тест
       </button>
 
       <span
@@ -274,7 +274,7 @@ function ResultOverlay({ wpm, accuracy, onRestart }: ResultOverlayProps) {
           letterSpacing: "0.15em",
         }}
       >
-        tab — restart
+        tab — заново
       </span>
     </div>
   );
@@ -524,7 +524,7 @@ export function PracticeMode() {
             {/* Restart */}
             <button
               onClick={handleRestart}
-              title="Restart (Tab)"
+              title="Перезапустить (Tab)"
               style={{
                 background: "none",
                 border: "none",
@@ -559,7 +559,7 @@ export function PracticeMode() {
                 setText(generateText(70));
                 reset();
               }}
-              title="Next text"
+              title="Следующий текст"
               style={{
                 background: "none",
                 border: "none",
@@ -590,7 +590,7 @@ export function PracticeMode() {
 
             {/* More */}
             <button
-              title="More options"
+              title="Ещё опции"
               style={{
                 background: "none",
                 border: "none",
@@ -635,7 +635,7 @@ export function PracticeMode() {
                 whiteSpace: "nowrap",
               }}
             >
-              tab — restart &nbsp;·&nbsp; esc — pause
+              tab — заново &nbsp;·&nbsp; esc — пауза
             </div>
           )}
         </>

@@ -44,10 +44,10 @@ function SettingsDropdown({
   });
 
   const options = [
-    { label: "punctuation", value: punctuation, set: setPunctuation },
-    { label: "numbers", value: numbers, set: setNumbers },
-    { label: "smooth caret", value: smoothCaret, set: setSmoothCaret },
-    { label: "blind mode", value: blindMode, set: setBlindMode },
+    { label: "пунктуация", value: punctuation, set: setPunctuation },
+    { label: "цифры", value: numbers, set: setNumbers },
+    { label: "плавный курсор", value: smoothCaret, set: setSmoothCaret },
+    { label: "слепой режим", value: blindMode, set: setBlindMode },
   ];
 
   return (
@@ -91,7 +91,7 @@ function SettingsDropdown({
               textTransform: "uppercase",
             }}
           >
-            settings
+            настройки
           </span>
           <button
             onClick={onClose}
@@ -224,8 +224,8 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
       >
         {(
           [
-            { label: "learning", path: "/learning" },
-            { label: "practice", path: "/practice" },
+            { label: "обучение", path: "/learning" },
+            { label: "практика", path: "/practice" },
           ] as const
         ).map((mode) => {
           const active = mode.path === "/learning" ? isLearning : isPractice;

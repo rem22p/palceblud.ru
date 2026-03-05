@@ -8,15 +8,15 @@ interface ZoneSelectorProps {
 }
 
 const learningFeatures = [
-  { icon: <BookOpen size={13} />, text: "Structured lesson paths" },
-  { icon: <CheckCircle size={13} />, text: "Progress tracking & XP" },
-  { icon: <GraduationCap size={13} />, text: "Beginner to advanced courses" },
+  { icon: <BookOpen size={13} />, text: "Структурированные уроки" },
+  { icon: <CheckCircle size={13} />, text: "Отслеживание прогресса и XP" },
+  { icon: <GraduationCap size={13} />, text: "Курсы от новичка до профи" },
 ];
 
 const sharpeningFeatures = [
-  { icon: <Zap size={13} />, text: "Raw speed time trials" },
-  { icon: <Clock size={13} />, text: "15s / 30s / 60s / 120s modes" },
-  { icon: <Target size={13} />, text: "Competitive leaderboards" },
+  { icon: <Zap size={13} />, text: "Скоростные тесты на время" },
+  { icon: <Clock size={13} />, text: "Режимы 15с / 30с / 60с / 120с" },
+  { icon: <Target size={13} />, text: "Соревновательные таблицы" },
 ];
 
 export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) {
@@ -33,7 +33,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
             textTransform: "uppercase",
           }}
         >
-          choose your zone
+          выбери режим
         </p>
         <h2
           style={{
@@ -45,7 +45,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
             letterSpacing: "-0.02em",
           }}
         >
-          How do you want to type today?
+          Как хочешь печатать сегодня?
         </h2>
       </div>
 
@@ -118,7 +118,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
                 transition: "color 0.2s",
               }}
             >
-              Learning Path
+              Путь обучения
             </h3>
             <ChevronRight
               size={18}
@@ -136,7 +136,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
               marginBottom: "20px",
             }}
           >
-            Structured lessons and guided courses that take you from hunt-and-peck to 100+ WPM, step by step.
+            Структурированные уроки и курсы, которые шаг за шагом научат слепой печати от 0 до 100+ слов/мин.
           </p>
 
           {/* Features */}
@@ -177,7 +177,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
                   color: "#646669",
                 }}
               >
-                lesson 4 / 12
+                урок 4 / 12
               </span>
               <span
                 style={{
@@ -231,7 +231,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
                 fontWeight: 600,
               }}
             >
-              {selectedZone === "learning" ? "selected ✓" : "start learning"}
+              {selectedZone === "learning" ? "выбрано ✓" : "начать обучение"}
             </span>
           </div>
         </button>
@@ -303,7 +303,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
                 transition: "color 0.2s",
               }}
             >
-              Sharpening Zone
+              Зона скорости
             </h3>
             <ChevronRight
               size={18}
@@ -321,7 +321,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
               marginBottom: "20px",
             }}
           >
-            No limits, no hand-holding. Pure speed practice with time trials, custom word lists, and competitive rankings.
+            Без ограничений и подсказок. Чистая скорость: тесты на время, пользовательские слова и соревновательные таблицы.
           </p>
 
           {/* Features */}
@@ -369,7 +369,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
                 142
               </div>
               <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.62rem", color: "#646669" }}>
-                wpm
+                слов/мин
               </div>
             </div>
             <div
@@ -388,7 +388,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
                 98%
               </div>
               <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.62rem", color: "#646669" }}>
-                acc
+                точн
               </div>
             </div>
             <div
@@ -404,10 +404,10 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
                   lineHeight: 1,
                 }}
               >
-                60s
+                60с
               </div>
               <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.62rem", color: "#646669" }}>
-                mode
+                режим
               </div>
             </div>
           </div>
@@ -434,7 +434,7 @@ export function ZoneSelector({ selectedZone, onSelectZone }: ZoneSelectorProps) 
                 fontWeight: 600,
               }}
             >
-              {selectedZone === "sharpening" ? "selected ✓" : "start sharpening"}
+              {selectedZone === "sharpening" ? "выбрано ✓" : "начать тренировку"}
             </span>
           </div>
         </button>

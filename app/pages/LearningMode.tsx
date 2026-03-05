@@ -29,61 +29,61 @@ interface Lesson {
 const LESSONS: Lesson[] = [
   {
     id: 1,
-    title: "Home Row",
-    subtitle: "Foundation keys",
-    keys: ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";"],
-    tip: "Keep your fingers resting on the home row between keystrokes.",
-    text: "add all fall sad glad had lad flag shall flask glass glad hall ask lass fall dad ask all glad hall shall flask",
+    title: "Домашняя строка",
+    subtitle: "Основные клавиши",
+    keys: ["а", "б", "в", "г", "д", "е", "ё", "ж", "з", "и"],
+    tip: "Держите пальцы на домашней строке между нажатиями.",
+    text: "все они как раз был стал мир дом был лук дар жар пар вар ток сок лук мир стал был все они как раз",
     targetWpm: 25,
     completed: true,
   },
   {
     id: 2,
-    title: "Top Row",
-    subtitle: "Reach with purpose",
-    keys: ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-    tip: "Reach from the home row — don't shift your whole hand position.",
-    text: "your quite power write tower quote upper outer route prowl tower pretty query write rower quite your power outer",
+    title: "Верхний ряд",
+    subtitle: "Точные движения",
+    keys: ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з"],
+    tip: "Тянитесь от домашней строки — не смещайте всю кисть.",
+    text: "укеенгшщз йцукеенгшщз зщшгнеук й зщшгнеук йцукеенгшщз укеенгшщз зщшгнеук йцукеен",
     targetWpm: 30,
     completed: true,
   },
   {
     id: 3,
-    title: "Bottom Row",
-    subtitle: "Downward reach",
-    keys: ["z", "x", "c", "v", "b", "n", "m", ",", "."],
-    tip: "Curl your fingers slightly downward — minimize wrist movement.",
-    text: "calm zinc venom zone bench maven cabin numb mix zinc bounce convex vibrant calm zinc venom zone bench maven",
+    title: "Нижний ряд",
+    subtitle: "Движения вниз",
+    keys: ["ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
+    tip: "Слегка согните пальцы вниз — минимизируйте движение запястья.",
+    text: "ывапролджэ ывапролджэ пролджэыва ы пролджэыва ывапролджэ пролджэыва ывапролджэ",
     targetWpm: 28,
     completed: false,
   },
   {
     id: 4,
-    title: "Capital Letters",
-    subtitle: "Shift key control",
-    keys: ["Shift", "All letters"],
-    tip: "Use the opposite Shift from the letter you're capitalizing.",
-    text: "The Quick Brown Fox Jumps Over The Lazy Dog Each Word Starts With A Capital Letter Now Practice Shifting Keys",
+    title: "Заглавные буквы",
+    subtitle: "Управление Shift",
+    keys: ["Shift", "Все буквы"],
+    tip: "Используйте противоположный Shift от буквы, которую делаете заглавной.",
+    text: "Съешь Ещё Этих Мягких Французских Булок Да Выпей Чаю Каждый День Для Здоровья",
     targetWpm: 35,
     completed: false,
   },
   {
     id: 5,
-    title: "Common Words",
-    subtitle: "High-frequency vocabulary",
-    keys: ["all keys"],
-    tip: "These 200 words make up 50% of all English text. Learn them by feel.",
-    text: "the quick brown fox jumps over the lazy dog and then runs back through the empty field under the blue sky",
+    title: "Частые слова",
+    subtitle: "Высокочастотная лексика",
+    keys: ["все клавиши"],
+    tip: "Эти 200 слов составляют 50% всего текста. Изучите их на ощупь.",
+    text: "и в не на я что тот быть этот все для есть один ты как его она так ты мне себя ну",
     targetWpm: 45,
     completed: false,
   },
   {
     id: 6,
-    title: "Speed Trial",
-    subtitle: "No restrictions",
-    keys: ["full keyboard"],
-    tip: "Don't slow down for mistakes — consistency beats perfection.",
-    text: "practice makes perfect and every keystroke you make builds the muscle memory that will carry you to mastery",
+    title: "Скоростной тест",
+    subtitle: "Без ограничений",
+    keys: ["полная клавиатура"],
+    tip: "Не замедляйтесь из-за ошибок — постоянство важнее совершенства.",
+    text: "практика делает мастера и каждое нажатие клавиши строит мышечную память которая приведёт к мастерству",
     targetWpm: 60,
     completed: false,
   },
@@ -226,7 +226,7 @@ function LessonSidebar({
               textTransform: "uppercase",
             }}
           >
-            progress
+            прогресс
           </span>
           <span
             style={{
@@ -285,7 +285,7 @@ function LessonSidebar({
               textTransform: "uppercase",
             }}
           >
-            lesson {lesson.id}
+            урок {lesson.id}
           </span>
         </div>
 
@@ -355,7 +355,7 @@ function LessonSidebar({
               color: "rgba(52,211,153,0.6)",
             }}
           >
-            target: {lesson.targetWpm} wpm
+            цель: {lesson.targetWpm} слов/мин
           </span>
         </div>
       </div>
@@ -387,7 +387,7 @@ function LessonSidebar({
               marginTop: "3px",
             }}
           >
-            wpm
+            слов/мин
           </div>
         </div>
 
@@ -421,7 +421,7 @@ function LessonSidebar({
               marginTop: "3px",
             }}
           >
-            accuracy
+            точность
           </div>
         </div>
       </div>
@@ -463,7 +463,7 @@ function LessonSidebar({
             color: "rgba(52,211,153,0.5)",
           }}
         >
-          7 day streak
+          7 дней подряд
         </span>
       </div>
     </aside>
@@ -545,7 +545,7 @@ function LessonComplete({
             marginBottom: "6px",
           }}
         >
-          {passed ? "Lesson complete!" : "Almost there!"}
+          {passed ? "Урок завершён!" : "Почти готово!"}
         </div>
         <div
           style={{
@@ -555,8 +555,8 @@ function LessonComplete({
           }}
         >
           {passed
-            ? `You hit ${wpm} WPM with ${accuracy}% accuracy`
-            : `Target: ${lesson.targetWpm} WPM — you got ${wpm} WPM`}
+            ? `Вы набрали ${wpm} слов/мин с точностью ${accuracy}%`
+            : `Цель: ${lesson.targetWpm} слов/мин — вы набрали ${wpm} слов/мин`}
         </div>
       </div>
 
@@ -564,13 +564,13 @@ function LessonComplete({
       <div style={{ display: "flex", gap: "40px" }}>
         {[
           {
-            label: "wpm",
+            label: "слов/мин",
             value: wpm,
             target: lesson.targetWpm,
             color: wpm >= lesson.targetWpm ? "#34d399" : "rgba(248,113,113,0.7)",
           },
           {
-            label: "accuracy",
+            label: "точность",
             value: `${accuracy}%`,
             target: "90%",
             color:
@@ -627,7 +627,7 @@ function LessonComplete({
           }}
         >
           <RotateCcw size={12} />
-          retry
+          повторить
         </button>
 
         {!isLastLesson && passed && (
@@ -650,7 +650,7 @@ function LessonComplete({
               transition: "opacity 0.2s",
             }}
           >
-            next lesson
+            следующий урок
             <ChevronRight size={13} />
           </button>
         )}
@@ -748,7 +748,7 @@ export function LearningMode() {
             letterSpacing: "0.15em",
           }}
         >
-          lesson {currentIndex + 1} of {LESSONS.length} — {currentLesson.title}
+          урок {currentIndex + 1} из {LESSONS.length} — {currentLesson.title}
         </div>
       </div>
 
@@ -806,7 +806,7 @@ export function LearningMode() {
                     marginBottom: "6px",
                   }}
                 >
-                  lesson {currentIndex + 1} · {currentLesson.subtitle}
+                  урок {currentIndex + 1} · {currentLesson.subtitle}
                 </div>
                 <div
                   style={{
@@ -868,7 +868,7 @@ export function LearningMode() {
                         textTransform: "uppercase",
                       }}
                     >
-                      accuracy
+                      точность
                     </span>
                     <span
                       style={{

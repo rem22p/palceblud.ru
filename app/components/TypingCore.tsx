@@ -185,7 +185,7 @@ export function TypingDisplay({
               textTransform: "uppercase",
             }}
           >
-            click to focus
+            кликните для фокуса
           </span>
         </div>
       )}

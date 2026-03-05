@@ -58,9 +58,9 @@ export function Header({ onSettingsClick }: HeaderProps) {
       {/* Center nav */}
       <nav className="hidden md:flex items-center gap-6">
         {[
-          { label: "leaderboard", icon: <Trophy size={14} /> },
-          { label: "stats", icon: <BarChart2 size={14} /> },
-          { label: "about", icon: null },
+          { label: "таблица лидеров", icon: <Trophy size={14} /> },
+          { label: "статистика", icon: <BarChart2 size={14} /> },
+          { label: "о проекте", icon: null },
         ].map((item) => (
           <button
             key={item.label}
@@ -95,7 +95,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             transition: "all 0.15s",
           }}
           className="hover:!text-[#d1d0c5] hover:!bg-[#2a2a2a]"
-          title="Toggle theme"
+          title="Сменить тему"
         >
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
@@ -113,7 +113,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             transition: "all 0.15s",
           }}
           className="hover:!text-[#d1d0c5] hover:!bg-[#2a2a2a]"
-          title="Settings"
+          title="Настройки"
         >
           <Settings size={18} />
         </button>
@@ -158,7 +158,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             >
               <User size={14} color="#646669" />
             </div>
-            <span style={{ color: "#d1d0c5" }}>guest</span>
+            <span style={{ color: "#d1d0c5" }}>гость</span>
             <ChevronDown size={12} />
           </button>
 
@@ -178,10 +178,10 @@ export function Header({ onSettingsClick }: HeaderProps) {
               }}
             >
               {[
-                { icon: <User size={14} />, label: "profile" },
-                { icon: <Trophy size={14} />, label: "leaderboard" },
-                { icon: <Settings size={14} />, label: "settings" },
-                { icon: <LogIn size={14} />, label: "sign in" },
+                { icon: <User size={14} />, label: "профиль" },
+                { icon: <Trophy size={14} />, label: "таблица лидеров" },
+                { icon: <Settings size={14} />, label: "настройки" },
+                { icon: <LogIn size={14} />, label: "войти" },
               ].map((item) => (
                 <button
                   key={item.label}
