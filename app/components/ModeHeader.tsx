@@ -8,7 +8,11 @@ interface SettingsDropdownProps {
   accentColor: string;
 }
 
-function SettingsDropdown({ isOpen, onClose, accentColor }: SettingsDropdownProps) {
+function SettingsDropdown({
+  isOpen,
+  onClose,
+  accentColor,
+}: SettingsDropdownProps) {
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
   const [smoothCaret, setSmoothCaret] = useState(true);
@@ -145,8 +149,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
   const location = useLocation();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const isLearning =
-    location.pathname === "/learning";
+  const isLearning = location.pathname === "/learning";
 
   const isPractice =
     location.pathname === "/" || location.pathname === "/practice";
@@ -203,7 +206,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
             letterSpacing: "-0.02em",
           }}
         >
-          typedash
+          пальцеблуд.рф
         </span>
       </div>
 
@@ -257,9 +260,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
           style={{
             background: "none",
             border: "none",
-            color: settingsOpen
-              ? accentColor
-              : "rgba(224,224,224,0.3)",
+            color: settingsOpen ? accentColor : "rgba(224,224,224,0.3)",
             cursor: "pointer",
             padding: "8px",
             borderRadius: "8px",
