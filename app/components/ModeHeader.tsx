@@ -166,7 +166,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         zIndex: 30,
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "center",
         padding: "0 40px",
         height: "60px",
         opacity: isActive ? 0.25 : 1,
@@ -181,6 +181,8 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
           alignItems: "center",
           gap: "9px",
           cursor: "pointer",
+          position: "absolute",
+          left: "40px",
         }}
         onClick={() => navigate("/")}
       >
@@ -254,7 +256,12 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
       </div>
 
       {/* Settings */}
-      <div style={{ position: "relative" }}>
+      <div
+        style={{
+          position: "absolute",
+          right: "40px",
+        }}
+      >
         <button
           onClick={() => setSettingsOpen(!settingsOpen)}
           style={{
