@@ -179,293 +179,115 @@ function StepIndicator({ lessons, currentIndex, onSelect }: StepIndicatorProps) 
   );
 }
 
-// ─── Lesson Sidebar ────────────────────────────────────────────────────────
+// ─── Lesson Card ──────────────────────────────────────────────────────────
 
-interface LessonSidebarProps {
+interface LessonCardProps {
   lesson: Lesson;
-  wpm: number;
-  accuracy: number;
-  completedCount: number;
-  totalCount: number;
 }
 
-function LessonSidebar({
-  lesson,
-  wpm,
-  accuracy,
-  completedCount,
-  totalCount,
-}: LessonSidebarProps) {
+function LessonCard({ lesson }: LessonCardProps) {
   return (
-    <aside
+    <div
       style={{
+        backgroundColor: "rgba(96,165,250,0.06)",
+        border: "1px solid rgba(96,165,250,0.12)",
+        borderRadius: "14px",
+        padding: "18px",
         width: "220px",
-        flexShrink: 0,
-        display: "flex",
-        flexDirection: "column",
-        gap: "28px",
-        paddingTop: "8px",
       }}
     >
-      {/* Overall progress */}
-      <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "8px",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.62rem",
-              color: "rgba(224,224,224,0.25)",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-            }}
-          >
-            прогресс
-          </span>
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.62rem",
-              color: "rgba(52,211,153,0.7)",
-            }}
-          >
-            {completedCount}/{totalCount}
-          </span>
-        </div>
-        <div
-          style={{
-            height: "3px",
-            backgroundColor: "rgba(255,255,255,0.06)",
-            borderRadius: "99px",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              width: `${(completedCount / totalCount) * 100}%`,
-              height: "100%",
-              background: "linear-gradient(90deg, #34d399, #60a5fa)",
-              borderRadius: "99px",
-              transition: "width 0.5s ease",
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Current lesson card */}
-      <div
-        style={{
-          backgroundColor: "rgba(96,165,250,0.06)",
-          border: "1px solid rgba(96,165,250,0.12)",
-          borderRadius: "14px",
-          padding: "18px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            marginBottom: "14px",
-          }}
-        >
-          <BookOpen size={13} color="rgba(96,165,250,0.7)" />
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.62rem",
-              color: "rgba(96,165,250,0.5)",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-            }}
-          >
-            урок {lesson.id}
-          </span>
-        </div>
-
-        <div
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: "0.95rem",
-            fontWeight: 600,
-            color: "rgba(224,224,224,0.85)",
-            marginBottom: "4px",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {lesson.title}
-        </div>
-        <div
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: "0.75rem",
-            color: "rgba(224,224,224,0.3)",
-            marginBottom: "18px",
-          }}
-        >
-          {lesson.subtitle}
-        </div>
-
-        {/* Key focus */}
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "4px",
-            marginBottom: "16px",
-          }}
-        >
-          {lesson.keys.slice(0, 8).map((key) => (
-            <span
-              key={key}
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.62rem",
-                color: "rgba(96,165,250,0.8)",
-                backgroundColor: "rgba(96,165,250,0.1)",
-                border: "1px solid rgba(96,165,250,0.15)",
-                borderRadius: "5px",
-                padding: "2px 6px",
-              }}
-            >
-              {key}
-            </span>
-          ))}
-        </div>
-
-        {/* Target WPM */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
-        >
-          <Zap size={11} color="rgba(52,211,153,0.6)" />
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.65rem",
-              color: "rgba(52,211,153,0.6)",
-            }}
-          >
-            цель: {lesson.targetWpm} слов/мин
-          </span>
-        </div>
-      </div>
-
-      {/* Live stats */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        {/* WPM */}
-        <div>
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "2.4rem",
-              fontWeight: 200,
-              color: wpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.15)",
-              lineHeight: 1,
-              letterSpacing: "-0.04em",
-              transition: "color 0.3s",
-            }}
-          >
-            {wpm}
-          </div>
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.58rem",
-              color: "rgba(224,224,224,0.2)",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              marginTop: "3px",
-            }}
-          >
-            слов/мин
-          </div>
-        </div>
-
-        {/* Accuracy */}
-        <div>
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "1.6rem",
-              fontWeight: 200,
-              color:
-                accuracy >= 95
-                  ? "#34d399"
-                  : accuracy >= 85
-                  ? "rgba(224,224,224,0.5)"
-                  : "rgba(248,113,113,0.7)",
-              lineHeight: 1,
-              letterSpacing: "-0.03em",
-              transition: "color 0.3s",
-            }}
-          >
-            {accuracy}%
-          </div>
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.58rem",
-              color: "rgba(224,224,224,0.2)",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              marginTop: "3px",
-            }}
-          >
-            точность
-          </div>
-        </div>
-      </div>
-
-      {/* Tip */}
-      <div
-        style={{
-          borderLeft: "2px solid rgba(96,165,250,0.2)",
-          paddingLeft: "12px",
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: "0.75rem",
-            color: "rgba(224,224,224,0.3)",
-            lineHeight: 1.65,
-          }}
-        >
-          {lesson.tip}
-        </div>
-      </div>
-
-      {/* Streak */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "7px",
-          marginTop: "auto",
-          paddingTop: "8px",
+          gap: "8px",
+          marginBottom: "14px",
         }}
       >
-        <Flame size={13} color="rgba(52,211,153,0.5)" />
+        <BookOpen size={13} color="rgba(96,165,250,0.7)" />
+        <span
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.62rem",
+            color: "rgba(96,165,250,0.5)",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+          }}
+        >
+          урок {lesson.id}
+        </span>
+      </div>
+
+      <div
+        style={{
+          fontFamily: "'Inter', sans-serif",
+          fontSize: "0.95rem",
+          fontWeight: 600,
+          color: "rgba(224,224,224,0.85)",
+          marginBottom: "4px",
+          letterSpacing: "-0.01em",
+        }}
+      >
+        {lesson.title}
+      </div>
+      <div
+        style={{
+          fontFamily: "'Inter', sans-serif",
+          fontSize: "0.75rem",
+          color: "rgba(224,224,224,0.3)",
+          marginBottom: "18px",
+        }}
+      >
+        {lesson.subtitle}
+      </div>
+
+      {/* Key focus */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "4px",
+          marginBottom: "16px",
+        }}
+      >
+        {lesson.keys.slice(0, 8).map((key) => (
+          <span
+            key={key}
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.62rem",
+              color: "rgba(96,165,250,0.8)",
+              backgroundColor: "rgba(96,165,250,0.1)",
+              border: "1px solid rgba(96,165,250,0.15)",
+              borderRadius: "5px",
+              padding: "2px 6px",
+            }}
+          >
+            {key}
+          </span>
+        ))}
+      </div>
+
+      {/* Target WPM */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+        }}
+      >
+        <Zap size={11} color="rgba(52,211,153,0.6)" />
         <span
           style={{
             fontFamily: "'JetBrains Mono', monospace",
             fontSize: "0.65rem",
-            color: "rgba(52,211,153,0.5)",
+            color: "rgba(52,211,153,0.6)",
           }}
         >
-          7 дней подряд
+          цель: {lesson.targetWpm} слов/мин
         </span>
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -661,7 +483,7 @@ function LessonComplete({
 // ─── Learning Mode Page ────────────────────────────────────────────────────
 
 export function LearningMode() {
-  const [currentIndex, setCurrentIndex] = useState(2); // start at lesson 3
+  const [currentIndex, setCurrentIndex] = useState(2);
   const [completedLessons, setCompletedLessons] = useState<number[]>([0, 1]);
 
   const currentLesson = LESSONS[currentIndex];
@@ -696,15 +518,15 @@ export function LearningMode() {
       className="page-transition"
       style={{
         minHeight: "100vh",
-        backgroundColor: "#1b1e2e",  
+        backgroundColor: "#1b1e2e",
         position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
         transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-        paddingTop: "80px",  
       }}
     >
       {/* Ambient glow */}
@@ -718,83 +540,184 @@ export function LearningMode() {
         }}
       />
 
+      {/* ── Floating Stats (ПОДНЯТЫ ВЫШЕ) ─────────────────────────────── */}
       
-
-      {/* ── Top: Step indicator ─────────────────────────────────────────── */}
+      {/* WPM — top left */}
       <div
         style={{
           position: "fixed",
-          top: "60px",
-          left: 0,
-          right: 0,
-          height: "64px",
+          top: "80px",
+          left: "clamp(20px, 5vw, 80px)",
+          zIndex: 10,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "2px",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "5rem",
+              fontWeight: 200,
+              color: wpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)",
+              lineHeight: 1,
+              letterSpacing: "-0.04em",
+              transition: "color 0.3s",
+            }}
+          >
+            {wpm}
+          </span>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.6rem",
+              color: "rgba(224,224,224,0.3)",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+            }}
+          >
+            слов/мин
+          </span>
+        </div>
+      </div>
+
+      {/* Accuracy — below WPM */}
+      <div
+        style={{
+          position: "fixed",
+          top: "180px",
+          left: "clamp(20px, 5vw, 80px)",
+          zIndex: 10,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "2px",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "3.2rem",
+              fontWeight: 200,
+              color:
+                accuracy >= 95
+                  ? "#34d399"
+                  : accuracy >= 85
+                  ? "rgba(224,224,224,0.5)"
+                  : "rgba(248,113,113,0.7)",
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+              transition: "color 0.3s",
+            }}
+          >
+            {accuracy}%
+          </span>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.6rem",
+              color: "rgba(224,224,224,0.3)",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+            }}
+          >
+            точность
+          </span>
+        </div>
+      </div>
+
+      {/* Tip — под статистикой */}
+      <div
+        style={{
+          position: "fixed",
+          top: "260px",
+          left: "clamp(20px, 5vw, 80px)",
+          zIndex: 10,
+          maxWidth: "220px",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: "0.75rem",
+            color: "rgba(224,224,224,0.4)",
+            lineHeight: 1.6,
+          }}
+        >
+          {currentLesson.tip}
+        </div>
+      </div>
+
+      {/* Streak — под советом */}
+      <div
+        style={{
+          position: "fixed",
+          top: "320px",
+          left: "clamp(20px, 5vw, 80px)",
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          gap: "7px",
+        }}
+      >
+        <Flame size={13} color="rgba(52,211,153,0.5)" />
+        <span
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.65rem",
+            color: "rgba(52,211,153,0.5)",
+          }}
+        >
+          7 дней подряд
+        </span>
+      </div>
+
+      {/* Lesson Card — В ПРАВЫЙ ВЕРХНИЙ УГОЛ */}
+      <div
+        style={{
+          position: "fixed",
+          top: "80px",
+          right: "clamp(20px, 5vw, 80px)",
+          zIndex: 10,
+        }}
+      >
+        <LessonCard lesson={currentLesson} />
+      </div>
+
+      {/* ── Main content wrapper (ПОДНЯТ ВЫШЕ) ───────────────────────── */}
+      <div
+        style={{
+          flex: 1,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: "6px",
-          backgroundColor: "rgba(27,30,46,0.8)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(255,255,255,0.04)",
-          zIndex: 20,
-          opacity: isActive && !isFinished ? 0.2 : 1,
-          transition: "opacity 0.4s ease",
-        }}
-      >
-        <StepIndicator
-          lessons={lessonsWithCompletion}
-          currentIndex={currentIndex}
-          onSelect={handleSelectLesson}
-        />
-        <div
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.58rem",
-            color: "rgba(224,224,224,0.15)",
-            letterSpacing: "0.15em",
-          }}
-        >
-          урок {currentIndex + 1} из {LESSONS.length} — {currentLesson.title}
-        </div>
-      </div>
-
-      {/* ── Main layout ─────────────────────────────────────────────────── */}
-      <div
-        style={{
-          minHeight: "100vh",
-          paddingTop: "124px",
-          paddingBottom: "80px",
-          display: "flex",
-          alignItems: "stretch",
-          maxWidth: "1100px",
+          width: "100%",
+          maxWidth: "760px",
           margin: "0 auto",
-          padding: "124px clamp(16px, 4vw, 60px) 80px",
-          gap: "60px",
+          padding: "195px clamp(16px, 4vw, 40px) 160px",
+          zIndex: 5,
         }}
       >
-        {/* Left sidebar */}
-        <LessonSidebar
-          lesson={currentLesson}
-          wpm={wpm}
-          accuracy={accuracy}
-          completedCount={completedLessons.length}
-          totalCount={LESSONS.length}
-        />
-
-        {/* Center: typing area or completion */}
+        {/* Typing area */}
         <div
           style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            minHeight: "calc(100vh - 200px)",
+            width: "100%",
+            maxWidth: "760px",
           }}
         >
           {!isFinished ? (
             <>
-              {/* Floating lesson label */}
+              {/* Lesson label */}
               <div
                 style={{
                   marginBottom: "32px",
@@ -827,7 +750,7 @@ export function LearningMode() {
                 </div>
               </div>
 
-              {/* ── BORDERLESS typing area ── */}
+              {/* Typing area */}
               <TypingDisplay
                 text={currentLesson.text}
                 typed={typed}
@@ -844,76 +767,8 @@ export function LearningMode() {
                 isActive={isActive}
                 fontSize="1.3rem"
                 lineHeight="2.6rem"
-                maxWidth="620px"
                 cursorStyle="underline"
               />
-
-              {/* Accuracy progress bar — floats below text */}
-              {isActive && (
-                <div
-                  style={{
-                    marginTop: "40px",
-                    width: "100%",
-                    maxWidth: "620px",
-                    opacity: 0.6,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: "0.58rem",
-                        color: "rgba(224,224,224,0.2)",
-                        letterSpacing: "0.15em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      точность
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: "0.58rem",
-                        color:
-                          accuracy >= 95
-                            ? "rgba(52,211,153,0.5)"
-                            : "rgba(224,224,224,0.2)",
-                      }}
-                    >
-                      {accuracy}%
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: "2px",
-                      backgroundColor: "rgba(255,255,255,0.04)",
-                      borderRadius: "99px",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${accuracy}%`,
-                        height: "100%",
-                        backgroundColor:
-                          accuracy >= 95
-                            ? "#34d399"
-                            : accuracy >= 85
-                            ? "#60a5fa"
-                            : "#f87171",
-                        borderRadius: "99px",
-                        transition: "width 0.3s ease, background-color 0.3s",
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
 
               {/* Hint */}
               {!isActive && (
@@ -943,11 +798,44 @@ export function LearningMode() {
         </div>
       </div>
 
-      {/* ── Bottom navigation ────────────────────────────────────────────── */}
+      {/* ── Step indicator — ВНИЗУ (поднят выше) ─────────────────────── */}
       <div
         style={{
           position: "fixed",
-          bottom: "32px",
+          bottom: "80px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "8px",
+          zIndex: 20,
+          opacity: isActive && !isFinished ? 0.2 : 1,
+          transition: "opacity 0.4s ease",
+        }}
+      >
+        <StepIndicator
+          lessons={lessonsWithCompletion}
+          currentIndex={currentIndex}
+          onSelect={handleSelectLesson}
+        />
+        <div
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.58rem",
+            color: "rgba(224,224,224,0.15)",
+            letterSpacing: "0.15em",
+          }}
+        >
+          урок {currentIndex + 1} из {LESSONS.length} — {currentLesson.title}
+        </div>
+      </div>
+
+      {/* ── Bottom navigation (поднят выше) ──────────────────────────── */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "24px",
           left: "50%",
           transform: "translateX(-50%)",
           display: "flex",
@@ -960,13 +848,7 @@ export function LearningMode() {
         }}
       >
         <button
-          onClick={() =>
-            setCurrentIndex((i) => {
-              const next = Math.max(i - 1, 0);
-              reset();
-              return next;
-            })
-          }
+          onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
           disabled={currentIndex === 0}
           style={{
             background: "none",
@@ -991,7 +873,6 @@ export function LearningMode() {
           prev
         </button>
 
-        {/* Restart */}
         <button
           onClick={handleRetry}
           style={{
@@ -1009,26 +890,15 @@ export function LearningMode() {
             letterSpacing: "0.08em",
             transition: "color 0.2s",
           }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.color =
-              "rgba(96,165,250,0.6)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.color =
-              "rgba(224,224,224,0.18)";
-          }}
         >
           <RotateCcw size={13} />
           restart
         </button>
 
         <button
-          onClick={() => {
-            if (currentIndex < LESSONS.length - 1) {
-              setCurrentIndex((i) => i + 1);
-              reset();
-            }
-          }}
+          onClick={() =>
+            setCurrentIndex((i) => Math.min(i + 1, LESSONS.length - 1))
+          }
           disabled={currentIndex === LESSONS.length - 1}
           style={{
             background: "none",

@@ -164,7 +164,6 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         zIndex: 30,
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",  // ← ИСПРАВЛЕНО: было "center"
         padding: "0 40px",
         height: "60px",
         opacity: isActive ? 0.25 : 1,
@@ -179,6 +178,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
           alignItems: "center",
           gap: "9px",
           cursor: "pointer",
+          zIndex: 31,
         }}
         onClick={() => navigate("/")}
       >
@@ -209,16 +209,19 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         </span>
       </div>
 
-      {/* Mode toggle — по центру */}
+      {/* Mode toggle — ПО ЦЕНТРУ ЭКРАНА */}
       <div
         style={{
-          position: "relative",
+          position: "absolute",
+          left: "50%",
+          transform: "translateX(-50%)",
           display: "flex",
           alignItems: "center",
           backgroundColor: "rgba(255,255,255,0.04)",
           borderRadius: "99px",
           padding: "4px",
           border: "1px solid rgba(255,255,255,0.06)",
+          zIndex: 31,
         }}
       >
         {/* Индикатор */}
@@ -288,6 +291,8 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         style={{
           display: "flex",
           alignItems: "center",
+          marginLeft: "auto",
+          zIndex: 31,
         }}
       >
         <button

@@ -302,7 +302,7 @@ export function PracticeMode() {
   const timerColor = timeLeft <= 5 && isActive ? "#ff4444" : "rgba(224,224,224,0.85)";
 
   return (
-     <div
+    <div
       className="page-transition"
       style={{
         minHeight: "100vh",
@@ -314,7 +314,7 @@ export function PracticeMode() {
         justifyContent: "center",
         overflow: "hidden",
         transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-        paddingTop: "80px",
+        paddingTop: "40px",  /* ← ИЗМЕНЕНО: было 80px, стало 40px (подняли текст) */
       }}
     >
     
@@ -328,8 +328,6 @@ export function PracticeMode() {
           pointerEvents: "none",
         }}
       />
-
-      
 
       {!isFinished ? (
         <>
@@ -485,6 +483,7 @@ export function PracticeMode() {
               maxWidth: "760px",
               padding: "0 clamp(16px, 4vw, 40px)",
               zIndex: 5,
+              marginTop: "20px",  /* ← ДОБАВЛЕНО: небольшой отступ сверху для точной настройки */
             }}
           >
             <TypingDisplay
@@ -503,7 +502,6 @@ export function PracticeMode() {
               isActive={isActive}
               fontSize="1.4rem"
               lineHeight="2.7rem"
-              maxWidth="760px"
               cursorStyle="underline"
             />
           </div>
