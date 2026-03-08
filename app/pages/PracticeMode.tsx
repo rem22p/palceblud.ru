@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { RotateCcw, SkipForward, MoreHorizontal, ChevronDown } from "lucide-react";
-import { ModeHeader } from "../components/ModeHeader";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 
 // ─── Word bank ─────────────────────────────────────────────────────────────
@@ -303,7 +302,8 @@ export function PracticeMode() {
   const timerColor = timeLeft <= 5 && isActive ? "#ff4444" : "rgba(224,224,224,0.85)";
 
   return (
-    <div
+     <div
+      className="page-transition"
       style={{
         minHeight: "100vh",
         backgroundColor: "#2b2d31",
@@ -313,8 +313,11 @@ export function PracticeMode() {
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
+        transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+        paddingTop: "80px",
       }}
     >
+    
       {/* Subtle noise texture layer */}
       <div
         style={{
@@ -326,7 +329,7 @@ export function PracticeMode() {
         }}
       />
 
-      <ModeHeader isActive={isActive && !isFinished} />
+      
 
       {!isFinished ? (
         <>

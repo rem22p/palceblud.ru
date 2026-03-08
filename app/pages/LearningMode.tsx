@@ -10,7 +10,6 @@ import {
   RotateCcw,
   Flame,
 } from "lucide-react";
-import { ModeHeader } from "../components/ModeHeader";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 
 // ─── Lesson data ───────────────────────────────────────────────────────────
@@ -694,11 +693,18 @@ export function LearningMode() {
 
   return (
     <div
+      className="page-transition"
       style={{
         minHeight: "100vh",
-        backgroundColor: "#1b1e2e",
+        backgroundColor: "#1b1e2e",  
         position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
         overflow: "hidden",
+        transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+        paddingTop: "80px",  
       }}
     >
       {/* Ambient glow */}
@@ -712,7 +718,7 @@ export function LearningMode() {
         }}
       />
 
-      <ModeHeader isActive={isActive && !isFinished} />
+      
 
       {/* ── Top: Step indicator ─────────────────────────────────────────── */}
       <div

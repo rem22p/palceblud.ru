@@ -150,9 +150,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const isLearning = location.pathname === "/learning";
-
-  const isPractice =
-    location.pathname === "/" || location.pathname === "/practice";
+  const isPractice = location.pathname === "/" || location.pathname === "/practice";
 
   const accentColor = isLearning ? "#60a5fa" : "#ff6b35";
 
@@ -210,47 +208,78 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         </span>
       </div>
 
-      {/* Mode toggle — pill switcher */}
+      {/* Mode toggle — простая версия БЕЗ transform */}
       <div
         style={{
+          position: "relative",
           display: "flex",
           alignItems: "center",
           backgroundColor: "rgba(255,255,255,0.04)",
           borderRadius: "99px",
           padding: "4px",
           border: "1px solid rgba(255,255,255,0.06)",
-          gap: "2px",
         }}
       >
-        {(
-          [
-            { label: "обучение", path: "/learning" },
-            { label: "практика", path: "/practice" },
-          ] as const
-        ).map((mode) => {
-          const active = mode.path === "/learning" ? isLearning : isPractice;
-          return (
-            <button
-              key={mode.label}
-              onClick={() => navigate(mode.path)}
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.72rem",
-                letterSpacing: "0.05em",
-                padding: "6px 18px",
-                borderRadius: "99px",
-                border: "none",
-                cursor: "pointer",
-                backgroundColor: active ? accentColor : "transparent",
-                color: active ? "#111" : "rgba(224,224,224,0.35)",
-                fontWeight: active ? 700 : 400,
-                transition: "all 0.2s ease",
-              }}
-            >
-              {mode.label}
-            </button>
-          );
-        })}
+        {/* Индикатор — БЕЗ transform, только left */}
+        <div
+          style={{
+            position: "absolute",
+            left: isLearning ? "4px" : "50%",
+            top: "4px",
+            bottom: "4px",
+            width: "calc(50% - 8px)",
+            backgroundColor: isLearning ? "#60a5fa" : "#ff6b35",
+            borderRadius: "99px",
+            transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+            zIndex: 0,
+          }}
+        />
+        
+        {/* Кнопка ОБУЧЕНИЕ */}
+        <button
+          onClick={() => navigate("/learning")}
+          style={{
+            position: "relative",
+            zIndex: 1,
+            flex: 1,
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.72rem",
+            letterSpacing: "0.05em",
+            padding: "6px 18px",
+            borderRadius: "99px",
+            border: "none",
+            cursor: "pointer",
+            backgroundColor: "transparent",
+            color: isLearning ? "#111" : "rgba(224,224,224,0.35)",
+            fontWeight: isLearning ? 700 : 400,
+            transition: "color 0.5s ease",
+          }}
+        >
+          обучение
+        </button>
+        
+        {/* Кнопка ПРАКТИКА */}
+        <button
+          onClick={() => navigate("/practice")}
+          style={{
+            position: "relative",
+            zIndex: 1,
+            flex: 1,
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.72rem",
+            letterSpacing: "0.05em",
+            padding: "6px 18px",
+            borderRadius: "99px",
+            border: "none",
+            cursor: "pointer",
+            backgroundColor: "transparent",
+            color: isPractice ? "#111" : "rgba(224,224,224,0.35)",
+            fontWeight: isPractice ? 700 : 400,
+            transition: "color 0.5s ease",
+          }}
+        >
+          практика
+        </button>
       </div>
 
       {/* Settings */}
