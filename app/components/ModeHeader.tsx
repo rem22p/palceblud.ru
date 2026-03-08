@@ -164,7 +164,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         zIndex: 30,
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "space-between",  // ← ИСПРАВЛЕНО: было "center"
         padding: "0 40px",
         height: "60px",
         opacity: isActive ? 0.25 : 1,
@@ -172,15 +172,13 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         pointerEvents: isActive ? "none" : "auto",
       }}
     >
-      {/* Logo */}
+      {/* Logo — слева */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           gap: "9px",
           cursor: "pointer",
-          position: "absolute",
-          left: "40px",
         }}
         onClick={() => navigate("/")}
       >
@@ -193,6 +191,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            transition: "background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <Keyboard size={15} color="#111" strokeWidth={2.5} />
@@ -210,7 +209,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         </span>
       </div>
 
-      {/* Mode toggle — простая версия БЕЗ transform */}
+      {/* Mode toggle — по центру */}
       <div
         style={{
           position: "relative",
@@ -222,7 +221,7 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
-        {/* Индикатор — БЕЗ transform, только left */}
+        {/* Индикатор */}
         <div
           style={{
             position: "absolute",
@@ -284,11 +283,11 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
         </button>
       </div>
 
-      {/* Settings */}
+      {/* Settings — справа */}
       <div
         style={{
-          position: "absolute",
-          right: "40px",
+          display: "flex",
+          alignItems: "center",
         }}
       >
         <button
