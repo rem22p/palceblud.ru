@@ -6,7 +6,7 @@ import {
   useMemo,
 } from "react";
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
+// ─── Hook ───────────────────────────────────────────────────────────────────
 
 export interface TypingState {
   typed: string;
@@ -168,6 +168,11 @@ export function TypingDisplay({
   // Текущее слово = количество пробелов (завершённых слов)
   const currentWordIndex = completedWordsCount;
 
+  // 🔴 Цвета
+  const ERROR_COLOR = "#BE4B58";
+  const CORRECT_COLOR = "#ffffff";
+  const UNTYPED_COLOR = colors.untyped;
+
   // Компонент для рендеринга слова
   const renderWord = (word: string, globalWordIndex: number) => {
     const typedWord = typedWords[globalWordIndex] || "";
@@ -175,20 +180,6 @@ export function TypingDisplay({
     const isCurrentWord = globalWordIndex === currentWordIndex;
     const isPastWord = globalWordIndex < currentWordIndex;
     const isUntyped = globalWordIndex > currentWordIndex;
-    
-    let wordColor = colors.untyped;
-    
-    if (isPastWord) {
-      const isWordCorrect = typedWord === word;
-      wordColor = isWordCorrect ? colors.correct : colors.error;
-    } else if (isCurrentWord) {
-      const firstErrorIndex = typedWord.split("").findIndex((char, i) => char !== word[i]);
-      if (firstErrorIndex !== -1) {
-        wordColor = colors.error;
-      } else if (typedWord.length > 0) {
-        wordColor = colors.correct;
-      }
-    }
 
     return (
       <span
@@ -197,7 +188,7 @@ export function TypingDisplay({
           display: "inline",
           position: "relative",
           marginRight: "0.6em",
-          color: isUntyped ? colors.untyped : wordColor,
+          color: isUntyped ? UNTYPED_COLOR : CORRECT_COLOR,
           transition: "color 0.07s ease",
           borderBottom: isCurrentWord && !isFinished ? `2px solid ${colors.cursor}` : "none",
         }}
@@ -208,22 +199,26 @@ export function TypingDisplay({
           const isCorrect = isTyped && typedWord[charIndex] === char;
           const isError = isTyped && typedWord[charIndex] !== char;
 
+          // 🔧 Посимвольная проверка для ВСЕХ введённых слов (текущих и завершённых)
+          let charColor = UNTYPED_COLOR;
+          
+          if (isPastWord || isCurrentWord) {
+            // Для всех введённых слов — посимвольная проверка
+            if (isError) {
+              charColor = ERROR_COLOR;      // 🔴 Неправильная буква
+            } else if (isCorrect) {
+              charColor = CORRECT_COLOR;    // ⚪ Правильная буква
+            } else {
+              charColor = UNTYPED_COLOR;    // 🔘 Невведённая буква в слове
+            }
+          }
+
           return (
             <span
               key={charIndex}
               style={{
                 position: "relative",
-                color: isCurrentWord
-                  ? isCorrect
-                    ? colors.correct
-                    : isError
-                    ? colors.error
-                    : colors.untyped
-                  : isPastWord
-                  ? typedWord === word
-                    ? colors.correct
-                    : colors.error
-                  : colors.untyped,
+                color: charColor,
                 transition: "color 0.07s ease",
               }}
             >
@@ -258,6 +253,9 @@ export function TypingDisplay({
         position: "relative",
         width: "100%",
         maxWidth,
+        margin: "0 auto",
+        display: "flex",
+        justifyContent: "center",
       }}
     >
       <style>{`
@@ -311,6 +309,7 @@ export function TypingDisplay({
           filter: isFocused ? "none" : "blur(6px)",
           transition: "filter 0.25s ease",
           pointerEvents: "none",
+          textAlign: "center",
         }}
       >
         {line1Words.length > 0 && (
