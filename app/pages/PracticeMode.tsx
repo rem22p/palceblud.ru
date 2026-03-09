@@ -499,7 +499,6 @@ export function PracticeMode() {
                 errorBg: "rgba(255,107,53,0.12)",
               }}
               isFinished={isFinished}
-              isActive={isActive}
               fontSize="1.4rem"
               lineHeight="2.7rem"
               cursorStyle="underline"
