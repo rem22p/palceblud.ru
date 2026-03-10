@@ -49,3 +49,61 @@ html, body, #root {
   background-color: #ff6b35;
   transform: translateX(calc(100% + 4px));
 }
+
+/* Mode Toggle - как обучение/практика */
+.mode-toggle-container {
+  position: relative;
+  display: flex;
+  width: 160px;
+  height: 38px;
+  background-color: #2b2d31;
+  border-radius: 19px;
+  padding: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mode-toggle-container.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Скользящий индикатор */
+.mode-toggle-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  background-color: #ff6b35;
+  border-radius: 15px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+  left: 4px;  /* По умолчанию на "время" */
+}
+
+.mode-toggle-indicator.words {
+  left: calc(50% + 0px);  /* На "слова" */
+}
+
+/* Текст */
+.mode-toggle-text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  pointer-events: auto;  /* ← ВАЖНО: разрешить клики */
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.mode-toggle-text.active {
+  color: #ffffff;
+}
+
+.mode-toggle-text.inactive {
+  color: rgba(224, 224, 224, 0.3);
+}

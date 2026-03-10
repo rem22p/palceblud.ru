@@ -1,3 +1,5 @@
+// app/components/TypingCore.tsx
+
 import {
   useState,
   useEffect,
@@ -6,32 +8,62 @@ import {
   useMemo,
 } from "react";
 
-// ─── Hook ───────────────────────────────────────────────────────────────────
-
 export interface TypingState {
   typed: string;
   wpm: number;
   accuracy: number;
   timeLeft: number;
+  wordsLeft: number;
+  wordsCompleted: number;
   isActive: boolean;
   isFinished: boolean;
+  mode: "time" | "words";
   handleType: (val: string) => void;
   reset: () => void;
 }
 
-export function useTyping(text: string, timeLimit: number): TypingState {
+export interface UseTypingOptions {
+  mode: "time" | "words";
+  timeLimit?: number;
+  wordLimit?: number;
+}
+
+export interface TypingColors {
+  correct: string;
+  error: string;
+  untyped: string;
+  cursor: string;
+  errorBg: string;
+}
+
+export function useTyping(
+  text: string,
+  options: UseTypingOptions
+): TypingState {
+  const { mode, timeLimit = 60, wordLimit = 25 } = options;
+  
   const [typed, setTyped] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(timeLimit);
   const [isFinished, setIsFinished] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
+
+  const completedWordsCount = (typed.match(/ /g) || []).length;
+  const wordsLeft = mode === "words" 
+    ? Math.max(0, wordLimit - completedWordsCount)
+    : 0;
 
   const wpm = useMemo(() => {
-    const elapsed = (timeLimit - timeLeft) / 60;
+    const elapsed = mode === "time" 
+      ? (timeLimit - timeLeft) / 60 
+      : typed.length > 0 
+        ? (Date.now() - startTimeRef.current) / 60000 
+        : 0;
     if (elapsed < 0.05) return 0;
-    const words = typed.trim().split(/\s+/).filter(Boolean).length;
-    return Math.round(words / elapsed);
-  }, [typed, timeLeft, timeLimit]);
+    const wordCount = typed.trim().split(/\s+/).filter(Boolean).length;
+    return Math.round(wordCount / elapsed);
+  }, [typed, timeLeft, timeLimit, mode]);
 
   const accuracy = useMemo(() => {
     if (typed.length === 0) return 100;
@@ -40,7 +72,7 @@ export function useTyping(text: string, timeLimit: number): TypingState {
   }, [typed, text]);
 
   useEffect(() => {
-    if (isActive && !isFinished) {
+    if (isActive && !isFinished && mode === "time") {
       intervalRef.current = setInterval(() => {
         setTimeLeft((t) => {
           if (t <= 1) {
@@ -56,12 +88,29 @@ export function useTyping(text: string, timeLimit: number): TypingState {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isActive, isFinished]);
+  }, [isActive, isFinished, mode]);
+
+  useEffect(() => {
+    if (mode === "words" && completedWordsCount >= wordLimit && !isFinished && typed.length > 0) {
+      setIsActive(false);
+      setIsFinished(true);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }
+  }, [mode, wordLimit, completedWordsCount, isFinished, typed.length]);
+
+  useEffect(() => {
+    if (mode === "time") {
+      setTimeLeft(timeLimit);
+    }
+  }, [timeLimit, mode]);
 
   const handleType = useCallback(
     (val: string) => {
       if (isFinished) return;
-      if (!isActive && val.length > 0) setIsActive(true);
+      if (!isActive && val.length > 0) {
+        setIsActive(true);
+        startTimeRef.current = Date.now();
+      }
       if (val.length <= text.length) setTyped(val);
     },
     [isFinished, isActive, text.length]
@@ -72,21 +121,26 @@ export function useTyping(text: string, timeLimit: number): TypingState {
     setIsActive(false);
     setTimeLeft(timeLimit);
     setIsFinished(false);
+    startTimeRef.current = Date.now();
     if (intervalRef.current) clearInterval(intervalRef.current);
   }, [timeLimit]);
 
-  return { typed, wpm, accuracy, timeLeft, isActive, isFinished, handleType, reset };
+  return {
+    typed,
+    wpm,
+    accuracy,
+    timeLeft,
+    wordsLeft,
+    wordsCompleted: completedWordsCount,
+    isActive,
+    isFinished,
+    mode,
+    handleType,
+    reset,
+  };
 }
 
 // ─── Display Component ────────────────────────────────────────────────────────
-
-export interface TypingColors {
-  correct: string;
-  error: string;
-  untyped: string;
-  cursor: string;
-  errorBg: string;
-}
 
 interface TypingDisplayProps {
   text: string;
@@ -98,7 +152,6 @@ interface TypingDisplayProps {
   fontSize?: string;
   lineHeight?: string;
   maxWidth?: string;
-  cursorStyle?: "underline" | "block";
 }
 
 export function TypingDisplay({
@@ -111,30 +164,20 @@ export function TypingDisplay({
   fontSize = "1.4rem",
   lineHeight = "2.7rem",
   maxWidth = "760px",
-  cursorStyle = "underline",
 }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
 
-  // Разбиваем текст на слова
   const words = useMemo(() => text.split(" "), [text]);
-  
-  // Считаем количество завершённых слов по пробелам
   const completedWordsCount = (typed.match(/ /g) || []).length;
-  
-  // Разбиваем введенный текст на слова (убираем конечные пробелы)
   const typedWords = useMemo(() => {
     const trimmed = typed.trimEnd();
     return trimmed === "" ? [] : trimmed.split(" ");
   }, [typed]);
 
-  // Количество слов в строке
   const wordsPerLine = 10;
-  
-  // Определяем текущую строку ввода
   const currentLineIndex = Math.floor(completedWordsCount / wordsPerLine);
   
-  // Три строки: прошлая, текущая (ввод), следующая
   const line1Start = Math.max(0, (currentLineIndex - 1) * wordsPerLine);
   const line1End = Math.min(words.length, currentLineIndex * wordsPerLine);
   
@@ -148,7 +191,6 @@ export function TypingDisplay({
   const line2Words = words.slice(line2Start, line2End);
   const line3Words = words.slice(line3Start, line3End);
 
-  // Tab to restart
   useEffect(() => {
     const handleGlobalKey = (e: KeyboardEvent) => {
       if (e.key === "Tab") {
@@ -165,15 +207,11 @@ export function TypingDisplay({
     inputRef.current?.focus();
   };
 
-  // Текущее слово = количество пробелов (завершённых слов)
   const currentWordIndex = completedWordsCount;
-
-  // 🔴 Цвета
   const ERROR_COLOR = "#BE4B58";
   const CORRECT_COLOR = "#ffffff";
   const UNTYPED_COLOR = colors.untyped;
 
-  // Компонент для рендеринга слова
   const renderWord = (word: string, globalWordIndex: number) => {
     const typedWord = typedWords[globalWordIndex] || "";
     
@@ -199,17 +237,15 @@ export function TypingDisplay({
           const isCorrect = isTyped && typedWord[charIndex] === char;
           const isError = isTyped && typedWord[charIndex] !== char;
 
-          // 🔧 Посимвольная проверка для ВСЕХ введённых слов (текущих и завершённых)
           let charColor = UNTYPED_COLOR;
           
           if (isPastWord || isCurrentWord) {
-            // Для всех введённых слов — посимвольная проверка
             if (isError) {
-              charColor = ERROR_COLOR;      // 🔴 Неправильная буква
+              charColor = ERROR_COLOR;
             } else if (isCorrect) {
-              charColor = CORRECT_COLOR;    // ⚪ Правильная буква
+              charColor = CORRECT_COLOR;
             } else {
-              charColor = UNTYPED_COLOR;    // 🔘 Невведённая буква в слове
+              charColor = UNTYPED_COLOR;
             }
           }
 
@@ -224,16 +260,14 @@ export function TypingDisplay({
             >
               {isCurrentChar && isFocused && !isFinished && (
                 <span
-                  className={cursorStyle === "underline" ? "typing-caret-underline" : "typing-caret-block"}
                   style={{
                     position: "absolute",
-                    bottom: cursorStyle === "underline" ? "3px" : "3px",
+                    bottom: "3px",
                     left: 0,
                     width: "100%",
-                    height: cursorStyle === "underline" ? "2.5px" : "auto",
+                    height: "2.5px",
                     backgroundColor: colors.cursor,
                     borderRadius: "2px",
-                    opacity: cursorStyle === "underline" ? undefined : 0.85,
                   }}
                 />
               )}
@@ -258,17 +292,6 @@ export function TypingDisplay({
         justifyContent: "center",
       }}
     >
-      <style>{`
-        @keyframes caretBlink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-        @keyframes caretBlockBlink {
-          0%, 100% { opacity: 0.85; }
-          50% { opacity: 0; }
-        }
-      `}</style>
-
       {!isFocused && (
         <div
           style={{
