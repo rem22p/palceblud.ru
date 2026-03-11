@@ -1,17 +1,12 @@
-// app/components/TypingCore.tsx
-
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 export interface TypingState {
   typed: string;
   wpm: number;
   accuracy: number;
+  rawWpm: number;
+  consistency: number;
+  errorCount: number;
   timeLeft: number;
   wordsLeft: number;
   wordsCompleted: number;
@@ -36,10 +31,7 @@ export interface TypingColors {
   errorBg: string;
 }
 
-export function useTyping(
-  text: string,
-  options: UseTypingOptions
-): TypingState {
+export function useTyping(text: string, options: UseTypingOptions): TypingState {
   const { mode, timeLimit = 60, wordLimit = 25 } = options;
   
   const [typed, setTyped] = useState("");
@@ -50,25 +42,44 @@ export function useTyping(
   const startTimeRef = useRef<number>(Date.now());
 
   const completedWordsCount = (typed.match(/ /g) || []).length;
-  const wordsLeft = mode === "words" 
-    ? Math.max(0, wordLimit - completedWordsCount)
-    : 0;
+  const wordsLeft = mode === "words" ? Math.max(0, wordLimit - completedWordsCount) : 0;
 
   const wpm = useMemo(() => {
+    const elapsed = mode === "time" ? (timeLimit - timeLeft) / 60 : typed.length > 0 ? (Date.now() - startTimeRef.current) / 60000 : 0;
+    if (elapsed < 0.05) return 0;
+    const wordCount = typed.trim().split(/\s+/).filter(Boolean).length;
+    return Math.round(wordCount / elapsed);
+  }, [typed, timeLeft, timeLimit, mode]);
+
+  const rawWpm = useMemo(() => {
     const elapsed = mode === "time" 
       ? (timeLimit - timeLeft) / 60 
       : typed.length > 0 
         ? (Date.now() - startTimeRef.current) / 60000 
         : 0;
     if (elapsed < 0.05) return 0;
-    const wordCount = typed.trim().split(/\s+/).filter(Boolean).length;
-    return Math.round(wordCount / elapsed);
+    const allChars = typed.length;
+    return Math.round((allChars / 5) / elapsed);
   }, [typed, timeLeft, timeLimit, mode]);
 
   const accuracy = useMemo(() => {
     if (typed.length === 0) return 100;
     const correct = typed.split("").filter((c, i) => c === text[i]).length;
     return Math.round((correct / typed.length) * 100);
+  }, [typed, text]);
+
+  const consistency = useMemo(() => {
+    if (typed.length === 0) return 100;
+    const correct = typed.split("").filter((c, i) => c === text[i]).length;
+    return Math.round((correct / typed.length) * 100);
+  }, [typed, text]);
+
+  const errorCount = useMemo(() => {
+    let errors = 0;
+    for (let i = 0; i < typed.length; i++) {
+      if (typed[i] !== text[i]) errors++;
+    }
+    return errors;
   }, [typed, text]);
 
   useEffect(() => {
@@ -85,9 +96,7 @@ export function useTyping(
         });
       }, 1000);
     }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isActive, isFinished, mode]);
 
   useEffect(() => {
@@ -98,23 +107,39 @@ export function useTyping(
     }
   }, [mode, wordLimit, completedWordsCount, isFinished, typed.length]);
 
-  useEffect(() => {
-    if (mode === "time") {
-      setTimeLeft(timeLimit);
-    }
-  }, [timeLimit, mode]);
+  useEffect(() => { if (mode === "time") setTimeLeft(timeLimit); }, [timeLimit, mode]);
 
-  const handleType = useCallback(
-    (val: string) => {
-      if (isFinished) return;
-      if (!isActive && val.length > 0) {
-        setIsActive(true);
-        startTimeRef.current = Date.now();
+  const handleType = useCallback((val: string) => {
+    if (isFinished) return;
+    if (!isActive && val.length > 0) {
+      setIsActive(true);
+      startTimeRef.current = Date.now();
+    }
+    
+    if (val.length < typed.length) {
+      const lastSpaceIndex = typed.lastIndexOf(' ');
+      if (val.length <= lastSpaceIndex && lastSpaceIndex > 0) {
+        const prevSpaceIndex = typed.lastIndexOf(' ', lastSpaceIndex - 1);
+        const wordStart = prevSpaceIndex + 1;
+        const wordEnd = lastSpaceIndex;
+        const typedWord = typed.substring(wordStart, wordEnd);
+        const originalWord = text.substring(wordStart, wordEnd);
+        if (typedWord === originalWord) return;
       }
-      if (val.length <= text.length) setTyped(val);
-    },
-    [isFinished, isActive, text.length]
-  );
+    }
+    
+    if (val.length > typed.length) {
+      const lastChar = val[val.length - 1];
+      if (lastChar === ' ') {
+        const completedCount = (typed.match(/ /g) || []).length;
+        const typedWords = typed.trimEnd() === "" ? [] : typed.trimEnd().split(" ");
+        const currentTypedWord = typedWords[completedCount] || "";
+        if (currentTypedWord.length === 0) return;
+      }
+    }
+    
+    if (val.length <= text.length) setTyped(val);
+  }, [isFinished, isActive, text.length, typed, text]);
 
   const reset = useCallback(() => {
     setTyped("");
@@ -125,22 +150,23 @@ export function useTyping(
     if (intervalRef.current) clearInterval(intervalRef.current);
   }, [timeLimit]);
 
-  return {
-    typed,
-    wpm,
-    accuracy,
-    timeLeft,
-    wordsLeft,
-    wordsCompleted: completedWordsCount,
-    isActive,
-    isFinished,
-    mode,
-    handleType,
-    reset,
+  return { 
+    typed, 
+    wpm, 
+    accuracy, 
+    rawWpm,
+    consistency,
+    errorCount,
+    timeLeft, 
+    wordsLeft, 
+    wordsCompleted: completedWordsCount, 
+    isActive, 
+    isFinished, 
+    mode, 
+    handleType, 
+    reset 
   };
 }
-
-// ─── Display Component ────────────────────────────────────────────────────────
 
 interface TypingDisplayProps {
   text: string;
@@ -154,36 +180,22 @@ interface TypingDisplayProps {
   maxWidth?: string;
 }
 
-export function TypingDisplay({
-  text,
-  typed,
-  onType,
-  onReset,
-  colors,
-  isFinished,
-  fontSize = "1.4rem",
-  lineHeight = "2.7rem",
-  maxWidth = "760px",
-}: TypingDisplayProps) {
+export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize = "36px", lineHeight = "40px", maxWidth = "400px" }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [showCursor, setShowCursor] = useState(true);
 
   const words = useMemo(() => text.split(" "), [text]);
   const completedWordsCount = (typed.match(/ /g) || []).length;
-  const typedWords = useMemo(() => {
-    const trimmed = typed.trimEnd();
-    return trimmed === "" ? [] : trimmed.split(" ");
-  }, [typed]);
+  const typedWords = useMemo(() => { const trimmed = typed.trimEnd(); return trimmed === "" ? [] : trimmed.split(" "); }, [typed]);
 
-  const wordsPerLine = 10;
+  const wordsPerLine = 7;
   const currentLineIndex = Math.floor(completedWordsCount / wordsPerLine);
   
   const line1Start = Math.max(0, (currentLineIndex - 1) * wordsPerLine);
   const line1End = Math.min(words.length, currentLineIndex * wordsPerLine);
-  
   const line2Start = currentLineIndex * wordsPerLine;
   const line2End = Math.min(words.length, (currentLineIndex + 1) * wordsPerLine);
-  
   const line3Start = (currentLineIndex + 1) * wordsPerLine;
   const line3End = Math.min(words.length, (currentLineIndex + 2) * wordsPerLine);
 
@@ -192,84 +204,83 @@ export function TypingDisplay({
   const line3Words = words.slice(line3Start, line3End);
 
   useEffect(() => {
+    if (!isFocused || isFinished) { setShowCursor(false); return; }
+    const hasTypedAnything = typed.length > 0;
+    if (!hasTypedAnything) {
+      const cursorInterval = setInterval(() => setShowCursor(prev => !prev), 530);
+      return () => clearInterval(cursorInterval);
+    } else { setShowCursor(true); }
+  }, [isFocused, isFinished, typed.length]);
+
+  useEffect(() => {
     const handleGlobalKey = (e: KeyboardEvent) => {
-      if (e.key === "Tab") {
-        e.preventDefault();
-        onReset();
-        setTimeout(() => inputRef.current?.focus(), 50);
-      }
+      if (e.key === "Tab") { e.preventDefault(); onReset(); setTimeout(() => inputRef.current?.focus(), 50); }
     };
     window.addEventListener("keydown", handleGlobalKey);
     return () => window.removeEventListener("keydown", handleGlobalKey);
   }, [onReset]);
 
-  const focusInput = () => {
-    inputRef.current?.focus();
-  };
-
+  const focusInput = () => inputRef.current?.focus();
   const currentWordIndex = completedWordsCount;
-  const ERROR_COLOR = "#BE4B58";
+  const ERROR_COLOR = "#EF6C75";
   const CORRECT_COLOR = "#ffffff";
   const UNTYPED_COLOR = colors.untyped;
 
+  const wordUnderlineStatus = useMemo(() => {
+    const status: Record<number, boolean> = {};
+    
+    words.forEach((originalWord, idx) => {
+      const typedWord = typedWords[idx] || "";
+      const isCurrentWord = idx === currentWordIndex;
+      
+      if (isCurrentWord) return;
+      
+      if (typedWord.length > 0) {
+        const hasErrors = typedWord.split("").some((char, i) => char !== originalWord[i]);
+        const isIncomplete = typedWord.length < originalWord.length;
+        
+        if (hasErrors || isIncomplete) {
+          status[idx] = true;
+        }
+      }
+    });
+    
+    return status;
+  }, [typedWords, words, currentWordIndex]);
+
   const renderWord = (word: string, globalWordIndex: number) => {
     const typedWord = typedWords[globalWordIndex] || "";
-    
     const isCurrentWord = globalWordIndex === currentWordIndex;
     const isPastWord = globalWordIndex < currentWordIndex;
     const isUntyped = globalWordIndex > currentWordIndex;
 
+    const hasErrorOrUntyped = wordUnderlineStatus[globalWordIndex] === true;
+
     return (
-      <span
-        key={globalWordIndex}
-        style={{
-          display: "inline",
-          position: "relative",
-          marginRight: "0.6em",
-          color: isUntyped ? UNTYPED_COLOR : CORRECT_COLOR,
-          transition: "color 0.07s ease",
-          borderBottom: isCurrentWord && !isFinished ? `2px solid ${colors.cursor}` : "none",
+      <span 
+        key={globalWordIndex} 
+        style={{ 
+          display: "inline-block", 
+          position: "relative", 
+          marginRight: "16px", 
+          color: isUntyped ? UNTYPED_COLOR : CORRECT_COLOR, 
+          transition: "color 0.2s ease",
+          borderBottom: hasErrorOrUntyped ? `3px solid ${ERROR_COLOR}` : "none",
         }}
       >
         {word.split("").map((char, charIndex) => {
           const isTyped = charIndex < typedWord.length;
           const isCurrentChar = isCurrentWord && charIndex === typedWord.length;
-          const isCorrect = isTyped && typedWord[charIndex] === char;
           const isError = isTyped && typedWord[charIndex] !== char;
-
           let charColor = UNTYPED_COLOR;
-          
           if (isPastWord || isCurrentWord) {
-            if (isError) {
-              charColor = ERROR_COLOR;
-            } else if (isCorrect) {
-              charColor = CORRECT_COLOR;
-            } else {
-              charColor = UNTYPED_COLOR;
-            }
+            if (isError) charColor = ERROR_COLOR;
+            else if (isTyped) charColor = CORRECT_COLOR;
           }
-
           return (
-            <span
-              key={charIndex}
-              style={{
-                position: "relative",
-                color: charColor,
-                transition: "color 0.07s ease",
-              }}
-            >
-              {isCurrentChar && isFocused && !isFinished && (
-                <span
-                  style={{
-                    position: "absolute",
-                    bottom: "3px",
-                    left: 0,
-                    width: "100%",
-                    height: "2.5px",
-                    backgroundColor: colors.cursor,
-                    borderRadius: "2px",
-                  }}
-                />
+            <span key={charIndex} style={{ position: "relative", color: charColor, transition: "color 0.1s ease", display: "inline-block" }}>
+              {isCurrentChar && isFocused && !isFinished && showCursor && (
+                <span style={{ position: "absolute", bottom: "0", left: "0", width: "4px", height: "1.3em", backgroundColor: colors.cursor, borderRadius: "3px", transition: "all 0.15s cubic-bezier(0.4, 0, 0.2, 1)", animation: showCursor ? "cursorBlink 1s ease-in-out infinite" : "none" }} />
               )}
               {char}
             </span>
@@ -280,100 +291,19 @@ export function TypingDisplay({
   };
 
   return (
-    <div
-      onClick={focusInput}
-      style={{
-        cursor: "text",
-        position: "relative",
-        width: "100%",
-        maxWidth,
-        margin: "0 auto",
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
+    <div onClick={focusInput} style={{ cursor: "text", position: "relative", width: "100%", maxWidth, margin: "0 auto", display: "flex", justifyContent: "center", padding: "20px", boxSizing: "border-box" }}>
+      <style>{`@keyframes cursorBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.3; } }`}</style>
       {!isFocused && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 10,
-            gap: "8px",
-            backgroundColor: "rgba(43,45,49,0.4)",
-            backdropFilter: "blur(6px)",
-            borderRadius: "8px",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.72rem",
-              color: "rgba(224,224,224,0.35)",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-            }}
-          >
-            кликните для фокуса
-          </span>
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, gap: "8px", backgroundColor: "rgba(43,45,49,0.4)", backdropFilter: "blur(6px)", borderRadius: "8px", transition: "opacity 0.3s ease" }}>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "14px", color: "rgba(224,224,224,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>кликните для фокуса</span>
         </div>
       )}
-
-      <div
-        style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize,
-          lineHeight,
-          letterSpacing: "0.03em",
-          userSelect: "none",
-          filter: isFocused ? "none" : "blur(6px)",
-          transition: "filter 0.25s ease",
-          pointerEvents: "none",
-          textAlign: "center",
-        }}
-      >
-        {line1Words.length > 0 && (
-          <div style={{ marginBottom: "0.3em", opacity: 0.5 }}>
-            {line1Words.map((word, i) => renderWord(word, line1Start + i))}
-          </div>
-        )}
-        
-        {line2Words.length > 0 && (
-          <div style={{ marginBottom: "0.3em" }}>
-            {line2Words.map((word, i) => renderWord(word, line2Start + i))}
-          </div>
-        )}
-        
-        {line3Words.length > 0 && (
-          <div style={{ opacity: 0.5 }}>
-            {line3Words.map((word, i) => renderWord(word, line3Start + i))}
-          </div>
-        )}
+      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, lineHeight, letterSpacing: "0", userSelect: "none", filter: isFocused ? "none" : "blur(6px)", transition: "filter 0.3s ease", pointerEvents: "none", textAlign: "center" }}>
+        {line1Words.length > 0 && (<div style={{ marginBottom: "20px", opacity: 0.5, whiteSpace: "nowrap" }}>{line1Words.map((word, i) => renderWord(word, line1Start + i))}</div>)}
+        {line2Words.length > 0 && (<div style={{ marginBottom: "20px", whiteSpace: "nowrap" }}>{line2Words.map((word, i) => renderWord(word, line2Start + i))}</div>)}
+        {line3Words.length > 0 && (<div style={{ opacity: 0.5, whiteSpace: "nowrap" }}>{line3Words.map((word, i) => renderWord(word, line3Start + i))}</div>)}
       </div>
-
-      <input
-        ref={inputRef}
-        value={typed}
-        onChange={(e) => onType(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        style={{
-          position: "absolute",
-          opacity: 0,
-          pointerEvents: "none",
-          width: "1px",
-          height: "1px",
-          top: 0,
-          left: 0,
-        }}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="off"
-        spellCheck={false}
-      />
+      <input ref={inputRef} value={typed} onChange={(e) => onType(e.target.value)} onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)} style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: "1px", height: "1px", top: 0, left: 0 }} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
     </div>
   );
 }

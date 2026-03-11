@@ -1,8 +1,6 @@
-import { useState,  useCallback } from "react";
+import { useState, useCallback } from "react";
 import { RotateCcw, SkipForward, MoreHorizontal, ChevronDown } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
-
-// app/pages/PracticeMode.tsx
 
 const WORD_POOL = [
   // Основные глаголы
@@ -11,7 +9,6 @@ const WORD_POOL = [
   "seem", "feel", "try", "leave", "call", "good", "new", "first", "last", "long",
   "great", "little", "own", "other", "old", "right", "big", "high", "different", "small",
   "large", "next", "early", "young", "important", "few", "public", "bad", "same", "able",
-  
   // Существительные
   "time", "person", "year", "way", "day", "thing", "man", "world", "life", "hand",
   "part", "child", "eye", "woman", "place", "work", "week", "case", "point", "government",
@@ -22,7 +19,6 @@ const WORD_POOL = [
   "body", "information", "back", "parent", "face", "others", "level", "office", "door", "health",
   "person", "art", "war", "history", "party", "result", "change", "morning", "reason", "research",
   "girl", "guy", "moment", "air", "teacher", "force", "education", "foot", "boy", "age",
-  
   // Прилагательные
   "about", "above", "after", "again", "against", "all", "almost", "alone", "along", "already",
   "also", "although", "always", "among", "another", "any", "anybody", "anyone", "anything", "anywhere",
@@ -49,7 +45,6 @@ const WORD_POOL = [
   "where", "whereafter", "whereas", "whereby", "wherein", "wheresoever", "whereupon", "wherever", "whether", "which",
   "while", "whither", "who", "whoever", "whole", "whom", "whomever", "whomsoever", "whose", "whosoever",
   "why", "will", "willing", "wish", "with", "within", "without", "won", "wonder", "would",
-  
   // Дополнительные слова для разнообразия
   "practice", "typing", "speed", "accuracy", "keyboard", "fingers", "learn", "skill", "fast", "quick",
   "brown", "fox", "jumps", "over", "lazy", "dog", "hello", "world", "computer", "software",
@@ -295,7 +290,6 @@ const WORD_POOL = [
   "routs", "routing", "routed", "route", "router", "routes", "routing", "rout", "routs", "routed",
   "routing", "route", "router", "routes", "routing", "rout", "routs", "routed", "routing", "route",
 ];
-
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS: (number | "infinity")[] = [10, 25, 50, 100, "infinity"];
 
@@ -317,243 +311,75 @@ interface FloatingStatProps {
   muted?: boolean;
 }
 
-function FloatingStat({
-  value,
-  label,
-  color,
-  labelColor,
-  size = "xl",
-  align = "left",
-  muted = false,
-}: FloatingStatProps) {
+function FloatingStat({ value, label, color, labelColor, size = "xl", align = "left", muted = false }: FloatingStatProps) {
   const fontSize = size === "xl" ? "5rem" : size === "lg" ? "3.2rem" : "2rem";
-
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: align === "right" ? "flex-end" : "flex-start",
-        gap: "2px",
-        opacity: muted ? 0.18 : 1,
-        transition: "opacity 0.4s ease",
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize,
-          fontWeight: 200,
-          color,
-          lineHeight: 1,
-          letterSpacing: "-0.04em",
-          transition: "color 0.3s",
-        }}
-      >
-        {value}
-      </span>
-      <span
-        style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: "0.6rem",
-          color: labelColor || "rgba(224,224,224,0.25)",
-          letterSpacing: "0.2em",
-          textTransform: "uppercase",
-        }}
-      >
-        {label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label === "words" ? "слов" : label}
-      </span>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: align === "right" ? "flex-end" : "flex-start", gap: "2px", opacity: muted ? 0.18 : 1, transition: "opacity 0.4s ease" }}>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, fontWeight: 200, color, lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{value}</span>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: labelColor || "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label === "words" ? "слов" : label}</span>
     </div>
   );
 }
 
-interface ResultOverlayProps {
-  wpm: number;
+interface ResultOverlayProps { 
+  wpm: number; 
   accuracy: number;
-  onRestart: () => void;
+  rawWpm: number;
+  consistency: number;
+  errorCount: number;
+  onRestart: () => void; 
 }
 
-function ResultOverlay({ wpm, accuracy, onRestart }: ResultOverlayProps) {
+function ResultOverlay({ wpm, accuracy, rawWpm, consistency, errorCount, onRestart }: ResultOverlayProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "40px",
-        animation: "fadeUp 0.5s ease forwards",
-      }}
-    >
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "40px", animation: "fadeUp 0.5s ease forwards" }}>
+      <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      
+      {/* Основные показатели */}
       <div style={{ display: "flex", alignItems: "flex-end", gap: "60px" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "7rem", fontWeight: 200, color: "#ff6b35", lineHeight: 1, letterSpacing: "-0.04em" }}>
-            {wpm}
-          </div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.65rem", color: "rgba(255,107,53,0.4)", letterSpacing: "0.25em", textTransform: "uppercase", marginTop: "6px" }}>
-            слов/мин
-          </div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "7rem", fontWeight: 200, color: "#ff6b35", lineHeight: 1, letterSpacing: "-0.04em" }}>{wpm}</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.65rem", color: "rgba(255,107,53,0.4)", letterSpacing: "0.25em", textTransform: "uppercase", marginTop: "6px" }}>wpm</div>
         </div>
         <div style={{ textAlign: "center", paddingBottom: "12px" }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "3.5rem", fontWeight: 200, color: "#e0e0e0", lineHeight: 1, letterSpacing: "-0.04em" }}>
-            {accuracy}%
-          </div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(224,224,224,0.25)", letterSpacing: "0.25em", textTransform: "uppercase", marginTop: "6px" }}>
-            точн
-          </div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "3.5rem", fontWeight: 200, color: "#e0e0e0", lineHeight: 1, letterSpacing: "-0.04em" }}>{accuracy}%</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(224,224,224,0.25)", letterSpacing: "0.25em", textTransform: "uppercase", marginTop: "6px" }}>acc</div>
         </div>
       </div>
-
-      <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+      
+      {/* Дополнительная статистика */}
+      <div style={{ display: "flex", gap: "40px", marginTop: "20px" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "1.3rem", fontWeight: 300, color: "rgba(224,224,224,0.4)", lineHeight: 1 }}>
-            {Math.round(wpm * 1.08)}
-          </div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "4px" }}>
-            чистая
-          </div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "2rem", fontWeight: 200, color: "rgba(224,224,224,0.6)", lineHeight: 1 }}>{rawWpm}</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(224,224,224,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "6px" }}>raw</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "1.3rem", fontWeight: 300, color: "rgba(224,224,224,0.4)", lineHeight: 1 }}>
-            {Math.min(99, 80 + Math.floor(Math.random() * 18))}%
-          </div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "4px" }}>
-            стабильность
-          </div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "2rem", fontWeight: 200, color: "rgba(224,224,224,0.6)", lineHeight: 1 }}>{consistency}%</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(224,224,224,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "6px" }}>consistency</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "1.3rem", fontWeight: 300, color: accuracy < 95 ? "rgba(255,107,53,0.6)" : "rgba(224,224,224,0.4)", lineHeight: 1 }}>
-            {Math.floor((100 - accuracy) * 0.8)}
-          </div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "4px" }}>
-            ошибки
-          </div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "2rem", fontWeight: 200, color: "#ff6b35", lineHeight: 1 }}>{errorCount}</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(255,107,53,0.3)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "6px" }}>errors</div>
         </div>
       </div>
-
-      <button
-        onClick={onRestart}
-        style={{
-          background: "none",
-          border: "1px solid rgba(255,107,53,0.25)",
-          borderRadius: "10px",
-          padding: "10px 28px",
-          color: "rgba(255,107,53,0.7)",
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: "0.75rem",
-          letterSpacing: "0.15em",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          transition: "all 0.2s",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,53,0.6)";
-          (e.currentTarget as HTMLButtonElement).style.color = "#ff6b35";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,53,0.25)";
-          (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,107,53,0.7)";
-        }}
-      >
-        <RotateCcw size={13} />
-        новый тест
+      
+      <button onClick={onRestart} style={{ background: "none", border: "1px solid rgba(255,107,53,0.25)", borderRadius: "10px", padding: "10px 28px", color: "rgba(255,107,53,0.7)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", letterSpacing: "0.15em", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s" }} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,53,0.6)"; (e.currentTarget as HTMLButtonElement).style.color = "#ff6b35"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,53,0.25)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,107,53,0.7)"; }}>
+        <RotateCcw size={13} /> new test
       </button>
-
-      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(224,224,224,0.12)", letterSpacing: "0.15em" }}>
-        tab — заново
-      </span>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(224,224,224,0.12)", letterSpacing: "0.15em" }}>tab - restart</span>
     </div>
   );
 }
 
 function ModeToggle({ mode, onChange, disabled }: { mode: "time" | "words"; onChange: (m: "time" | "words") => void; disabled?: boolean }) {
   return (
-    <div
-      style={{
-        position: "relative",
-        display: "flex",
-        width: "160px",
-        height: "38px",
-        backgroundColor: "rgba(255, 255, 255, 0.04)",
-        border: "1px solid rgba(255, 255, 255, 0.06)",
-        borderRadius: "99px",
-        padding: "4px",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.5 : 1,
-        userSelect: "none",
-        flexShrink: 0,
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: "4px",
-          left: mode === "time" ? "4px" : "calc(50% + 0px)",
-          width: "calc(50% - 4px)",
-          height: "30px",
-          backgroundColor: "rgb(255, 107, 53)",
-          borderRadius: "99px",
-          transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          zIndex: 0,
-        }}
-      />
-      
-      <div
-        onClick={() => !disabled && onChange("time")}
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1,
-          cursor: "pointer",
-          pointerEvents: disabled ? "none" : "auto",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            color: mode === "time" ? "#171717" : "rgba(255, 255, 255, 0.4)",
-            transition: "color 0.3s ease",
-          }}
-        >
-          время
-        </span>
+    <div style={{ position: "relative", display: "flex", width: "160px", height: "38px", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1, userSelect: "none", flexShrink: 0 }}>
+      <div style={{ position: "absolute", top: "4px", left: mode === "time" ? "4px" : "calc(50% + 0px)", width: "calc(50% - 4px)", height: "30px", backgroundColor: "rgb(255, 107, 53)", borderRadius: "99px", transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)", zIndex: 0 }} />
+      <div onClick={() => !disabled && onChange("time")} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1, cursor: "pointer", pointerEvents: disabled ? "none" : "auto" }}>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", fontWeight: 600, color: mode === "time" ? "#171717" : "rgba(255, 255, 255, 0.4)", transition: "color 0.3s ease" }}>время</span>
       </div>
-      
-      <div
-        onClick={() => !disabled && onChange("words")}
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1,
-          cursor: "pointer",
-          pointerEvents: disabled ? "none" : "auto",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            color: mode === "words" ? "#171717" : "rgba(255, 255, 255, 0.4)",
-            transition: "color 0.3s ease",
-          }}
-        >
-          слова
-        </span>
+      <div onClick={() => !disabled && onChange("words")} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1, cursor: "pointer", pointerEvents: disabled ? "none" : "auto" }}>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", fontWeight: 600, color: mode === "words" ? "#171717" : "rgba(255, 255, 255, 0.4)", transition: "color 0.3s ease" }}>слова</span>
       </div>
     </div>
   );
@@ -565,46 +391,21 @@ export function PracticeMode() {
   const [wordLimit, setWordLimit] = useState<number | "infinity">("infinity");
   const [showMenu, setShowMenu] = useState(false);
   const [text, setText] = useState(() => generateText(1000));
-
-  const { typed, wpm, accuracy, timeLeft, wordsLeft, isActive, isFinished, handleType, reset } = useTyping(text, {
-    mode,
-    timeLimit,
-    wordLimit: wordLimit === "infinity" ? 999999 : wordLimit,
-  });
+  
+  const { typed, wpm, accuracy, rawWpm, consistency, errorCount, timeLeft, wordsLeft, isActive, isFinished, handleType, reset } = useTyping(text, { mode, timeLimit, wordLimit: wordLimit === "infinity" ? 999999 : wordLimit });
 
   const handleTypeWithExpand = useCallback((val: string) => {
     handleType(val);
-    
     if (val.length > text.length * 0.8 && wordLimit === "infinity") {
       const newWords = generateText(100);
       setText((prev) => prev + " " + newWords);
     }
   }, [handleType, text.length, wordLimit]);
 
-  const handleRestart = () => {
-    setText(generateText(wordLimit === "infinity" ? 1000 : wordLimit));
-    reset();
-  };
-
-  const handleModeChange = (newMode: "time" | "words") => { 
-    setText(generateText(newMode === "words" && wordLimit !== "infinity" ? wordLimit : 1000));
-    setMode(newMode); 
-    reset(); 
-  };
-
-  const handleTimeChange = (s: number) => { 
-    setText(generateText(200));
-    setTimeLimit(s); 
-    setShowMenu(false); 
-    reset(); 
-  };
-
-  const handleWordChange = (w: number | "infinity") => { 
-    setText(generateText(w === "infinity" ? 1000 : w));
-    setWordLimit(w); 
-    setShowMenu(false); 
-    reset(); 
-  };
+  const handleRestart = () => { setText(generateText(wordLimit === "infinity" ? 1000 : wordLimit)); reset(); };
+  const handleModeChange = (newMode: "time" | "words") => { setText(generateText(newMode === "words" && wordLimit !== "infinity" ? wordLimit : 1000)); setMode(newMode); reset(); };
+  const handleTimeChange = (s: number) => { setText(generateText(200)); setTimeLimit(s); setShowMenu(false); reset(); };
+  const handleWordChange = (w: number | "infinity") => { setText(generateText(w === "infinity" ? 1000 : w)); setWordLimit(w); setShowMenu(false); reset(); };
 
   const timerColor = mode === "time" && timeLeft <= 5 && isActive ? "#ff4444" : "rgba(224,224,224,0.85)";
   const currentOptions = mode === "time" ? TIME_OPTIONS : WORD_OPTIONS;
@@ -612,66 +413,20 @@ export function PracticeMode() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
-      
       {!isFinished ? (
         <>
           <div style={{ position: "fixed", top: "11px", right: "110px", display: "flex", alignItems: "center", gap: "8px", zIndex: 99999 }}>
             <ModeToggle mode={mode} onChange={handleModeChange} disabled={isActive} />
-            
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                backgroundColor: "rgba(255, 255, 255, 0.04)",
-                border: "1px solid rgba(255, 255, 255, 0.06)",
-                borderRadius: "99px",
-                padding: "4px 12px",
-                cursor: isActive ? "not-allowed" : "pointer",
-                opacity: isActive ? 0.5 : 1,
-                gap: "8px",
-                height: "38px",
-                minWidth: "90px",
-                justifyContent: "space-between",
-                flexShrink: 0,
-              }}
-              onClick={() => !isActive && setShowMenu(!showMenu)}
-            >
-              <span style={{ 
-                fontFamily: "'JetBrains Mono', monospace", 
-                fontSize: "0.75rem", 
-                fontWeight: 600,
-                color: "rgba(224,224,224,0.6)",
-                minWidth: "50px",
-                textAlign: "right",
-              }}>
-                {mode === "time" ? `${timeLimit}s` : wordLimit === "infinity" ? "∞" : `${wordLimit}`}
-              </span>
+            <div style={{ display: "flex", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px 12px", cursor: isActive ? "not-allowed" : "pointer", opacity: isActive ? 0.5 : 1, gap: "8px", height: "38px", minWidth: "90px", justifyContent: "space-between", flexShrink: 0 }} onClick={() => !isActive && setShowMenu(!showMenu)}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", fontWeight: 600, color: "rgba(224,224,224,0.6)", minWidth: "50px", textAlign: "right" }}>{mode === "time" ? `${timeLimit}s` : wordLimit === "infinity" ? "∞" : `${wordLimit}`}</span>
               <ChevronDown size={14} style={{ color: "rgba(224,224,224,0.3)", flexShrink: 0 }} />
             </div>
-
             {showMenu && !isActive && (
               <>
                 <div onClick={() => setShowMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 99998 }} />
                 <div style={{ position: "absolute", top: "100%", right: "0", backgroundColor: "#1e2028", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", padding: "6px", zIndex: 99999, minWidth: "120px" }}>
                   {currentOptions.map((opt) => (
-                    <button
-                      key={String(opt)}
-                      onClick={() => mode === "time" ? handleTimeChange(opt as number) : handleWordChange(opt as number | "infinity")}
-                      style={{
-                        display: "block",
-                        width: "100%",
-                        padding: "8px 16px",
-                        background: "none",
-                        border: "none",
-                        borderRadius: "6px",
-                        color: opt === currentValue ? "#ff6b35" : "rgba(224,224,224,0.4)",
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: "0.75rem",
-                        cursor: "pointer",
-                        textAlign: "right",
-                        backgroundColor: opt === currentValue ? "rgba(255,107,53,0.07)" : "transparent",
-                      }}
-                    >
+                    <button key={String(opt)} onClick={() => mode === "time" ? handleTimeChange(opt as number) : handleWordChange(opt as number | "infinity")} style={{ display: "block", width: "100%", padding: "8px 16px", background: "none", border: "none", borderRadius: "6px", color: opt === currentValue ? "#ff6b35" : "rgba(224,224,224,0.4)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", cursor: "pointer", textAlign: "right", backgroundColor: opt === currentValue ? "rgba(255,107,53,0.07)" : "transparent" }}>
                       {mode === "time" ? `${opt}s` : opt === "infinity" ? "∞" : opt}
                     </button>
                   ))}
@@ -680,62 +435,47 @@ export function PracticeMode() {
             )}
           </div>
 
-          <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
-            <FloatingStat value={wpm} label="wpm" color="#ff6b35" labelColor="rgba(255,107,53,0.35)" size="xl" muted={!isActive} />
-          </div>
-          <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
-            <FloatingStat value={`${accuracy}%`} label="acc" color="rgba(224,224,224,0.55)" size="lg" muted={!isActive} />
-          </div>
-          <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}>
-            <FloatingStat
-              value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)}
-              label={mode === "time" ? "sec" : "words"}
-              color={timerColor}
-              size="xl"
-              align="right"
-              muted={!isActive}
-            />
-          </div>
+          <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}><FloatingStat value={wpm} label="wpm" color="#ff6b35" labelColor="rgba(255,107,53,0.35)" size="xl" muted={!isActive} /></div>
+          <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}><FloatingStat value={`${accuracy}%`} label="acc" color="rgba(224,224,224,0.55)" size="lg" muted={!isActive} /></div>
+          <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}><FloatingStat value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)} label={mode === "time" ? "sec" : "words"} color={timerColor} size="xl" align="right" muted={!isActive} /></div>
 
-          <div style={{ width: "100%", maxWidth: "760px", padding: "0 40px", zIndex: 5, marginTop: "20px" }}>
+          {/* ✅ КОНТЕЙНЕР БЛЮРА: широкий (760px) */}
+          <div style={{ width: "100%", maxWidth: "760px", padding: "0 40px", zIndex: 5, marginTop: "20px", margin: "0 auto" }}>
             <TypingDisplay
               text={text}
               typed={typed}
               onType={handleTypeWithExpand}
               onReset={handleRestart}
-              colors={{ 
-                correct: "rgba(224,224,224,0.9)", 
-                error: "#ff6b35", 
-                untyped: "rgba(224,224,224,0.18)", 
-                cursor: "#ff6b35", 
-                errorBg: "rgba(255,107,53,0.12)" 
+              colors={{
+                correct: "rgba(224,224,224,0.9)",
+                error: "#ff6b35",
+                untyped: "rgba(224,224,224,0.18)",
+                cursor: "#ff6b35",
+                errorBg: "rgba(255,107,53,0.12)"
               }}
               isFinished={isFinished}
-              fontSize="1.4rem"
-              lineHeight="2.7rem"
+              fontSize="36px"
+              lineHeight="40px"
+              maxWidth="350px"  // ✅ УЖЕ ПОЛЕ С ТЕКСТОМ
             />
           </div>
 
           <div style={{ position: "fixed", bottom: "40px", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: "20px", opacity: isActive ? 0 : 1, transition: "opacity 0.3s ease", pointerEvents: isActive ? "none" : "auto", zIndex: 10 }}>
-            <button onClick={handleRestart} title="Перезапустить (Tab)" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
-              <RotateCcw size={17} />
-            </button>
-            <button onClick={() => { setText(generateText(wordLimit === "infinity" ? 1000 : wordLimit)); reset(); }} title="Следующий текст" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
-              <SkipForward size={17} />
-            </button>
-            <button title="Ещё опции" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
-              <MoreHorizontal size={17} />
-            </button>
+            <button onClick={handleRestart} title="Перезапустить (Tab)" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><RotateCcw size={17} /></button>
+            <button onClick={() => { setText(generateText(wordLimit === "infinity" ? 1000 : wordLimit)); reset(); }} title="Следующий текст" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><SkipForward size={17} /></button>
+            <button title="Ещё опции" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><MoreHorizontal size={17} /></button>
           </div>
-
-          {!isActive && (
-            <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>
-              tab — заново &nbsp;·&nbsp; esc — пауза
-            </div>
-          )}
+          {!isActive && (<div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>)}
         </>
       ) : (
-        <ResultOverlay wpm={wpm} accuracy={accuracy} onRestart={handleRestart} />
+        <ResultOverlay 
+          wpm={wpm} 
+          accuracy={accuracy} 
+          rawWpm={rawWpm}
+          consistency={consistency}
+          errorCount={errorCount}
+          onRestart={handleRestart} 
+        />
       )}
     </div>
   );
