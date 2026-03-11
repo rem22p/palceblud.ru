@@ -31,6 +31,18 @@ export interface TypingColors {
   errorBg: string;
 }
 
+export interface TypingDisplayProps {
+  text: string;
+  typed: string;
+  onType: (val: string) => void;
+  onReset: () => void;
+  colors: TypingColors;
+  isFinished: boolean;
+  fontSize?: string;
+  lineHeight?: string;
+  maxWidth?: string;
+}
+
 export function useTyping(text: string, options: UseTypingOptions): TypingState {
   const { mode, timeLimit = 60, wordLimit = 25 } = options;
   
@@ -116,30 +128,10 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
       startTimeRef.current = Date.now();
     }
     
-    if (val.length < typed.length) {
-      const lastSpaceIndex = typed.lastIndexOf(' ');
-      if (val.length <= lastSpaceIndex && lastSpaceIndex > 0) {
-        const prevSpaceIndex = typed.lastIndexOf(' ', lastSpaceIndex - 1);
-        const wordStart = prevSpaceIndex + 1;
-        const wordEnd = lastSpaceIndex;
-        const typedWord = typed.substring(wordStart, wordEnd);
-        const originalWord = text.substring(wordStart, wordEnd);
-        if (typedWord === originalWord) return;
-      }
+    if (val.length <= text.length + 50) {
+      setTyped(val);
     }
-    
-    if (val.length > typed.length) {
-      const lastChar = val[val.length - 1];
-      if (lastChar === ' ') {
-        const completedCount = (typed.match(/ /g) || []).length;
-        const typedWords = typed.trimEnd() === "" ? [] : typed.trimEnd().split(" ");
-        const currentTypedWord = typedWords[completedCount] || "";
-        if (currentTypedWord.length === 0) return;
-      }
-    }
-    
-    if (val.length <= text.length) setTyped(val);
-  }, [isFinished, isActive, text.length, typed, text]);
+  }, [isFinished, isActive, text.length]);
 
   const reset = useCallback(() => {
     setTyped("");
@@ -168,22 +160,12 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   };
 }
 
-interface TypingDisplayProps {
-  text: string;
-  typed: string;
-  onType: (val: string) => void;
-  onReset: () => void;
-  colors: TypingColors;
-  isFinished: boolean;
-  fontSize?: string;
-  lineHeight?: string;
-  maxWidth?: string;
-}
-
 export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize = "36px", lineHeight = "40px", maxWidth = "400px" }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const textContainerRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
+  const [cursorPosition, setCursorPosition] = useState({ top: 0, left: 0 });
 
   const words = useMemo(() => text.split(" "), [text]);
   const completedWordsCount = (typed.match(/ /g) || []).length;
@@ -203,13 +185,83 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
   const line2Words = words.slice(line2Start, line2End);
   const line3Words = words.slice(line3Start, line3End);
 
+  // ✅ ВЫЧИСЛЯЕМ ПОЗИЦИЮ КУРСОРА
   useEffect(() => {
-    if (!isFocused || isFinished) { setShowCursor(false); return; }
+    if (!textContainerRef.current || !isFocused || isFinished) return;
+    
+    const container = textContainerRef.current;
+    const allChars = container.querySelectorAll('[data-char-index]');
+    const spaceCount = (typed.match(/ /g) || []).length;
+    
+    // ✅ Если ввели больше пробелов чем слов - курсор в конце
+    if (spaceCount >= words.length) {
+      const lastChar = allChars[allChars.length - 1] as HTMLElement;
+      if (lastChar) {
+        const rect = lastChar.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        setCursorPosition({
+          top: rect.top - containerRect.top,
+          left: rect.right - containerRect.left
+        });
+      }
+      return;
+    }
+    
+    const currentWordIndex = spaceCount;
+    const currentWord = words[currentWordIndex];
+    const typedInCurrentWord = typed.split(' ')[spaceCount] || '';
+    
+    // ✅ БЕЗ +1 для пробелов! В DOM только буквы
+    const completedCharsBefore = words.slice(0, currentWordIndex).reduce((acc: number, word: string) => {
+      return acc + word.length;
+    }, 0);
+    
+    const cursorInWord = Math.min(typedInCurrentWord.length, currentWord.length);
+    const cursorCharIndex = completedCharsBefore + cursorInWord;
+    
+    if (cursorCharIndex === 0 && allChars[0]) {
+      const firstChar = allChars[0] as HTMLElement;
+      const rect = firstChar.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      setCursorPosition({
+        top: rect.top - containerRect.top,
+        left: rect.left - containerRect.left
+      });
+      return;
+    }
+    
+    const targetChar = allChars[cursorCharIndex - 1] as HTMLElement;
+    const nextChar = allChars[cursorCharIndex] as HTMLElement;
+    
+    if (nextChar) {
+      const rect = nextChar.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      setCursorPosition({
+        top: rect.top - containerRect.top,
+        left: rect.left - containerRect.left
+      });
+    } else if (targetChar) {
+      const rect = targetChar.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      setCursorPosition({
+        top: rect.top - containerRect.top,
+        left: rect.right - containerRect.left
+      });
+    }
+  }, [typed, isFocused, isFinished, words]);
+
+  useEffect(() => {
+    if (!isFocused || isFinished) { 
+      setShowCursor(false); 
+      return; 
+    }
     const hasTypedAnything = typed.length > 0;
     if (!hasTypedAnything) {
       const cursorInterval = setInterval(() => setShowCursor(prev => !prev), 530);
       return () => clearInterval(cursorInterval);
-    } else { setShowCursor(true); }
+    } else { 
+      setShowCursor(true); 
+    }
   }, [isFocused, isFinished, typed.length]);
 
   useEffect(() => {
@@ -229,14 +281,14 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
   const wordUnderlineStatus = useMemo(() => {
     const status: Record<number, boolean> = {};
     
-    words.forEach((originalWord, idx) => {
+    words.forEach((originalWord: string, idx: number) => {
       const typedWord = typedWords[idx] || "";
       const isCurrentWord = idx === currentWordIndex;
       
       if (isCurrentWord) return;
       
       if (typedWord.length > 0) {
-        const hasErrors = typedWord.split("").some((char, i) => char !== originalWord[i]);
+        const hasErrors = typedWord.split("").some((char: string, i: number) => char !== originalWord[i]);
         const isIncomplete = typedWord.length < originalWord.length;
         
         if (hasErrors || isIncomplete) {
@@ -264,13 +316,15 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           position: "relative", 
           marginRight: "16px", 
           color: isUntyped ? UNTYPED_COLOR : CORRECT_COLOR, 
-          transition: "color 0.2s ease",
+          transition: "color 0.25s ease",
           borderBottom: hasErrorOrUntyped ? `3px solid ${ERROR_COLOR}` : "none",
         }}
       >
-        {word.split("").map((char, charIndex) => {
+        {word.split("").map((char: string, charIndex: number) => {
+          // ✅ БЕЗ +1 для пробелов!
+          const globalCharIndex = words.slice(0, globalWordIndex).reduce((acc: number, w: string) => 
+            acc + w.length, 0) + charIndex;
           const isTyped = charIndex < typedWord.length;
-          const isCurrentChar = isCurrentWord && charIndex === typedWord.length;
           const isError = isTyped && typedWord[charIndex] !== char;
           let charColor = UNTYPED_COLOR;
           if (isPastWord || isCurrentWord) {
@@ -278,32 +332,128 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
             else if (isTyped) charColor = CORRECT_COLOR;
           }
           return (
-            <span key={charIndex} style={{ position: "relative", color: charColor, transition: "color 0.1s ease", display: "inline-block" }}>
-              {isCurrentChar && isFocused && !isFinished && showCursor && (
-                <span style={{ position: "absolute", bottom: "0", left: "0", width: "4px", height: "1.3em", backgroundColor: colors.cursor, borderRadius: "3px", transition: "all 0.15s cubic-bezier(0.4, 0, 0.2, 1)", animation: showCursor ? "cursorBlink 1s ease-in-out infinite" : "none" }} />
-              )}
+            <span 
+              key={charIndex} 
+              data-char-index={globalCharIndex}
+              style={{ 
+                position: "relative", 
+                color: charColor, 
+                transition: "color 0.2s cubic-bezier(0.4, 0, 0.2, 1)", 
+                display: "inline-block",
+                willChange: "color",
+              }}
+            >
               {char}
             </span>
           );
         })}
+        {typedWord.length > word.length && (
+          <span 
+            style={{ 
+              color: ERROR_COLOR, 
+              opacity: 0.7,
+              transition: "opacity 0.2s ease",
+            }}
+          >
+            {typedWord.slice(word.length)}
+          </span>
+        )}
       </span>
     );
   };
 
   return (
-    <div onClick={focusInput} style={{ cursor: "text", position: "relative", width: "100%", maxWidth, margin: "0 auto", display: "flex", justifyContent: "center", padding: "20px", boxSizing: "border-box" }}>
+    <div 
+      onClick={focusInput} 
+      style={{ 
+        cursor: "text", 
+        position: "relative", 
+        width: "100%", 
+        maxWidth, 
+        margin: "0 auto", 
+        display: "flex", 
+        justifyContent: "center", 
+        padding: "20px", 
+        boxSizing: "border-box" 
+      }}
+    >
       <style>{`@keyframes cursorBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.3; } }`}</style>
       {!isFocused && (
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, gap: "8px", backgroundColor: "rgba(43,45,49,0.4)", backdropFilter: "blur(6px)", borderRadius: "8px", transition: "opacity 0.3s ease" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "14px", color: "rgba(224,224,224,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>кликните для фокуса</span>
         </div>
       )}
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, lineHeight, letterSpacing: "0", userSelect: "none", filter: isFocused ? "none" : "blur(6px)", transition: "filter 0.3s ease", pointerEvents: "none", textAlign: "center" }}>
-        {line1Words.length > 0 && (<div style={{ marginBottom: "20px", opacity: 0.5, whiteSpace: "nowrap" }}>{line1Words.map((word, i) => renderWord(word, line1Start + i))}</div>)}
-        {line2Words.length > 0 && (<div style={{ marginBottom: "20px", whiteSpace: "nowrap" }}>{line2Words.map((word, i) => renderWord(word, line2Start + i))}</div>)}
-        {line3Words.length > 0 && (<div style={{ opacity: 0.5, whiteSpace: "nowrap" }}>{line3Words.map((word, i) => renderWord(word, line3Start + i))}</div>)}
+      <div 
+        ref={textContainerRef}
+        style={{ 
+          fontFamily: "'JetBrains Mono', monospace", 
+          fontSize, 
+          lineHeight, 
+          letterSpacing: "0", 
+          userSelect: "none", 
+          filter: isFocused ? "none" : "blur(6px)", 
+          transition: "filter 0.3s ease", 
+          pointerEvents: "none", 
+          textAlign: "center",
+          position: "relative",
+          display: "inline-block",
+        }}
+      >
+        {line1Words.length > 0 && (
+          <div style={{ marginBottom: "20px", opacity: 0.5, whiteSpace: "nowrap" }}>
+            {line1Words.map((word: string, i: number) => renderWord(word, line1Start + i))}
+          </div>
+        )}
+        {line2Words.length > 0 && (
+          <div style={{ marginBottom: "20px", whiteSpace: "nowrap" }}>
+            {line2Words.map((word: string, i: number) => renderWord(word, line2Start + i))}
+          </div>
+        )}
+        {line3Words.length > 0 && (
+          <div style={{ opacity: 0.5, whiteSpace: "nowrap" }}>
+            {line3Words.map((word: string, i: number) => renderWord(word, line3Start + i))}
+          </div>
+        )}
+        
+        {isFocused && !isFinished && showCursor && (
+          <span
+            style={{
+              position: "absolute",
+              top: `${cursorPosition.top}px`,
+              left: `${cursorPosition.left}px`,
+              width: "4px",
+              height: "1.3em",
+              backgroundColor: colors.cursor,
+              borderRadius: "2px",
+              transition: "top 0.08s cubic-bezier(0.4, 0, 0.2, 1), left 0.08s cubic-bezier(0.4, 0, 0.2, 1)",
+              willChange: "top, left",
+              animation: "cursorBlink 1s ease-in-out infinite",
+              pointerEvents: "none",
+              zIndex: 5,
+            }}
+          />
+        )}
       </div>
-      <input ref={inputRef} value={typed} onChange={(e) => onType(e.target.value)} onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)} style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: "1px", height: "1px", top: 0, left: 0 }} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
+      <input 
+        ref={inputRef} 
+        value={typed} 
+        onChange={(e) => onType(e.target.value)} 
+        onFocus={() => setIsFocused(true)} 
+        onBlur={() => setIsFocused(false)} 
+        style={{ 
+          position: "absolute", 
+          opacity: 0, 
+          pointerEvents: "none", 
+          width: "1px", 
+          height: "1px", 
+          top: 0, 
+          left: 0 
+        }} 
+        autoComplete="off" 
+        autoCorrect="off" 
+        autoCapitalize="off" 
+        spellCheck={false} 
+      />
     </div>
   );
 }

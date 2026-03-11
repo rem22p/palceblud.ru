@@ -290,6 +290,7 @@ const WORD_POOL = [
   "routs", "routing", "routed", "route", "router", "routes", "routing", "rout", "routs", "routed",
   "routing", "route", "router", "routes", "routing", "rout", "routs", "routed", "routing", "route",
 ];
+
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS: (number | "infinity")[] = [10, 25, 50, 100, "infinity"];
 
@@ -334,8 +335,6 @@ function ResultOverlay({ wpm, accuracy, rawWpm, consistency, errorCount, onResta
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "40px", animation: "fadeUp 0.5s ease forwards" }}>
       <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-      
-      {/* Основные показатели */}
       <div style={{ display: "flex", alignItems: "flex-end", gap: "60px" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "7rem", fontWeight: 200, color: "#ff6b35", lineHeight: 1, letterSpacing: "-0.04em" }}>{wpm}</div>
@@ -346,8 +345,6 @@ function ResultOverlay({ wpm, accuracy, rawWpm, consistency, errorCount, onResta
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(224,224,224,0.25)", letterSpacing: "0.25em", textTransform: "uppercase", marginTop: "6px" }}>acc</div>
         </div>
       </div>
-      
-      {/* Дополнительная статистика */}
       <div style={{ display: "flex", gap: "40px", marginTop: "20px" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "2rem", fontWeight: 200, color: "rgba(224,224,224,0.6)", lineHeight: 1 }}>{rawWpm}</div>
@@ -362,7 +359,6 @@ function ResultOverlay({ wpm, accuracy, rawWpm, consistency, errorCount, onResta
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(255,107,53,0.3)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "6px" }}>errors</div>
         </div>
       </div>
-      
       <button onClick={onRestart} style={{ background: "none", border: "1px solid rgba(255,107,53,0.25)", borderRadius: "10px", padding: "10px 28px", color: "rgba(255,107,53,0.7)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", letterSpacing: "0.15em", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s" }} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,53,0.6)"; (e.currentTarget as HTMLButtonElement).style.color = "#ff6b35"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,53,0.25)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,107,53,0.7)"; }}>
         <RotateCcw size={13} /> new test
       </button>
@@ -439,7 +435,6 @@ export function PracticeMode() {
           <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}><FloatingStat value={`${accuracy}%`} label="acc" color="rgba(224,224,224,0.55)" size="lg" muted={!isActive} /></div>
           <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}><FloatingStat value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)} label={mode === "time" ? "sec" : "words"} color={timerColor} size="xl" align="right" muted={!isActive} /></div>
 
-          {/* ✅ КОНТЕЙНЕР БЛЮРА: широкий (760px) */}
           <div style={{ width: "100%", maxWidth: "760px", padding: "0 40px", zIndex: 5, marginTop: "20px", margin: "0 auto" }}>
             <TypingDisplay
               text={text}
@@ -456,7 +451,7 @@ export function PracticeMode() {
               isFinished={isFinished}
               fontSize="36px"
               lineHeight="40px"
-              maxWidth="350px"  // ✅ УЖЕ ПОЛЕ С ТЕКСТОМ
+              maxWidth="350px"
             />
           </div>
 
