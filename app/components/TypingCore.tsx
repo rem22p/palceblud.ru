@@ -128,10 +128,25 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
       startTimeRef.current = Date.now();
     }
     
-    if (val.length <= text.length + 50) {
+    const spaceCount = (val.match(/ /g) || []).length;
+    const typedWords = val.split(' ');
+    const currentTypedWord = typedWords[spaceCount] || '';
+    const wordsArray = text.split(' ');
+    const currentWordIndex = spaceCount;
+    
+    if (currentWordIndex < wordsArray.length) {
+      const currentWord = wordsArray[currentWordIndex];
+      const extraLetters = currentTypedWord.length - currentWord.length;
+      
+      if (extraLetters > 7) {
+        return;
+      }
+    }
+    
+    if (val.length <= text.length + 100) {
       setTyped(val);
     }
-  }, [isFinished, isActive, text.length]);
+  }, [isFinished, isActive, text]);
 
   const reset = useCallback(() => {
     setTyped("");
@@ -160,299 +175,350 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   };
 }
 
-export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize = "36px", lineHeight = "40px", maxWidth = "400px" }: TypingDisplayProps) {
+export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize = "36px", lineHeight = "40px", maxWidth = "1200px" }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const textContainerRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [showCursor, setShowCursor] = useState(true);
-  const [cursorPosition, setCursorPosition] = useState({ top: 0, left: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const words = useMemo(() => text.split(" "), [text]);
   const completedWordsCount = (typed.match(/ /g) || []).length;
-  const typedWords = useMemo(() => { const trimmed = typed.trimEnd(); return trimmed === "" ? [] : trimmed.split(" "); }, [typed]);
 
-  const wordsPerLine = 7;
-  const currentLineIndex = Math.floor(completedWordsCount / wordsPerLine);
-  
-  const line1Start = Math.max(0, (currentLineIndex - 1) * wordsPerLine);
-  const line1End = Math.min(words.length, currentLineIndex * wordsPerLine);
-  const line2Start = currentLineIndex * wordsPerLine;
-  const line2End = Math.min(words.length, (currentLineIndex + 1) * wordsPerLine);
-  const line3Start = (currentLineIndex + 1) * wordsPerLine;
-  const line3End = Math.min(words.length, (currentLineIndex + 2) * wordsPerLine);
-
-  const line1Words = words.slice(line1Start, line1End);
-  const line2Words = words.slice(line2Start, line2End);
-  const line3Words = words.slice(line3Start, line3End);
-
-  // ✅ ВЫЧИСЛЯЕМ ПОЗИЦИЮ КУРСОРА
-  useEffect(() => {
-    if (!textContainerRef.current || !isFocused || isFinished) return;
-    
-    const container = textContainerRef.current;
-    const allChars = container.querySelectorAll('[data-char-index]');
-    const spaceCount = (typed.match(/ /g) || []).length;
-    
-    // ✅ Если ввели больше пробелов чем слов - курсор в конце
-    if (spaceCount >= words.length) {
-      const lastChar = allChars[allChars.length - 1] as HTMLElement;
-      if (lastChar) {
-        const rect = lastChar.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        setCursorPosition({
-          top: rect.top - containerRect.top,
-          left: rect.right - containerRect.left
-        });
-      }
-      return;
-    }
-    
-    const currentWordIndex = spaceCount;
-    const currentWord = words[currentWordIndex];
-    const typedInCurrentWord = typed.split(' ')[spaceCount] || '';
-    
-    // ✅ БЕЗ +1 для пробелов! В DOM только буквы
-    const completedCharsBefore = words.slice(0, currentWordIndex).reduce((acc: number, word: string) => {
-      return acc + word.length;
-    }, 0);
-    
-    const cursorInWord = Math.min(typedInCurrentWord.length, currentWord.length);
-    const cursorCharIndex = completedCharsBefore + cursorInWord;
-    
-    if (cursorCharIndex === 0 && allChars[0]) {
-      const firstChar = allChars[0] as HTMLElement;
-      const rect = firstChar.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      setCursorPosition({
-        top: rect.top - containerRect.top,
-        left: rect.left - containerRect.left
-      });
-      return;
-    }
-    
-    const targetChar = allChars[cursorCharIndex - 1] as HTMLElement;
-    const nextChar = allChars[cursorCharIndex] as HTMLElement;
-    
-    if (nextChar) {
-      const rect = nextChar.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      setCursorPosition({
-        top: rect.top - containerRect.top,
-        left: rect.left - containerRect.left
-      });
-    } else if (targetChar) {
-      const rect = targetChar.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      setCursorPosition({
-        top: rect.top - containerRect.top,
-        left: rect.right - containerRect.left
-      });
-    }
-  }, [typed, isFocused, isFinished, words]);
-
-  useEffect(() => {
-    if (!isFocused || isFinished) { 
-      setShowCursor(false); 
-      return; 
-    }
-    const hasTypedAnything = typed.length > 0;
-    if (!hasTypedAnything) {
-      const cursorInterval = setInterval(() => setShowCursor(prev => !prev), 530);
-      return () => clearInterval(cursorInterval);
-    } else { 
-      setShowCursor(true); 
-    }
-  }, [isFocused, isFinished, typed.length]);
-
-  useEffect(() => {
-    const handleGlobalKey = (e: KeyboardEvent) => {
-      if (e.key === "Tab") { e.preventDefault(); onReset(); setTimeout(() => inputRef.current?.focus(), 50); }
-    };
-    window.addEventListener("keydown", handleGlobalKey);
-    return () => window.removeEventListener("keydown", handleGlobalKey);
-  }, [onReset]);
-
-  const focusInput = () => inputRef.current?.focus();
-  const currentWordIndex = completedWordsCount;
   const ERROR_COLOR = "#EF6C75";
   const CORRECT_COLOR = "#ffffff";
   const UNTYPED_COLOR = colors.untyped;
+  const CURSOR_COLOR = colors.cursor || "#ff6b35";
 
-  const wordUnderlineStatus = useMemo(() => {
-    const status: Record<number, boolean> = {};
+  const fontSizeNum = parseInt(fontSize, 10) || 36;
+  const avgCharWidth = fontSizeNum * 0.6;
+  const containerWidth = typeof maxWidth === 'string' ? parseInt(maxWidth, 10) : maxWidth || 1200;
+  const effectiveWidth = containerWidth - 40;
+
+  const distributeWordsToLines = useCallback(() => {
+    const lines: string[][] = [];
+    let currentLine: string[] = [];
+    let currentWidth = 0;
+    const wordSpacing = 16;
+    const safeWidth = effectiveWidth * 0.95;
     
-    words.forEach((originalWord: string, idx: number) => {
-      const typedWord = typedWords[idx] || "";
-      const isCurrentWord = idx === currentWordIndex;
+    for (let i = 0; i < words.length; i++) {
+      const originalWord = words[i];
+      const typedWord = typed.split(' ')[i] || "";
+      const actualLength = Math.max(originalWord.length, typedWord.length);
+      const wordWidth = actualLength * avgCharWidth + wordSpacing;
       
-      if (isCurrentWord) return;
-      
-      if (typedWord.length > 0) {
-        const hasErrors = typedWord.split("").some((char: string, i: number) => char !== originalWord[i]);
-        const isIncomplete = typedWord.length < originalWord.length;
-        
-        if (hasErrors || isIncomplete) {
-          status[idx] = true;
+      if (currentWidth + wordWidth > safeWidth) {
+        if (currentLine.length > 0) {
+          lines.push(currentLine);
         }
+        currentLine = [originalWord];
+        currentWidth = wordWidth;
+      } else {
+        currentLine.push(originalWord);
+        currentWidth += wordWidth;
       }
-    });
+    }
     
-    return status;
-  }, [typedWords, words, currentWordIndex]);
+    if (currentLine.length > 0) {
+      lines.push(currentLine);
+    }
+    
+    return lines;
+  }, [words, typed, avgCharWidth, effectiveWidth]);
 
-  const renderWord = (word: string, globalWordIndex: number) => {
-    const typedWord = typedWords[globalWordIndex] || "";
-    const isCurrentWord = globalWordIndex === currentWordIndex;
-    const isPastWord = globalWordIndex < currentWordIndex;
-    const isUntyped = globalWordIndex > currentWordIndex;
+  const allLines = useMemo(() => distributeWordsToLines(), [distributeWordsToLines]);
 
-    const hasErrorOrUntyped = wordUnderlineStatus[globalWordIndex] === true;
+  let activeLineIndex = 0;
+  let wordCount = 0;
+  for (let i = 0; i < allLines.length; i++) {
+    if (completedWordsCount < wordCount + allLines[i].length) {
+      activeLineIndex = i;
+      break;
+    }
+    wordCount += allLines[i].length;
+  }
 
+  const visibleLineStart = Math.max(0, activeLineIndex - 1);
+  const visibleLines = allLines.slice(visibleLineStart, visibleLineStart + 3);
+
+  const getLineStartIndex = (lineIndex: number) => {
+    let startIndex = 0;
+    for (let i = 0; i < visibleLineStart + lineIndex; i++) {
+      startIndex += allLines[i].length;
+    }
+    return startIndex;
+  };
+
+  const isLineCompleted = (lineIndex: number) => {
+    const globalLineIndex = visibleLineStart + lineIndex;
+    return globalLineIndex < activeLineIndex;
+  };
+
+  // ✅ ПРОВЕРКА ОШИБОК
+  const hasWordErrors = (wordIndex: number, originalWord: string) => {
+    const typedWord = typed.split(' ')[wordIndex] || "";
+    
+    if (!typedWord || typedWord.length === 0) return false;
+    
+    for (let i = 0; i < typedWord.length; i++) {
+      if (i >= originalWord.length) return true;
+      if (typedWord[i] !== originalWord[i]) return true;
+    }
+    
+    return false;
+  };
+
+  // ✅ ПОЗИЦИЯ КУРСОРА - ИСПРАВЛЕНО
+  const getCursorPosition = () => {
+    if (!isFocused || isFinished) return null;
+    
+    const typedWords = typed.split(' ');
+    const currentWordIndex = completedWordsCount;
+    const currentTypedWord = typedWords[currentWordIndex] || "";
+    
+    return {
+      wordIndex: currentWordIndex,
+      charIndex: currentTypedWord.length  // ✅ Включает лишние буквы!
+    };
+  };
+
+  const Cursor = () => (
+    <span 
+      style={{ 
+        display: "inline-block",
+        width: "3px",              // ✅ Чуть жирнее (было 2px)
+        height: "1.5em",           // ✅ Длиннее по высоте (было 1.1em)
+        backgroundColor: CURSOR_COLOR,
+        marginLeft: "1px",
+        marginRight: "-2px",       // ✅ Компенсация ширины
+        marginBottom: "-0.2em",    // ✅ Сдвиг вниз чтобы центрировать
+        borderRadius: "2px",       // ✅ Скруглённые углы (без острых краёв)
+        verticalAlign: "text-bottom",
+        animation: "cursorBlink 1s step-end infinite",
+      }}
+    />
+  );
+
+  // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ РЕНДЕРА СЛОВ
+  const renderWord = (word: string, globalIndex: number) => {
+    const typedWord = typed.split(' ')[globalIndex] || "";
+    const hasErrors = hasWordErrors(globalIndex, word);
+    const cursorPos = getCursorPosition();
+    const isCurrentWord = globalIndex === cursorPos?.wordIndex;
+    
+    // ✅ Длина для рендера = максимум из оригинала и введённого (для лишних букв)
+    const displayLength = Math.max(word.length, typedWord.length);
+    
     return (
       <span 
-        key={globalWordIndex} 
+        key={globalIndex} 
         style={{ 
-          display: "inline-block", 
-          position: "relative", 
+          display: "inline-block",
           marginRight: "16px", 
-          color: isUntyped ? UNTYPED_COLOR : CORRECT_COLOR, 
-          transition: "color 0.25s ease",
-          borderBottom: hasErrorOrUntyped ? `3px solid ${ERROR_COLOR}` : "none",
+          color: CORRECT_COLOR,
+          position: "relative",
+          boxShadow: hasErrors ? `0 -3px 0 0 ${ERROR_COLOR} inset` : "none",
         }}
       >
-        {word.split("").map((char: string, charIndex: number) => {
-          // ✅ БЕЗ +1 для пробелов!
-          const globalCharIndex = words.slice(0, globalWordIndex).reduce((acc: number, w: string) => 
-            acc + w.length, 0) + charIndex;
-          const isTyped = charIndex < typedWord.length;
-          const isError = isTyped && typedWord[charIndex] !== char;
-          let charColor = UNTYPED_COLOR;
-          if (isPastWord || isCurrentWord) {
-            if (isError) charColor = ERROR_COLOR;
-            else if (isTyped) charColor = CORRECT_COLOR;
-          }
+        {/* ✅ КУРСОРОМ В НАЧАЛЕ (позиция 0) */}
+        {isCurrentWord && cursorPos?.charIndex === 0 && isFocused && !isFinished && <Cursor />}
+        
+        {/* ✅ РЕНДЕРИМ КАЖДУЮ ПОЗИЦИЮ (буква + курсор после неё) */}
+        {Array.from({ length: displayLength }, (_, pos: number) => {
+          const originalChar = word[pos];
+          const typedChar = typedWord[pos];
+          const isTyped = pos < typedWord.length;
+          const isError = isTyped && typedChar !== originalChar;
+          const isExtra = pos >= word.length;
+          
           return (
-            <span 
-              key={charIndex} 
-              data-char-index={globalCharIndex}
-              style={{ 
-                position: "relative", 
-                color: charColor, 
-                transition: "color 0.2s cubic-bezier(0.4, 0, 0.2, 1)", 
-                display: "inline-block",
-                willChange: "color",
-              }}
-            >
-              {char}
+            <span key={`pos-${globalIndex}-${pos}`} style={{ display: "inline" }}>
+              {/* Буква */}
+              <span 
+                style={{ 
+                  color: isError ? ERROR_COLOR : isTyped ? CORRECT_COLOR : (isExtra ? ERROR_COLOR : UNTYPED_COLOR),
+                  opacity: isTyped ? 1 : 0.5,
+                  transition: "color 0.12s ease, opacity 0.12s ease",
+                }}
+              >
+                {isExtra ? typedChar : originalChar}
+              </span>
+              {/* ✅ КУРСОРОМ ПОСЛЕ ЭТОЙ БУКВЫ */}
+              {isCurrentWord && cursorPos?.charIndex === pos + 1 && isFocused && !isFinished && <Cursor />}
             </span>
           );
         })}
-        {typedWord.length > word.length && (
-          <span 
-            style={{ 
-              color: ERROR_COLOR, 
-              opacity: 0.7,
-              transition: "opacity 0.2s ease",
-            }}
-          >
-            {typedWord.slice(word.length)}
-          </span>
-        )}
       </span>
     );
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Tab" && isFinished) {
+        e.preventDefault();
+        onReset();
+      }
+    };
+    
+    if (isFinished) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [isFinished, onReset]);
+
   return (
     <div 
-      onClick={focusInput} 
+      ref={containerRef}
+      onClick={() => inputRef.current?.focus()}
       style={{ 
         cursor: "text", 
-        position: "relative", 
+        position: "relative",
         width: "100%", 
-        maxWidth, 
-        margin: "0 auto", 
-        display: "flex", 
-        justifyContent: "center", 
-        padding: "20px", 
-        boxSizing: "border-box" 
+        maxWidth,
+        margin: "0 0 0 200px",
+        padding: "20px",
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize,
+        lineHeight,
+        boxSizing: "border-box",
       }}
     >
-      <style>{`@keyframes cursorBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.3; } }`}</style>
-      {!isFocused && (
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, gap: "8px", backgroundColor: "rgba(43,45,49,0.4)", backdropFilter: "blur(6px)", borderRadius: "8px", transition: "opacity 0.3s ease" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "14px", color: "rgba(224,224,224,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>кликните для фокуса</span>
+      {/* ✅ АНИМАЦИЯ КУРСОРА */}
+      <style>{`
+        @keyframes cursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+      `}</style>
+      
+      {!isFocused && !isFinished && (
+        <div style={{ 
+          position: "absolute", 
+          inset: 0, 
+          display: "flex", 
+          flexDirection: "column", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          zIndex: 10, 
+          gap: "8px", 
+          backgroundColor: "rgba(43,45,49,0.4)", 
+          backdropFilter: "blur(6px)", 
+          borderRadius: "8px", 
+          transition: "opacity 0.3s ease" 
+        }}>
+          <span style={{ 
+            fontFamily: "'JetBrains Mono', monospace", 
+            fontSize: "14px", 
+            color: "rgba(224,224,224,0.35)", 
+            letterSpacing: "0.2em", 
+            textTransform: "uppercase" 
+          }}>
+            кликните для фокуса
+          </span>
         </div>
       )}
+      
       <div 
-        ref={textContainerRef}
         style={{ 
-          fontFamily: "'JetBrains Mono', monospace", 
-          fontSize, 
-          lineHeight, 
-          letterSpacing: "0", 
-          userSelect: "none", 
-          filter: isFocused ? "none" : "blur(6px)", 
-          transition: "filter 0.3s ease", 
-          pointerEvents: "none", 
-          textAlign: "center",
-          position: "relative",
-          display: "inline-block",
+          opacity: isFocused || isFinished ? 1 : 0.5, 
+          transition: "opacity 0.3s",
+          filter: isFocused || isFinished ? "none" : "blur(6px)",
         }}
       >
-        {line1Words.length > 0 && (
-          <div style={{ marginBottom: "20px", opacity: 0.5, whiteSpace: "nowrap" }}>
-            {line1Words.map((word: string, i: number) => renderWord(word, line1Start + i))}
-          </div>
-        )}
-        {line2Words.length > 0 && (
-          <div style={{ marginBottom: "20px", whiteSpace: "nowrap" }}>
-            {line2Words.map((word: string, i: number) => renderWord(word, line2Start + i))}
-          </div>
-        )}
-        {line3Words.length > 0 && (
-          <div style={{ opacity: 0.5, whiteSpace: "nowrap" }}>
-            {line3Words.map((word: string, i: number) => renderWord(word, line3Start + i))}
+        {visibleLines[0] && (
+          <div style={{ 
+            height: lineHeight,
+            marginBottom: "20px", 
+            width: "100%",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            opacity: isLineCompleted(0) ? 0.3 : 1,
+            transition: "opacity 0.3s",
+          }}>
+            {visibleLines[0].map((word: string, i: number) => 
+              renderWord(word, getLineStartIndex(0) + i)
+            )}
           </div>
         )}
         
-        {isFocused && !isFinished && showCursor && (
-          <span
-            style={{
-              position: "absolute",
-              top: `${cursorPosition.top}px`,
-              left: `${cursorPosition.left}px`,
-              width: "4px",
-              height: "1.3em",
-              backgroundColor: colors.cursor,
-              borderRadius: "2px",
-              transition: "top 0.08s cubic-bezier(0.4, 0, 0.2, 1), left 0.08s cubic-bezier(0.4, 0, 0.2, 1)",
-              willChange: "top, left",
-              animation: "cursorBlink 1s ease-in-out infinite",
-              pointerEvents: "none",
-              zIndex: 5,
-            }}
-          />
+        {visibleLines[1] && (
+          <div style={{ 
+            height: lineHeight,
+            marginBottom: "20px", 
+            width: "100%",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            opacity: 1,
+          }}>
+            {visibleLines[1].map((word: string, i: number) => 
+              renderWord(word, getLineStartIndex(1) + i)
+            )}
+          </div>
+        )}
+        
+        {visibleLines[2] && (
+          <div style={{ 
+            height: lineHeight,
+            width: "100%",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            opacity: 0.5,
+          }}>
+            {visibleLines[2].map((word: string, i: number) => 
+              renderWord(word, getLineStartIndex(2) + i)
+            )}
+          </div>
         )}
       </div>
+      
+      {isFinished && (
+        <button
+          onClick={onReset}
+          style={{
+            position: "absolute",
+            bottom: "-50px",
+            left: "200px",
+            transform: "translateX(0)",
+            padding: "10px 24px",
+            background: "rgba(255,107,53,0.1)",
+            border: "1px solid rgba(255,107,53,0.3)",
+            borderRadius: "8px",
+            color: "#ff6b35",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.8rem",
+            cursor: "pointer",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,107,53,0.2)";
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,53,0.5)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,107,53,0.1)";
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,53,0.3)";
+          }}
+        >
+          Начать заново (Tab)
+        </button>
+      )}
+      
       <input 
         ref={inputRef} 
         value={typed} 
         onChange={(e) => onType(e.target.value)} 
         onFocus={() => setIsFocused(true)} 
         onBlur={() => setIsFocused(false)} 
+        disabled={isFinished}
         style={{ 
           position: "absolute", 
           opacity: 0, 
           pointerEvents: "none", 
           width: "1px", 
           height: "1px", 
-          top: 0, 
-          left: 0 
         }} 
         autoComplete="off" 
         autoCorrect="off" 
         autoCapitalize="off" 
-        spellCheck={false} 
+        spellCheck={false}
       />
     </div>
   );

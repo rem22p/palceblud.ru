@@ -435,7 +435,7 @@ export function PracticeMode() {
           <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}><FloatingStat value={`${accuracy}%`} label="acc" color="rgba(224,224,224,0.55)" size="lg" muted={!isActive} /></div>
           <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}><FloatingStat value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)} label={mode === "time" ? "sec" : "words"} color={timerColor} size="xl" align="right" muted={!isActive} /></div>
 
-          <div style={{ width: "100%", maxWidth: "760px", padding: "0 40px", zIndex: 5, marginTop: "20px", margin: "0 auto" }}>
+          <div style={{ width: "100%", maxWidth: "2000px", padding: "0 40px", zIndex: 5, marginTop: "20px", margin: "0 auto" }}>
             <TypingDisplay
               text={text}
               typed={typed}
@@ -451,7 +451,7 @@ export function PracticeMode() {
               isFinished={isFinished}
               fontSize="36px"
               lineHeight="40px"
-              maxWidth="350px"
+              maxWidth="1200px"
             />
           </div>
 
