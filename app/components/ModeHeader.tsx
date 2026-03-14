@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router";
 import { useState } from "react";
-import { Settings, X, Keyboard } from "lucide-react";
+// 1. Заменили Settings на User
+import { User, X, Keyboard } from "lucide-react";
 
 interface SettingsDropdownProps {
   isOpen: boolean;
@@ -63,15 +64,15 @@ function SettingsDropdown({
       <div
         style={{
           position: "absolute",
-          top: "calc(100% + 12px)",
-          right: 0,
+          bottom: "calc(100% + 10px)",
+          left: 0,
           zIndex: 50,
           backgroundColor: "#1e2028",
           border: "1px solid rgba(255,255,255,0.06)",
           borderRadius: "12px",
           padding: "6px",
           minWidth: "200px",
-          boxShadow: "0 24px 48px rgba(0,0,0,0.4)",
+          boxShadow: "0 -24px 48px rgba(0,0,0,0.4)",
         }}
       >
         <div
@@ -155,168 +156,226 @@ export function ModeHeader({ isActive = false }: ModeHeaderProps) {
   const accentColor = isLearning ? "#60a5fa" : "#ff6b35";
 
   return (
-    <header
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 30,
-        display: "flex",
-        alignItems: "center",
-        padding: "0 40px",
-        height: "60px",
-        opacity: isActive ? 0.25 : 1,
-        transition: "opacity 0.4s ease",
-        pointerEvents: isActive ? "none" : "auto",
-      }}
-    >
-      {/* Logo — слева */}
-      <div
+    <>
+      <header
         style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 30,
           display: "flex",
           alignItems: "center",
-          gap: "9px",
-          cursor: "pointer",
-          zIndex: 31,
+          padding: "0 40px",
+          height: "60px",
+          opacity: isActive ? 0.25 : 1,
+          transition: "opacity 0.4s ease",
+          pointerEvents: isActive ? "none" : "auto",
         }}
-        onClick={() => navigate("/")}
       >
+        {/* Logo — слева */}
         <div
           style={{
-            width: "28px",
-            height: "28px",
-            borderRadius: "7px",
-            backgroundColor: accentColor,
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            transition: "background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+            gap: "9px",
+            cursor: "pointer",
+            zIndex: 31,
           }}
+          onClick={() => navigate("/")}
         >
-          <Keyboard size={15} color="#111" strokeWidth={2.5} />
+          <div
+            style={{
+              width: "28px",
+              height: "28px",
+              borderRadius: "7px",
+              backgroundColor: accentColor,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+          >
+            <Keyboard size={15} color="#111" strokeWidth={2.5} />
+          </div>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.95rem",
+              fontWeight: 600,
+              color: "rgba(224,224,224,0.85)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            пальцеблуд.рф
+          </span>
         </div>
-        <span
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.95rem",
-            fontWeight: 600,
-            color: "rgba(224,224,224,0.85)",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          пальцеблуд.рф
-        </span>
-      </div>
 
-      {/* Mode toggle — ПО ЦЕНТРУ ЭКРАНА */}
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          alignItems: "center",
-          backgroundColor: "rgba(255,255,255,0.04)",
-          borderRadius: "99px",
-          padding: "4px",
-          border: "1px solid rgba(255,255,255,0.06)",
-          zIndex: 31,
-        }}
-      >
-        {/* Индикатор */}
+        {/* Mode toggle — ПО ЦЕНТРУ ЭКРАНА */}
         <div
           style={{
             position: "absolute",
-            left: isLearning ? "4px" : "50%",
-            top: "4px",
-            bottom: "4px",
-            width: "calc(50% - 8px)",
-            backgroundColor: isLearning ? "#60a5fa" : "#ff6b35",
-            borderRadius: "99px",
-            transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-            zIndex: 0,
-          }}
-        />
-        
-        {/* Кнопка ОБУЧЕНИЕ */}
-        <button
-          onClick={() => navigate("/learning")}
-          style={{
-            position: "relative",
-            zIndex: 1,
-            flex: 1,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.72rem",
-            letterSpacing: "0.05em",
-            padding: "6px 18px",
-            borderRadius: "99px",
-            border: "none",
-            cursor: "pointer",
-            backgroundColor: "transparent",
-            color: isLearning ? "#111" : "rgba(224,224,224,0.35)",
-            fontWeight: isLearning ? 700 : 400,
-            transition: "color 0.5s ease",
-          }}
-        >
-          обучение
-        </button>
-        
-        {/* Кнопка ПРАКТИКА */}
-        <button
-          onClick={() => navigate("/practice")}
-          style={{
-            position: "relative",
-            zIndex: 1,
-            flex: 1,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.72rem",
-            letterSpacing: "0.05em",
-            padding: "6px 18px",
-            borderRadius: "99px",
-            border: "none",
-            cursor: "pointer",
-            backgroundColor: "transparent",
-            color: isPractice ? "#111" : "rgba(224,224,224,0.35)",
-            fontWeight: isPractice ? 700 : 400,
-            transition: "color 0.5s ease",
-          }}
-        >
-          практика
-        </button>
-      </div>
-
-      {/* Settings — справа */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginLeft: "auto",
-          zIndex: 31,
-        }}
-      >
-        <button
-          onClick={() => setSettingsOpen(!settingsOpen)}
-          style={{
-            background: "none",
-            border: "none",
-            color: settingsOpen ? accentColor : "rgba(224,224,224,0.3)",
-            cursor: "pointer",
-            padding: "8px",
-            borderRadius: "8px",
+            left: "50%",
+            transform: "translateX(-50%)",
             display: "flex",
             alignItems: "center",
-            transition: "color 0.15s",
+            backgroundColor: "rgba(255,255,255,0.04)",
+            borderRadius: "99px",
+            padding: "4px",
+            border: "1px solid rgba(255,255,255,0.06)",
+            zIndex: 31,
           }}
         >
-          <Settings size={17} />
-        </button>
-        <SettingsDropdown
-          isOpen={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
-          accentColor={accentColor}
-        />
+          {/* Индикатор */}
+          <div
+            style={{
+              position: "absolute",
+              left: isLearning ? "4px" : "50%",
+              top: "4px",
+              bottom: "4px",
+              width: "calc(50% - 8px)",
+              backgroundColor: isLearning ? "#60a5fa" : "#ff6b35",
+              borderRadius: "99px",
+              transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+              zIndex: 0,
+            }}
+          />
+          
+          {/* Кнопка ОБУЧЕНИЕ */}
+          <button
+            onClick={() => navigate("/learning")}
+            style={{
+              position: "relative",
+              zIndex: 1,
+              flex: 1,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.72rem",
+              letterSpacing: "0.05em",
+              padding: "6px 18px",
+              borderRadius: "99px",
+              border: "none",
+              cursor: "pointer",
+              backgroundColor: "transparent",
+              color: isLearning ? "#111" : "rgba(224,224,224,0.35)",
+              fontWeight: isLearning ? 700 : 400,
+              transition: "color 0.5s ease",
+            }}
+          >
+            обучение
+          </button>
+          
+          {/* Кнопка ПРАКТИКА */}
+          <button
+            onClick={() => navigate("/practice")}
+            style={{
+              position: "relative",
+              zIndex: 1,
+              flex: 1,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.72rem",
+              letterSpacing: "0.05em",
+              padding: "6px 18px",
+              borderRadius: "99px",
+              border: "none",
+              cursor: "pointer",
+              backgroundColor: "transparent",
+              color: isPractice ? "#111" : "rgba(224,224,224,0.35)",
+              fontWeight: isPractice ? 700 : 400,
+              transition: "color 0.5s ease",
+            }}
+          >
+            практика
+          </button>
+        </div>
+
+        {/* КНОПКА НАСТРОЕК (СПРАВА) — Иконка заменена на User */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginLeft: "auto",
+            zIndex: 31,
+          }}
+        >
+          <button
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            style={{
+              background: "none",
+              border: "none",
+              color: settingsOpen ? accentColor : "rgba(224,224,224,0.3)",
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              transition: "color 0.15s",
+            }}
+          >
+            {/* 2. Здесь была Settings, теперь User */}
+            <User size={17} />
+          </button>
+          <SettingsDropdown
+            isOpen={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            accentColor={accentColor}
+          />
+        </div>
+      </header>
+
+      {/* НИЖНИЙ ЛЕВЫЙ УГОЛ: Настройки (Шестеренка + Меню) - ОСТАВЛЯЕМ КАК БЫЛО */}
+      {/* Если ты хочешь убрать этот блок совсем, просто удали весь div ниже */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          left: "20px",
+          zIndex: 100,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+        }}
+      >
+        <div style={{ position: "relative" }}>
+          <SettingsDropdown
+            isOpen={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            accentColor={accentColor}
+          />
+          
+          <button
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            style={{
+              background: "none",
+              border: "none",
+              color: settingsOpen ? accentColor : "rgba(224,224,224,0.3)",
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "color 0.15s, background-color 0.15s",
+              marginTop: "10px",
+              boxShadow: settingsOpen ? "0 4px 12px rgba(0,0,0,0.3)" : "none",
+              backgroundColor: settingsOpen ? "rgba(255,255,255,0.05)" : "transparent"
+            }}
+            onMouseEnter={(e) => {
+               if (!settingsOpen) {
+                  e.currentTarget.style.color = accentColor;
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)";
+               }
+            }}
+            onMouseLeave={(e) => {
+               if (!settingsOpen) {
+                  e.currentTarget.style.color = "rgba(224,224,224,0.3)";
+                  e.currentTarget.style.backgroundColor = "transparent";
+               }
+            }}
+          >
+            <User size={20} />
+          </button>
+        </div>
       </div>
-    </header>
+    </>
   );
 }
