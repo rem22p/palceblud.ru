@@ -181,7 +181,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
   const [isFocused, setIsFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // ✅ СОСТОЯНИЕ ДЛЯ АНИМАЦИИ ПЕЧАТНОЙ МАШИНКИ
   const [animProgress, setAnimProgress] = useState(0);
   const [isAnimating, setIsAnimating] = useState(showIntroAnimation);
   const [cursorTarget, setCursorTarget] = useState({ x: 0, y: 0 });
@@ -203,7 +202,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
   const effectiveWidth = containerWidth - 40;
   const lineHeightNum = parseInt(lineHeight, 10) || 40;
 
-  // ✅ РАСПРЕДЕЛЕНИЕ СЛОВ ПО СТРОКАМ
   const distributeWordsToLines = useCallback(() => {
     const lines: string[][] = [];
     let currentLine: string[] = [];
@@ -264,7 +262,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     return globalLineIndex < activeLineIndex;
   };
 
-  // ✅ ПРОВЕРКА ОШИБОК
   const hasWordErrors = (wordIndex: number, originalWord: string) => {
     const typedWord = typed.split(' ')[wordIndex] || "";
     if (!typedWord || typedWord.length === 0) return false;
@@ -275,7 +272,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     return false;
   };
 
-  // ✅ ПОЗИЦИЯ КУРСОРА (для обычного режима)
   const getCursorPosition = () => {
     if (!isFocused || isFinished) return null;
     const typedWords = typed.split(' ');
@@ -287,10 +283,8 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     };
   };
 
-  // ✅ EASING FUNCTION: easeOutQuart
   const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
 
-  // ✅ АНИМАЦИЯ КУРСОРА С requestAnimationFrame + OVERSHOOT
   useEffect(() => {
     if (!isAnimating) return;
     
@@ -303,12 +297,9 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
       const distance = Math.sqrt(dx * dx + dy * dy);
       
       if (distance > 0.1) {
-        // ✅ Overshoot: идём на 7% дальше, потом возвращаемся
         const overshoot = 1.07;
         const progress = Math.min(1, distance / (avgCharWidth * 0.5));
         const eased = easeOutQuart(progress) * overshoot;
-        
-        // ✅ Ограничиваем чтобы не улететь слишком далеко
         const clampedEased = Math.min(eased, 1.07);
         
         cursorCurrentRef.current = {
@@ -318,7 +309,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
         
         cursorRAFRef.current = requestAnimationFrame(animateCursor);
       } else {
-        // ✅ Когда почти достигли цели — плавно возвращаем overshoot
         if (Math.abs(current.x - target.x) > 0.01 || Math.abs(current.y - target.y) > 0.01) {
           cursorCurrentRef.current = {
             x: current.x + (target.x - current.x) * 0.15,
@@ -335,7 +325,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     };
   }, [cursorTarget, avgCharWidth, isAnimating]);
 
-  // ✅ АНИМАЦИЯ ПЕЧАТНОЙ МАШИНКИ — ЗАПУСК
   useEffect(() => {
     if (showIntroAnimation && !isAnimating) {
       setIsAnimating(true);
@@ -344,33 +333,29 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
       setCursorTarget({ x: 0, y: 0 });
       
       const totalChars = text.length;
-      const baseDelay = 65; // 50-80ms per letter
+      const baseDelay = 65;
       let currentIndex = 0;
       
       const animate = () => {
         if (currentIndex < totalChars) {
-          // ✅ Естественный ритм с вариациями ±15ms
           const variation = Math.random() * 30 - 15;
           const delay = Math.max(50, Math.min(80, baseDelay + variation));
           
-          // ✅ Курсор движется к СЛЕДУЮЩЕЙ позиции ПЕРЕД появлением буквы
           const nextGlobalIndex = currentIndex + 1;
-          const nextLineIndex = Math.floor(nextGlobalIndex / 40); // ~40 chars per line at 1200px
+          const nextLineIndex = Math.floor(nextGlobalIndex / 40);
           const nextCharInLine = nextGlobalIndex % 40;
           const nextX = nextCharInLine * avgCharWidth;
           const nextY = nextLineIndex * lineHeightNum;
           
           setCursorTarget({ x: nextX, y: nextY });
           
-          // ✅ Небольшая задержка перед появлением буквы (курсор уже в пути)
           setTimeout(() => {
             setAnimProgress(nextGlobalIndex);
-          }, 30); // Курсор начинает движение на 30мс раньше буквы
+          }, 30);
           
           currentIndex = nextGlobalIndex;
           animTimeoutRef.current = setTimeout(animate, delay);
         } else {
-          // ✅ Анимация завершена — плавное затухание
           setTimeout(() => {
             setIsAnimating(false);
             setAnimProgress(0);
@@ -378,7 +363,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
         }
       };
       
-      // ✅ Старт с небольшой задержкой
       animTimeoutRef.current = setTimeout(animate, 300);
     }
     
@@ -388,7 +372,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     };
   }, [showIntroAnimation, text, avgCharWidth, lineHeightNum]);
 
-  // ✅ КУРСОРОМ С ПЛАВНЫМ ДВИЖЕНИЕМ, МИГАНИЕМ 0.7/0.3 И СВЕЧЕНИЕМ
   const Cursor = ({ x, y }: { x: number; y: number }) => {
     return (
       <span 
@@ -400,22 +383,18 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           height: "1.5em",
           backgroundColor: CURSOR_COLOR,
           borderRadius: "2px",
-          // ✅ GPU-ускоренное движение
           transform: `translate3d(${x}px, ${y}px, 0)`,
           willChange: "transform",
-          // ✅ Мигание: 0.7с виден / 0.3с невидим, sharp steps(1)
           animation: "cursorBlinkTypewriter 1s steps(1) infinite",
           opacity: isFocused && !isFinished ? 1 : 0,
           pointerEvents: "none",
           zIndex: 10,
-          // ✅ Субтильное свечение
           boxShadow: `0 0 8px 2px ${CURSOR_COLOR}50, 0 0 20px 4px ${CURSOR_COLOR}20`,
         }}
       />
     );
   };
 
-  // ✅ ПОДЧЕРКИВАНИЕ С АНИМАЦИЕЙ РОСТА 150-200ms ease-out
   const WordUnderline = ({ wordIndex, lineIndex, progress }: { wordIndex: number; lineIndex: number; progress: number }) => {
     const word = words[wordIndex];
     const hasErrors = hasWordErrors(wordIndex, word);
@@ -444,7 +423,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     );
   };
 
-  // ✅ РЕНДЕР СЛОВА С АНИМАЦИЕЙ ПОЯВЛЕНИЯ БУКВ
   const renderWord = (word: string, globalIndex: number, lineIndex: number) => {
     const typedWord = typed.split(' ')[globalIndex] || "";
     const hasErrors = hasWordErrors(globalIndex, word);
@@ -454,7 +432,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     const displayLength = Math.max(word.length, typedWord.length);
     const wordStartGlobalIndex = getLineStartIndex(lineIndex);
     
-    // ✅ Прогресс подчёркивания для этого слова
     const underlineProgress = typedWord.length > 0 
       ? Math.min(1, typedWord.length / word.length) 
       : 0;
@@ -467,11 +444,9 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           marginRight: "16px", 
           color: CORRECT_COLOR,
           position: "relative",
-          // ✅ Подчёркивание через boxShadow в обычном режиме
           boxShadow: hasErrors && !isAnimating ? `0 -3px 0 0 ${ERROR_COLOR} inset` : "none",
         }}
       >
-        {/* ✅ АНИМАЦИЯ ПОДЧЕРКИВАНИЯ */}
         {!isAnimating && (
           <WordUnderline 
             wordIndex={globalIndex} 
@@ -487,16 +462,13 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           const isError = isTyped && typedChar !== originalChar;
           const isExtra = pos >= word.length;
           
-          // ✅ Глобальный индекс символа для анимации
           const globalCharIndex = wordStartGlobalIndex + pos;
           const shouldShow = !isAnimating || animProgress > globalCharIndex;
           
-          // ✅ Прогресс появления для fade-in + scale-in
           const appearProgress = isAnimating 
             ? Math.max(0, Math.min(1, (animProgress - globalCharIndex) * 2.5))
             : 1;
           
-          // ✅ Цвет буквы
           const charColor = isError 
             ? ERROR_COLOR 
             : isTyped 
@@ -508,14 +480,10 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
               <span 
                 style={{ 
                   color: charColor,
-                  // ✅ Fade-in: opacity 0 → 1
                   opacity: shouldShow ? (isTyped ? 1 : 0.5) * appearProgress : 0,
-                  // ✅ Scale-in: 0.9 → 1.0
                   transform: `scale(${0.9 + appearProgress * 0.1})`,
-                  // ✅ Плавные переходы 50-80ms
                   transition: "color 0.06s ease, opacity 0.07s ease, transform 0.07s ease",
                   display: "inline-block",
-                  // ✅ GPU-ускорение для плавности
                   willChange: "opacity, transform",
                 }}
               >
@@ -525,7 +493,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           );
         })}
         
-        {/* ✅ КУРСОРОМ ВО ВРЕМЯ АНИМАЦИИ (плавно движется) */}
         {isAnimating && (
           <Cursor 
             x={cursorCurrentRef.current.x} 
@@ -533,7 +500,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           />
         )}
         
-        {/* ✅ КУРСОРОМ В ОБЫЧНОМ РЕЖИМЕ (мгновенная позиция + плавное мигание) */}
         {!isAnimating && isCurrentWord && isFocused && !isFinished && cursorPos && (
           <Cursor 
             x={cursorPos.charIndex * avgCharWidth} 
@@ -573,12 +539,11 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
         fontSize,
         lineHeight,
         boxSizing: "border-box",
-        // ✅ Тёмный фон для профессионального вида
         backgroundColor: "",
         borderRadius: "12px",
+        minHeight: "200px",
       }}
     >
-      {/* ✅ CSS АНИМАЦИИ */}
       <style>{`
         @keyframes cursorBlink {
           0%, 100% { opacity: 1; }
@@ -590,27 +555,40 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
         }
       `}</style>
       
+      {/* ИЗМЕНЕНО: Фиксированная высота 250px и ограниченная ширина */}
       {!isFocused && !isFinished && !isAnimating && (
         <div style={{ 
-          position: "absolute", 
-          inset: 0, 
+          position: "fixed",
+          // Центрирование по середине экрана
+          top: "55%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          
+          // Размеры
+          height: "180px",       // Фиксированная высота
+          width: "100%",         // Занимает доступную ширину
+          maxWidth: "1200px",     // Но не шире 600px (чтобы было "уже")
+          
           display: "flex", 
           flexDirection: "column", 
           alignItems: "center", 
           justifyContent: "center", 
-          zIndex: 10, 
+          zIndex: 50,
           gap: "8px", 
-          backgroundColor: "rgba(43,45,49,0.6)", 
-          backdropFilter: "blur(6px)", 
-          borderRadius: "12px", 
+          
+          backgroundColor: "rgba(42, 43, 46, 0.6)", 
+          backdropFilter: "blur(12px)", 
+          WebkitBackdropFilter: "blur(12px)",
+          borderRadius: "16px",  // Скругленные углы для красоты
           transition: "opacity 0.3s ease" 
         }}>
           <span style={{ 
             fontFamily: "'JetBrains Mono', monospace", 
-            fontSize: "14px", 
-            color: "rgba(224,224,224,0.35)", 
+            fontSize: "16px", 
+            color: "rgba(224,224,224,0.8)", 
             letterSpacing: "0.2em", 
-            textTransform: "uppercase" 
+            textTransform: "uppercase",
+            textAlign: "center"
           }}>
             кликните для фокуса
           </span>

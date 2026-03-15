@@ -302,6 +302,8 @@ function generateText(wordCount: number) {
   return words.join(" ");
 }
 
+// --- ВНУТРЕННИЕ КОМПОНЕНТЫ ---
+
 interface FloatingStatProps {
   value: string | number;
   label: string;
@@ -310,12 +312,24 @@ interface FloatingStatProps {
   size?: "xl" | "lg" | "md";
   align?: "left" | "right";
   muted?: boolean;
+  scale?: number; // Новый проп для масштабирования
 }
 
-function FloatingStat({ value, label, color, labelColor, size = "xl", align = "left", muted = false }: FloatingStatProps) {
+function FloatingStat({ value, label, color, labelColor, size = "xl", align = "left", muted = false, scale = 1 }: FloatingStatProps) {
   const fontSize = size === "xl" ? "5rem" : size === "lg" ? "3.2rem" : "2rem";
+  
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: align === "right" ? "flex-end" : "flex-start", gap: "2px", opacity: muted ? 0.18 : 1, transition: "opacity 0.4s ease" }}>
+    <div style={{ 
+      display: "flex", 
+      flexDirection: "column", 
+      alignItems: align === "right" ? "flex-end" : "flex-start", 
+      gap: "2px", 
+      opacity: muted ? 0.18 : 1, 
+      transition: "opacity 0.4s ease",
+      transform: `scale(${scale})`, // Применяем масштаб
+      transformOrigin: align === "right" ? "top right" : "top left", // Точка роста от угла
+      width: "fit-content" // Чтобы не ломать верстку при увеличении
+    }}>
       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, fontWeight: 200, color, lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{value}</span>
       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: labelColor || "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label === "words" ? "слов" : label}</span>
     </div>
@@ -381,6 +395,8 @@ function ModeToggle({ mode, onChange, disabled }: { mode: "time" | "words"; onCh
   );
 }
 
+// --- ГЛАВНЫЙ КОМПОНЕНТ ---
+
 export function PracticeMode() {
   const [mode, setMode] = useState<"time" | "words">("time");
   const [timeLimit, setTimeLimit] = useState(60);
@@ -398,10 +414,32 @@ export function PracticeMode() {
     }
   }, [handleType, text.length, wordLimit]);
 
-  const handleRestart = () => { setText(generateText(wordLimit === "infinity" ? 1000 : wordLimit)); reset(); };
-  const handleModeChange = (newMode: "time" | "words") => { setText(generateText(newMode === "words" && wordLimit !== "infinity" ? wordLimit : 1000)); setMode(newMode); reset(); };
-  const handleTimeChange = (s: number) => { setText(generateText(200)); setTimeLimit(s); setShowMenu(false); reset(); };
-  const handleWordChange = (w: number | "infinity") => { setText(generateText(w === "infinity" ? 1000 : w)); setWordLimit(w); setShowMenu(false); reset(); };
+  const handleRestart = () => { 
+    const count = wordLimit === "infinity" ? 1000 : (typeof wordLimit === 'number' ? wordLimit : 25);
+    setText(generateText(count)); 
+    reset(); 
+  };
+
+  const handleModeChange = (newMode: "time" | "words") => { 
+    const count = newMode === "words" && typeof wordLimit === 'number' ? wordLimit : 1000;
+    setText(generateText(count)); 
+    setMode(newMode); 
+    reset(); 
+  };
+
+  const handleTimeChange = (s: number) => { 
+    setText(generateText(200)); 
+    setTimeLimit(s); 
+    setShowMenu(false); 
+    reset(); 
+  };
+
+  const handleWordChange = (w: number | "infinity") => { 
+    setText(generateText(w === "infinity" ? 1000 : w)); 
+    setWordLimit(w); 
+    setShowMenu(false); 
+    reset(); 
+  };
 
   const timerColor = mode === "time" && timeLeft <= 5 && isActive ? "#ff4444" : "rgba(224,224,224,0.85)";
   const currentOptions = mode === "time" ? TIME_OPTIONS : WORD_OPTIONS;
@@ -411,6 +449,7 @@ export function PracticeMode() {
     <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
       {!isFinished ? (
         <>
+          {/* Верхняя панель */}
           <div style={{ position: "fixed", top: "11px", right: "110px", display: "flex", alignItems: "center", gap: "8px", zIndex: 99999 }}>
             <ModeToggle mode={mode} onChange={handleModeChange} disabled={isActive} />
             <div style={{ display: "flex", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px 12px", cursor: isActive ? "not-allowed" : "pointer", opacity: isActive ? 0.5 : 1, gap: "8px", height: "38px", minWidth: "90px", justifyContent: "space-between", flexShrink: 0 }} onClick={() => !isActive && setShowMenu(!showMenu)}>
@@ -431,10 +470,41 @@ export function PracticeMode() {
             )}
           </div>
 
-          <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}><FloatingStat value={wpm} label="wpm" color="#ff6b35" labelColor="rgba(255,107,53,0.35)" size="xl" muted={!isActive} /></div>
-          <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}><FloatingStat value={`${accuracy}%`} label="acc" color="rgba(224,224,224,0.55)" size="lg" muted={!isActive} /></div>
-          <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}><FloatingStat value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)} label={mode === "time" ? "sec" : "words"} color={timerColor} size="xl" align="right" muted={!isActive} /></div>
+          {/* Статистика слева (Стандартный размер) */}
+          <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
+            <FloatingStat 
+              value={wpm} 
+              label="wpm" 
+              color="#ff6b35" 
+              labelColor="rgba(255,107,53,0.35)" 
+              size="xl" 
+              muted={!isActive} 
+            />
+          </div>
+          <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
+            <FloatingStat 
+              value={`${accuracy}%`} 
+              label="acc" 
+              color="rgba(224,224,224,0.55)" 
+              size="lg" 
+              muted={!isActive} 
+            />
+          </div>
 
+          {/* Статистика СПРАВА (УВЕЛИЧЕНА В 1.8 РАЗА) */}
+          <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}>
+            <FloatingStat 
+              value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)} 
+              label={mode === "time" ? "сек" : "слов"} 
+              color={timerColor} 
+              size="xl" 
+              align="right" 
+              muted={!isActive} 
+              scale={1.8} // <-- Увеличение только для этого блока
+            />
+          </div>
+
+          {/* Текст */}
           <div style={{ width: "100%", maxWidth: "2000px", padding: "0 40px", zIndex: 5, marginTop: "20px", margin: "0 auto" }}>
             <TypingDisplay
               text={text}
@@ -455,14 +525,16 @@ export function PracticeMode() {
             />
           </div>
 
+          {/* Кнопки внизу */}
           <div style={{ position: "fixed", bottom: "40px", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: "20px", opacity: isActive ? 0 : 1, transition: "opacity 0.3s ease", pointerEvents: isActive ? "none" : "auto", zIndex: 10 }}>
             <button onClick={handleRestart} title="Перезапустить (Tab)" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><RotateCcw size={17} /></button>
-            <button onClick={() => { setText(generateText(wordLimit === "infinity" ? 1000 : wordLimit)); reset(); }} title="Следующий текст" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><SkipForward size={17} /></button>
+            <button onClick={() => { setText(generateText(typeof wordLimit === 'number' ? wordLimit : 25)); reset(); }} title="Следующий текст" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><SkipForward size={17} /></button>
             <button title="Ещё опции" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><MoreHorizontal size={17} /></button>
           </div>
           {!isActive && (<div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>)}
         </>
       ) : (
+        // Результат (только статистика)
         <ResultOverlay 
           wpm={wpm} 
           accuracy={accuracy} 

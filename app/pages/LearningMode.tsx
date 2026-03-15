@@ -9,6 +9,10 @@ import {
   BookOpen,
   RotateCcw,
   Flame,
+  Trophy,
+  X,
+  Crown,
+  Medal,
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 
@@ -88,6 +92,21 @@ const LESSONS: Lesson[] = [
   },
 ];
 
+// ─── Mock Leaderboard Data ─────────────────────────────────────────────────
+
+const LEADERBOARD_DATA = [
+  { rank: 1, name: "SpeedDemon", wpm: 145, accuracy: 99, date: "2 мин. назад" },
+  { rank: 2, name: "KeyboardWarrior", wpm: 138, accuracy: 98, date: "15 мин. назад" },
+  { rank: 3, name: "TypeMaster", wpm: 132, accuracy: 100, date: "1 час назад" },
+  { rank: 4, name: "FingerNinja", wpm: 128, accuracy: 97, date: "3 часа назад" },
+  { rank: 5, name: "QuickKeys", wpm: 125, accuracy: 96, date: "5 часов назад" },
+  { rank: 6, name: "ClickClack", wpm: 120, accuracy: 98, date: "Вчера" },
+  { rank: 7, name: "FlowState", wpm: 118, accuracy: 95, date: "Вчера" },
+  { rank: 8, name: "NoErrors", wpm: 115, accuracy: 100, date: "2 дня назад" },
+  { rank: 9, name: "FastFingers", wpm: 112, accuracy: 94, date: "2 дня назад" },
+  { rank: 10, name: "TypoKing", wpm: 110, accuracy: 93, date: "3 дня назад" },
+];
+
 // ─── Step indicator ────────────────────────────────────────────────────────
 
 interface StepIndicatorProps {
@@ -98,13 +117,7 @@ interface StepIndicatorProps {
 
 function StepIndicator({ lessons, currentIndex, onSelect }: StepIndicatorProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0",
-      }}
-    >
+    <div style={{ display: "flex", alignItems: "center", gap: "0" }}>
       {lessons.map((lesson, i) => (
         <div key={lesson.id} style={{ display: "flex", alignItems: "center" }}>
           <button
@@ -166,9 +179,7 @@ function StepIndicator({ lessons, currentIndex, onSelect }: StepIndicatorProps) 
                 width: "28px",
                 height: "2px",
                 backgroundColor:
-                  i < currentIndex
-                    ? "#34d399"
-                    : "rgba(255,255,255,0.07)",
+                  i < currentIndex ? "#34d399" : "rgba(255,255,255,0.07)",
                 transition: "background-color 0.3s",
               }}
             />
@@ -241,7 +252,6 @@ function LessonCard({ lesson }: LessonCardProps) {
         {lesson.subtitle}
       </div>
 
-      {/* Key focus */}
       <div
         style={{
           display: "flex",
@@ -268,7 +278,6 @@ function LessonCard({ lesson }: LessonCardProps) {
         ))}
       </div>
 
-      {/* Target WPM */}
       <div
         style={{
           display: "flex",
@@ -332,7 +341,6 @@ function LessonComplete({
         }
       `}</style>
 
-      {/* Result icon */}
       <div
         style={{
           width: "72px",
@@ -354,7 +362,6 @@ function LessonComplete({
         )}
       </div>
 
-      {/* Title */}
       <div>
         <div
           style={{
@@ -381,7 +388,6 @@ function LessonComplete({
         </div>
       </div>
 
-      {/* Score row */}
       <div style={{ display: "flex", gap: "40px" }}>
         {[
           {
@@ -427,7 +433,6 @@ function LessonComplete({
         ))}
       </div>
 
-      {/* Actions */}
       <div style={{ display: "flex", gap: "12px" }}>
         <button
           onClick={onRetry}
@@ -480,16 +485,121 @@ function LessonComplete({
   );
 }
 
+// ─── Leaderboard Modal Component ──────────────────────────────────────────
+
+interface LeaderboardModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(4px)",
+          zIndex: 90,
+          cursor: "pointer",
+        }}
+      />
+      
+      {/* Modal Content */}
+      <div
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 100,
+          backgroundColor: "#2b2d31",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: "16px",
+          padding: "24px",
+          width: "90%",
+          maxWidth: "500px",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+          fontFamily: "'JetBrains Mono', monospace",
+          animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <h2 style={{ fontSize: "1.2rem", color: "#e0e0e0", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+            <Trophy size={20} color="#fbbf24" />
+            Рейтинг (Глобальный)
+          </h2>
+          <button
+            onClick={onClose}
+            style={{ background: "none", border: "none", color: "#666", cursor: "pointer", padding: "4px" }}
+            onMouseEnter={(e) => e.currentTarget.style.color = "#fff"}
+            onMouseLeave={(e) => e.currentTarget.style.color = "#666"}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div style={{ overflowY: "auto", maxHeight: "400px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)", color: "#666", textAlign: "left" }}>
+                <th style={{ padding: "10px", width: "50px" }}>#</th>
+                <th style={{ padding: "10px" }}>Игрок</th>
+                <th style={{ padding: "10px", textAlign: "right" }}>WPM</th>
+                <th style={{ padding: "10px", textAlign: "right" }}>Acc</th>
+                <th style={{ padding: "10px", textAlign: "right", fontSize: "0.75rem" }}>Время</th>
+              </tr>
+            </thead>
+            <tbody>
+              {LEADERBOARD_DATA.map((user) => (
+                <tr key={user.rank} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", color: "#e0e0e0" }}>
+                  <td style={{ padding: "12px 10px" }}>
+                    {user.rank === 1 ? <Crown size={16} color="#fbbf24" /> : 
+                     user.rank === 2 ? <Medal size={16} color="#9ca3af" /> : 
+                     user.rank === 3 ? <Medal size={16} color="#b45309" /> : 
+                     <span style={{ color: "#666" }}>{user.rank}</span>}
+                  </td>
+                  <td style={{ padding: "12px 10px", fontWeight: 600 }}>{user.name}</td>
+                  <td style={{ padding: "12px 10px", textAlign: "right", color: "#34d399" }}>{user.wpm}</td>
+                  <td style={{ padding: "12px 10px", textAlign: "right", color: "#60a5fa" }}>{user.accuracy}%</td>
+                  <td style={{ padding: "12px 10px", textAlign: "right", color: "#666", fontSize: "0.75rem" }}>{user.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        <div style={{ marginTop: "20px", textAlign: "center", fontSize: "0.75rem", color: "#666" }}>
+          Обновляется каждые 5 минут
+        </div>
+      </div>
+      
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translate(-50%, -40%); opacity: 0; }
+          to { transform: translate(-50%, -50%); opacity: 1; }
+        }
+      `}</style>
+    </>
+  );
+}
+
 // ─── Learning Mode Page ────────────────────────────────────────────────────
 
 export function LearningMode() {
   const [currentIndex, setCurrentIndex] = useState(2);
   const [completedLessons, setCompletedLessons] = useState<number[]>([0, 1]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const currentLesson = LESSONS[currentIndex];
 
   const { typed, wpm, accuracy, isActive, isFinished, handleType, reset } =
-    useTyping(currentLesson.text, 9999);
+    useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
 
   const handleNext = () => {
     setCompletedLessons((prev) =>
@@ -518,7 +628,7 @@ export function LearningMode() {
       className="page-transition"
       style={{
         minHeight: "100vh",
-        backgroundColor: "#1b1e2e",
+        backgroundColor: "#2b2d31",
         position: "relative",
         display: "flex",
         flexDirection: "column",
@@ -526,28 +636,35 @@ export function LearningMode() {
         justifyContent: "center",
         overflowX: "hidden",
         overflowY: "auto",
-        transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
-      {/* Ambient glow */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          backgroundImage:
-            "radial-gradient(ellipse at 15% 40%, rgba(96,165,250,0.05) 0%, transparent 55%), radial-gradient(ellipse at 85% 70%, rgba(52,211,153,0.04) 0%, transparent 55%)",
-          pointerEvents: "none",
-        }}
-      />
+      {/* Фон убран (чистый цвет) */}
 
-      {/* ── Floating Stats (ПОДНЯТЫ ВЫШЕ) ─────────────────────────────── */}
+      {/* Стили для скроллбара (без рамок) */}
+      <style>{`
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #444;
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      `}</style>
+
+      {/* ── ЛЕВАЯ СТОРОНА: Статистика ─────────────────────── */}
       
-      {/* WPM — top left */}
+      {/* WPM */}
       <div
         style={{
           position: "fixed",
-          top: "80px",
-          left: "clamp(20px, 5vw, 80px)",
+          top: "100px",
+          left: "80px",
           zIndex: 10,
         }}
       >
@@ -576,7 +693,7 @@ export function LearningMode() {
             style={{
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: "0.6rem",
-              color: "rgba(224,224,224,0.3)",
+              color: "rgba(96,165,250,0.35)",
               letterSpacing: "0.2em",
               textTransform: "uppercase",
             }}
@@ -586,12 +703,12 @@ export function LearningMode() {
         </div>
       </div>
 
-      {/* Accuracy — below WPM */}
+      {/* Accuracy */}
       <div
         style={{
           position: "fixed",
-          top: "180px",
-          left: "clamp(20px, 5vw, 80px)",
+          top: "215px",
+          left: "80px",
           zIndex: 10,
         }}
       >
@@ -612,7 +729,7 @@ export function LearningMode() {
                 accuracy >= 95
                   ? "#34d399"
                   : accuracy >= 85
-                  ? "rgba(224,224,224,0.5)"
+                  ? "rgba(224,224,224,0.55)"
                   : "rgba(248,113,113,0.7)",
               lineHeight: 1,
               letterSpacing: "-0.03em",
@@ -625,7 +742,7 @@ export function LearningMode() {
             style={{
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: "0.6rem",
-              color: "rgba(224,224,224,0.3)",
+              color: "rgba(224,224,224,0.25)",
               letterSpacing: "0.2em",
               textTransform: "uppercase",
             }}
@@ -635,34 +752,26 @@ export function LearningMode() {
         </div>
       </div>
 
-      {/* Tip — под статистикой */}
+      {/* ── ПРАВАЯ СТОРОНА: Карточка и Серия ─────────────────────── */}
+
+      {/* Lesson Card */}
       <div
         style={{
           position: "fixed",
-          top: "260px",
-          left: "clamp(20px, 5vw, 80px)",
+          top: "80px",
+          right: "clamp(20px, 5vw, 80px)",
           zIndex: 10,
-          maxWidth: "220px",
         }}
       >
-        <div
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: "0.75rem",
-            color: "rgba(224,224,224,0.4)",
-            lineHeight: 1.6,
-          }}
-        >
-          {currentLesson.tip}
-        </div>
+        <LessonCard lesson={currentLesson} />
       </div>
 
-      {/* Streak — под советом */}
+      {/* Streak */}
       <div
         style={{
           position: "fixed",
-          top: "320px",
-          left: "clamp(20px, 5vw, 80px)",
+          top: "22px",
+          right: "140px", 
           zIndex: 10,
           display: "flex",
           alignItems: "center",
@@ -681,124 +790,155 @@ export function LearningMode() {
         </span>
       </div>
 
-      {/* Lesson Card — В ПРАВЫЙ ВЕРХНИЙ УГОЛ */}
+      {/* Совет */}
       <div
         style={{
           position: "fixed",
-          top: "80px",
-          right: "clamp(20px, 5vw, 80px)",
+          bottom: "140px",
+          right: "80px",
           zIndex: 10,
+          maxWidth: "220px",
+          textAlign: "right",
         }}
       >
-        <LessonCard lesson={currentLesson} />
+        <div
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: "0.75rem",
+            color: "rgba(224,224,224,0.4)",
+            lineHeight: 1.6,
+          }}
+        >
+          {currentLesson.tip}
+        </div>
       </div>
 
-      {/* ── Main content wrapper (ПОДНЯТ ВЫШЕ) ───────────────────────── */}
+      {/* Кнопка Рейтинга (Правый нижний угол, БЕЗ РАМКИ) */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          zIndex: 20,
+        }}
+      >
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          style={{
+            background: "transparent",
+            border: "none",
+            borderRadius: "8px",
+            padding: "10px",
+            color: "rgba(224,224,224,0.5)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "#fbbf24";
+            e.currentTarget.style.background = "rgba(251,191,36,0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(224,224,224,0.5)";
+            e.currentTarget.style.background = "transparent";
+          }}
+          title="Рейтинг"
+        >
+          <Trophy size={20} />
+        </button>
+      </div>
+
+      {/* Модальное окно рейтинга */}
+      <LeaderboardModal 
+        isOpen={showLeaderboard} 
+        onClose={() => setShowLeaderboard(false)} 
+      />
+
+      {/* ── Main content wrapper (ВОЗВРАЩЕНО ИСХОДНОЕ РАСПОЛОЖЕНИЕ) ───────────────────────── */}
       <div
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
+          alignItems: "center", 
           justifyContent: "center",
           width: "100%",
-          maxWidth: "760px",
+          // Убраны лишние ограничения ширины и марджины, которые ломали верстку
           margin: "0 auto",
-          padding: "195px clamp(16px, 4vw, 40px) 160px",
+          // Возвращены стандартные отступы как в вашем примере
+          padding: "195px clamp(16px, 4vw, 40px) 160px", 
           zIndex: 5,
+          boxSizing: "border-box",
         }}
       >
-        {/* Typing area */}
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "760px",
-          }}
-        >
-          {!isFinished ? (
-            <>
-              {/* Lesson label */}
+        {!isFinished ? (
+          <>
+            <div
+              style={{
+                marginBottom: "32px",
+                opacity: isActive ? 0 : 1,
+                transition: "opacity 0.3s",
+                marginLeft: "0px", 
+              }}
+            >
               <div
                 style={{
-                  marginBottom: "32px",
-                  opacity: isActive ? 0 : 1,
-                  transition: "opacity 0.3s",
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.62rem",
+                  color: "rgba(96,165,250,0.4)",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  marginBottom: "6px",
                 }}
               >
-                <div
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: "0.62rem",
-                    color: "rgba(96,165,250,0.4)",
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    marginBottom: "6px",
-                  }}
-                >
-                  урок {currentIndex + 1} · {currentLesson.subtitle}
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: "1.5rem",
-                    fontWeight: 600,
-                    color: "rgba(224,224,224,0.7)",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {currentLesson.title}
-                </div>
+                урок {currentIndex + 1} · {currentLesson.subtitle}
               </div>
-
-              {/* Typing area */}
-              <TypingDisplay
-                text={currentLesson.text}
-                typed={typed}
-                onType={handleType}
-                onReset={handleRetry}
-                colors={{
-                  correct: "rgba(224,224,224,0.88)",
-                  error: "#f87171",
-                  untyped: "rgba(224,224,224,0.15)",
-                  cursor: "#60a5fa",
-                  errorBg: "rgba(248,113,113,0.1)",
+              <div
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: "1.5rem",
+                  fontWeight: 600,
+                  color: "rgba(224,224,224,0.7)",
+                  letterSpacing: "-0.02em",
                 }}
-                isFinished={isFinished}
-                isActive={isActive}
-                fontSize="1.3rem"
-                lineHeight="2.6rem"
-                cursorStyle="underline"
-              />
+              >
+                {currentLesson.title}
+              </div>
+            </div>
 
-              {/* Hint */}
-              {!isActive && (
-                <div
-                  style={{
-                    marginTop: "48px",
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: "0.6rem",
-                    color: "rgba(224,224,224,0.1)",
-                    letterSpacing: "0.15em",
-                  }}
-                >
-                  click text to begin &nbsp;·&nbsp; tab — restart
-                </div>
-              )}
-            </>
-          ) : (
-            <LessonComplete
-              lesson={currentLesson}
-              wpm={wpm}
-              accuracy={accuracy}
-              onNext={handleNext}
-              onRetry={handleRetry}
-              isLastLesson={currentIndex === LESSONS.length - 1}
+            <TypingDisplay
+              text={currentLesson.text}
+              typed={typed}
+              onType={handleType}
+              onReset={reset}
+              colors={{
+                correct: "rgba(224,224,224,0.9)",
+                error: "#ff6b35",
+                untyped: "rgba(224,224,224,0.18)",
+                cursor: "#60a5fa",
+                errorBg: "rgba(248,113,113,0.1)",
+              }}
+              isFinished={isFinished}
+              fontSize="36px"
+              lineHeight="40px"
+              maxWidth="1200px"
             />
-          )}
-        </div>
+          </>
+        ) : (
+          <LessonComplete
+            lesson={currentLesson}
+            wpm={wpm}
+            accuracy={accuracy}
+            onNext={handleNext}
+            onRetry={reset}
+            isLastLesson={currentIndex === LESSONS.length - 1}
+          />
+        )}
       </div>
 
-      {/* ── Step indicator — ВНИЗУ (поднят выше) ─────────────────────── */}
+      {/* ── Step indicator ─────────────────────── */}
       <div
         style={{
           position: "fixed",
@@ -831,7 +971,7 @@ export function LearningMode() {
         </div>
       </div>
 
-      {/* ── Bottom navigation (поднят выше) ──────────────────────────── */}
+      {/* ── Bottom navigation ──────────────────────────── */}
       <div
         style={{
           position: "fixed",
@@ -874,7 +1014,7 @@ export function LearningMode() {
         </button>
 
         <button
-          onClick={handleRetry}
+          onClick={reset}
           style={{
             background: "none",
             border: "none",
