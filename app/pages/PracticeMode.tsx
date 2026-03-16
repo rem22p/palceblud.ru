@@ -19,7 +19,7 @@ const WORD_POOL = [
   "body", "information", "back", "parent", "face", "others", "level", "office", "door", "health",
   "person", "art", "war", "history", "party", "result", "change", "morning", "reason", "research",
   "girl", "guy", "moment", "air", "teacher", "force", "education", "foot", "boy", "age",
-  // Прилагательные
+  // Прилагательные и остальные слова
   "about", "above", "after", "again", "against", "all", "almost", "alone", "along", "already",
   "also", "although", "always", "among", "another", "any", "anybody", "anyone", "anything", "anywhere",
   "around", "become", "before", "begin", "behind", "below", "between", "both", "brief", "but",
@@ -45,7 +45,7 @@ const WORD_POOL = [
   "where", "whereafter", "whereas", "whereby", "wherein", "wheresoever", "whereupon", "wherever", "whether", "which",
   "while", "whither", "who", "whoever", "whole", "whom", "whomever", "whomsoever", "whose", "whosoever",
   "why", "will", "willing", "wish", "with", "within", "without", "won", "wonder", "would",
-  // Дополнительные слова для разнообразия
+  // Дополнительные слова
   "practice", "typing", "speed", "accuracy", "keyboard", "fingers", "learn", "skill", "fast", "quick",
   "brown", "fox", "jumps", "over", "lazy", "dog", "hello", "world", "computer", "software",
   "hardware", "screen", "monitor", "mouse", "click", "type", "write", "read", "book", "page",
@@ -312,23 +312,22 @@ interface FloatingStatProps {
   size?: "xl" | "lg" | "md";
   align?: "left" | "right";
   muted?: boolean;
-  scale?: number; // Новый проп для масштабирования
+  scale?: number;
 }
 
 function FloatingStat({ value, label, color, labelColor, size = "xl", align = "left", muted = false, scale = 1 }: FloatingStatProps) {
   const fontSize = size === "xl" ? "5rem" : size === "lg" ? "3.2rem" : "2rem";
-  
   return (
-    <div style={{ 
-      display: "flex", 
-      flexDirection: "column", 
-      alignItems: align === "right" ? "flex-end" : "flex-start", 
-      gap: "2px", 
-      opacity: muted ? 0.18 : 1, 
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: align === "right" ? "flex-end" : "flex-start",
+      gap: "2px",
+      opacity: muted ? 0.18 : 1,
       transition: "opacity 0.4s ease",
-      transform: `scale(${scale})`, // Применяем масштаб
-      transformOrigin: align === "right" ? "top right" : "top left", // Точка роста от угла
-      width: "fit-content" // Чтобы не ломать верстку при увеличении
+      transform: `scale(${scale})`,
+      transformOrigin: align === "right" ? "top right" : "top left",
+      width: "fit-content"
     }}>
       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, fontWeight: 200, color, lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{value}</span>
       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: labelColor || "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label === "words" ? "слов" : label}</span>
@@ -336,13 +335,13 @@ function FloatingStat({ value, label, color, labelColor, size = "xl", align = "l
   );
 }
 
-interface ResultOverlayProps { 
-  wpm: number; 
+interface ResultOverlayProps {
+  wpm: number;
   accuracy: number;
   rawWpm: number;
   consistency: number;
   errorCount: number;
-  onRestart: () => void; 
+  onRestart: () => void;
 }
 
 function ResultOverlay({ wpm, accuracy, rawWpm, consistency, errorCount, onRestart }: ResultOverlayProps) {
@@ -403,7 +402,7 @@ export function PracticeMode() {
   const [wordLimit, setWordLimit] = useState<number | "infinity">("infinity");
   const [showMenu, setShowMenu] = useState(false);
   const [text, setText] = useState(() => generateText(1000));
-  
+
   const { typed, wpm, accuracy, rawWpm, consistency, errorCount, timeLeft, wordsLeft, isActive, isFinished, handleType, reset } = useTyping(text, { mode, timeLimit, wordLimit: wordLimit === "infinity" ? 999999 : wordLimit });
 
   const handleTypeWithExpand = useCallback((val: string) => {
@@ -414,31 +413,31 @@ export function PracticeMode() {
     }
   }, [handleType, text.length, wordLimit]);
 
-  const handleRestart = () => { 
+  const handleRestart = () => {
     const count = wordLimit === "infinity" ? 1000 : (typeof wordLimit === 'number' ? wordLimit : 25);
-    setText(generateText(count)); 
-    reset(); 
+    setText(generateText(count));
+    reset();
   };
 
-  const handleModeChange = (newMode: "time" | "words") => { 
+  const handleModeChange = (newMode: "time" | "words") => {
     const count = newMode === "words" && typeof wordLimit === 'number' ? wordLimit : 1000;
-    setText(generateText(count)); 
-    setMode(newMode); 
-    reset(); 
+    setText(generateText(count));
+    setMode(newMode);
+    reset();
   };
 
-  const handleTimeChange = (s: number) => { 
-    setText(generateText(200)); 
-    setTimeLimit(s); 
-    setShowMenu(false); 
-    reset(); 
+  const handleTimeChange = (s: number) => {
+    setText(generateText(200));
+    setTimeLimit(s);
+    setShowMenu(false);
+    reset();
   };
 
-  const handleWordChange = (w: number | "infinity") => { 
-    setText(generateText(w === "infinity" ? 1000 : w)); 
-    setWordLimit(w); 
-    setShowMenu(false); 
-    reset(); 
+  const handleWordChange = (w: number | "infinity") => {
+    setText(generateText(w === "infinity" ? 1000 : w));
+    setWordLimit(w);
+    setShowMenu(false);
+    reset();
   };
 
   const timerColor = mode === "time" && timeLeft <= 5 && isActive ? "#ff4444" : "rgba(224,224,224,0.85)";
@@ -470,41 +469,41 @@ export function PracticeMode() {
             )}
           </div>
 
-          {/* Статистика слева (Стандартный размер) */}
+          {/* Статистика слева */}
           <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
-            <FloatingStat 
-              value={wpm} 
-              label="wpm" 
-              color="#ff6b35" 
-              labelColor="rgba(255,107,53,0.35)" 
-              size="xl" 
-              muted={!isActive} 
+            <FloatingStat
+              value={wpm}
+              label="wpm"
+              color="#ff6b35"
+              labelColor="rgba(255,107,53,0.35)"
+              size="xl"
+              muted={!isActive}
             />
           </div>
           <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
-            <FloatingStat 
-              value={`${accuracy}%`} 
-              label="acc" 
-              color="rgba(224,224,224,0.55)" 
-              size="lg" 
-              muted={!isActive} 
+            <FloatingStat
+              value={`${accuracy}%`}
+              label="acc"
+              color="rgba(224,224,224,0.55)"
+              size="lg"
+              muted={!isActive}
             />
           </div>
 
-          {/* Статистика СПРАВА (УВЕЛИЧЕНА В 1.8 РАЗА) */}
+          {/* Статистика СПРАВА (УВЕЛИЧЕНА) */}
           <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}>
-            <FloatingStat 
-              value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)} 
-              label={mode === "time" ? "сек" : "слов"} 
-              color={timerColor} 
-              size="xl" 
-              align="right" 
-              muted={!isActive} 
-              scale={1.8} // <-- Увеличение только для этого блока
+            <FloatingStat
+              value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)}
+              label={mode === "time" ? "сек" : "слов"}
+              color={timerColor}
+              size="xl"
+              align="right"
+              muted={!isActive}
+              scale={1.8}
             />
           </div>
 
-          {/* Текст */}
+          {/* Текст с ИСПРАВЛЕННОЙ передачей данных для спидометра */}
           <div style={{ width: "100%", maxWidth: "2000px", padding: "0 40px", zIndex: 5, marginTop: "20px", margin: "0 auto" }}>
             <TypingDisplay
               text={text}
@@ -522,6 +521,12 @@ export function PracticeMode() {
               fontSize="36px"
               lineHeight="40px"
               maxWidth="1200px"
+              
+              // !!! ВОТ ЭТИ ТРИ СТРОКИ БЫЛИ ДОБАВЛЕНЫ (ИХ НЕ ХВАТАЛО) !!!
+              wpm={wpm}
+              accuracy={accuracy}
+              isActive={isActive}
+              // -------------------------------------------------------
             />
           </div>
 
@@ -534,14 +539,14 @@ export function PracticeMode() {
           {!isActive && (<div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>)}
         </>
       ) : (
-        // Результат (только статистика)
-        <ResultOverlay 
-          wpm={wpm} 
-          accuracy={accuracy} 
+        // Результат
+        <ResultOverlay
+          wpm={wpm}
+          accuracy={accuracy}
           rawWpm={rawWpm}
           consistency={consistency}
           errorCount={errorCount}
-          onRestart={handleRestart} 
+          onRestart={handleRestart}
         />
       )}
     </div>

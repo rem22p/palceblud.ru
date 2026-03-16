@@ -609,9 +609,6 @@ export function LearningMode() {
     reset();
   };
 
-  const handleRetry = () => {
-    reset();
-  };
 
   const handleSelectLesson = (i: number) => {
     setCurrentIndex(i);
@@ -856,7 +853,7 @@ export function LearningMode() {
         onClose={() => setShowLeaderboard(false)} 
       />
 
-      {/* ── Main content wrapper (ВОЗВРАЩЕНО ИСХОДНОЕ РАСПОЛОЖЕНИЕ) ───────────────────────── */}
+      {/* ── Main content wrapper ───────────────────────── */}
       <div
         style={{
           flex: 1,
@@ -865,22 +862,22 @@ export function LearningMode() {
           alignItems: "center", 
           justifyContent: "center",
           width: "100%",
-          // Убраны лишние ограничения ширины и марджины, которые ломали верстку
           margin: "0 auto",
-          // Возвращены стандартные отступы как в вашем примере
-          padding: "195px clamp(16px, 4vw, 40px) 160px", 
+          padding: "70px clamp(16px, 4vw, 40px) 160px", 
           zIndex: 5,
           boxSizing: "border-box",
         }}
       >
         {!isFinished ? (
           <>
+            {/* ИЗМЕНЕНИЕ ЗДЕСЬ: Сдвиг заголовка вправо (marginLeft: 240px) */}
             <div
               style={{
                 marginBottom: "32px",
                 opacity: isActive ? 0 : 1,
                 transition: "opacity 0.3s",
-                marginLeft: "0px", 
+                marginLeft: "-800px", 
+              
               }}
             >
               <div
