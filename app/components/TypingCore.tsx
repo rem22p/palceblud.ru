@@ -200,7 +200,7 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   };
 }
 
-// --- СПИДОМЕТР (ПЛАВНОСТЬ УВЕЛИЧЕНА В 2 РАЗА) ---
+// --- СПИДОМЕТР (ЦИФРЫ И CPM ВНУТРИ, В ЕДИНОМ СТИЛЕ) ---
 function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy: number, progress: number, isActive: boolean }) {
   const maxWpm = 600; // Лимит для CPM
   
@@ -218,7 +218,7 @@ function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy
       alignItems: "center",
       justifyContent: "center",
       width: "100%",
-      margin: "-200px auto 20px auto",
+      margin: "-160px auto 20px auto",
       fontFamily: "'JetBrains Mono', monospace",
       opacity: isActive ? 1 : 0.1,
       transition: "opacity 0.3s ease",
@@ -256,7 +256,7 @@ function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy
             );
           })}
 
-          {/* СТРЕЛКА (ПЛАВНОСТЬ УВЕЛИЧЕНА В 2 РАЗА: 0.12s -> 0.24s) */}
+          {/* СТРЕЛКА */}
           <g transform={`rotate(${angle}, 180, 180)`} style={{ transition: "transform 0.24s cubic-bezier(0.25, 0.1, 0.25, 1)" }}>
             {/* Тело стрелки (треугольник) */}
             <path 
@@ -270,10 +270,10 @@ function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy
             <circle cx="180" cy="180" r="4" fill={accent_color} />
           </g>
 
-          {/* ЦИФРЫ (ПОВЕРХ СТРЕЛКИ) */}
+          {/* ЦИФРЫ (ПОДНЯТЫ ВЫШЕ: y=115) */}
           <text 
             x="180" 
-            y="145" 
+            y="115" 
             textAnchor="middle" 
             fill={main_color} 
             fontSize="64" 
@@ -287,15 +287,19 @@ function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy
             {wpm}
           </text>
 
-          {/* ПОДПИСЬ CPM */}
+          {/* ПОДПИСЬ CPM (ПОДНЯТА: y=145, СТИЛЬ КАК У ЦИФР) */}
           <text 
             x="180" 
-            y="175" 
+            y="145" 
             textAnchor="middle" 
-            fill={dim_color} 
+            fill={main_color} 
             fontSize="16" 
-            fontWeight="600" 
-            style={{ letterSpacing: "4px" }}
+            fontWeight="500" 
+            style={{ 
+              fontFamily: "'JetBrains Mono', monospace",
+              textShadow: "0 2px 4px rgba(0,0,0,0.8)",
+              letterSpacing: "0.05em"
+            }}
           >
             CPM
           </text>
@@ -316,7 +320,6 @@ function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy
     </div>
   );
 }
-
 export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize = "36px", lineHeight = "40px", maxWidth = "1200px", showIntroAnimation = false, isActive = false, wpm = 0, accuracy = 100, progress = 0 }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState<boolean>(false);
