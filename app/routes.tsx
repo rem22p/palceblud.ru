@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
 import { PracticeMode } from "./pages/PracticeMode";
 import { LearningMode } from "./pages/LearningMode";
-import { PrepMode } from "./pages/PrepMode"; // <--- 1. Добавляем импорт
+import { PrepMode } from "./pages/PrepMode";
 
 export const router = createBrowserRouter([
   {
@@ -21,7 +21,7 @@ export const router = createBrowserRouter([
         Component: LearningMode,
       },
       {
-        path: "/prep", // <--- 2. Добавляем новый маршрут
+        path: "/prep",
         Component: PrepMode,
       },
     ],

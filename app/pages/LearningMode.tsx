@@ -8,10 +8,6 @@ import {
   Zap,
   BookOpen,
   RotateCcw,
-  Trophy,
-  X,
-  Crown,
-  Medal,
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 
@@ -21,7 +17,8 @@ interface Lesson {
   title: string;
   subtitle: string;
   keys: string[];
-  tip: string;
+  // tip убран из использования, но остался в интерфейсе на всякий случай
+  tip: string; 
   text: string;
   targetWpm: number;
   completed: boolean;
@@ -88,19 +85,6 @@ const LESSONS: Lesson[] = [
     targetWpm: 60,
     completed: false,
   },
-];
-
-const LEADERBOARD_DATA = [
-  { rank: 1, name: "SpeedDemon", wpm: 145, accuracy: 99, date: "2 мин. назад" },
-  { rank: 2, name: "KeyboardWarrior", wpm: 138, accuracy: 98, date: "15 мин. назад" },
-  { rank: 3, name: "TypeMaster", wpm: 132, accuracy: 100, date: "1 час назад" },
-  { rank: 4, name: "FingerNinja", wpm: 128, accuracy: 97, date: "3 часа назад" },
-  { rank: 5, name: "QuickKeys", wpm: 125, accuracy: 96, date: "5 часов назад" },
-  { rank: 6, name: "ClickClack", wpm: 120, accuracy: 98, date: "Вчера" },
-  { rank: 7, name: "FlowState", wpm: 118, accuracy: 95, date: "Вчера" },
-  { rank: 8, name: "NoErrors", wpm: 115, accuracy: 100, date: "2 дня назад" },
-  { rank: 9, name: "FastFingers", wpm: 112, accuracy: 94, date: "2 дня назад" },
-  { rank: 10, name: "TypoKing", wpm: 110, accuracy: 93, date: "3 дня назад" },
 ];
 
 function StepIndicator({ lessons, currentIndex, onSelect }: any) {
@@ -170,46 +154,13 @@ function LessonComplete({ lesson, wpm, accuracy, onNext, onRetry, isLastLesson }
   );
 }
 
-function LeaderboardModal({ isOpen, onClose }: any) {
-  if (!isOpen) return null;
-  return (
-    <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 90, cursor: "pointer" }} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 100, backgroundColor: "#2b2d31", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "24px", width: "90%", maxWidth: "500px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", fontFamily: "'JetBrains Mono', monospace", animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ fontSize: "1.2rem", color: "#e0e0e0", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}><Trophy size={20} color="#fbbf24" />Рейтинг (Глобальный)</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", padding: "4px" }} onMouseEnter={(e: any) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e: any) => e.currentTarget.style.color = "#666"}><X size={20} /></button>
-        </div>
-        <div style={{ overflowY: "auto", maxHeight: "400px" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
-            <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)", color: "#666", textAlign: "left" }}><th style={{ padding: "10px", width: "50px" }}>#</th><th style={{ padding: "10px" }}>Игрок</th><th style={{ padding: "10px", textAlign: "right" }}>WPM</th><th style={{ padding: "10px", textAlign: "right" }}>Acc</th><th style={{ padding: "10px", textAlign: "right", fontSize: "0.75rem" }}>Время</th></tr></thead>
-            <tbody>
-              {LEADERBOARD_DATA.map((user: any) => (
-                <tr key={user.rank} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", color: "#e0e0e0" }}>
-                  <td style={{ padding: "12px 10px" }}>{user.rank === 1 ? <Crown size={16} color="#fbbf24" /> : user.rank === 2 ? <Medal size={16} color="#9ca3af" /> : user.rank === 3 ? <Medal size={16} color="#b45309" /> : <span style={{ color: "#666" }}>{user.rank}</span>}</td>
-                  <td style={{ padding: "12px 10px", fontWeight: 600 }}>{user.name}</td>
-                  <td style={{ padding: "12px 10px", textAlign: "right", color: "#34d399" }}>{user.wpm}</td>
-                  <td style={{ padding: "12px 10px", textAlign: "right", color: "#60a5fa" }}>{user.accuracy}%</td>
-                  <td style={{ padding: "12px 10px", textAlign: "right", color: "#666", fontSize: "0.75rem" }}>{user.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div style={{ marginTop: "20px", textAlign: "center", fontSize: "0.75rem", color: "#666" }}>Обновляется каждые 5 минут</div>
-      </div>
-      <style>{`@keyframes slideUp { from { transform: translate(-50%, -40%); opacity: 0; } to { transform: translate(-50%, -50%); opacity: 1; } }`}</style>
-    </>
-  );
-}
-
 export function LearningMode() {
   const [currentIndex, setCurrentIndex] = useState(2);
   const [completedLessons, setCompletedLessons] = useState<number[]>([0, 1]);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const currentLesson = LESSONS[currentIndex];
-  const { typed, wpm, accuracy, isActive, isFinished, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
+  // Используем rawWpm для левой статистики (Слова в минуту)
+  const { typed, wpm, rawWpm, accuracy, isActive, isFinished, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
 
   // Отправка сигнала хедеру при печати (для огонька)
   useEffect(() => {
@@ -235,13 +186,14 @@ export function LearningMode() {
     <div className="page-transition" style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflowX: "hidden", overflowY: "auto" }}>
       <style>{`::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #555; }`}</style>
 
-      {/* Статистика слева (фиксированная) */}
+      {/* ЛЕВАЯ СТАТИСТИКА (СЛОВА В МИНУТУ - rawWpm) */}
       <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: wpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)", lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{wpm}</span>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>CPM</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: rawWpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)", lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{Math.round(rawWpm)}</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>слов/мин</span>
         </div>
       </div>
+      
       <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "3.2rem", fontWeight: 200, color: accuracy >= 95 ? "#34d399" : accuracy >= 85 ? "rgba(224,224,224,0.55)" : "rgba(248,113,113,0.7)", lineHeight: 1, letterSpacing: "-0.03em", transition: "color 0.3s" }}>{accuracy}%</span>
@@ -249,17 +201,12 @@ export function LearningMode() {
         </div>
       </div>
 
-      {/* Правая сторона */}
+      {/* Правая сторона: Карточка урока */}
       <div style={{ position: "fixed", top: "80px", right: "clamp(20px, 5vw, 80px)", zIndex: 10 }}><LessonCard lesson={currentLesson} /></div>
-      <div style={{ position: "fixed", bottom: "140px", right: "80px", zIndex: 10, maxWidth: "220px", textAlign: "right" }}><div style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.75rem", color: "rgba(224,224,224,0.4)", lineHeight: 1.6 }}>{currentLesson.tip}</div></div>
       
-      {/* Рейтинг */}
-      <div style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 20 }}>
-        <button onClick={() => setShowLeaderboard(true)} style={{ background: "transparent", border: "none", borderRadius: "8px", padding: "10px", color: "rgba(224,224,224,0.5)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} onMouseEnter={(e: any) => { e.currentTarget.style.color = "#fbbf24"; e.currentTarget.style.background = "rgba(251,191,36,0.1)"; }} onMouseLeave={(e: any) => { e.currentTarget.style.color = "rgba(224,224,224,0.5)"; e.currentTarget.style.background = "transparent"; }} title="Рейтинг"><Trophy size={20} /></button>
-      </div>
-      <LeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
-
-      {/* Main content wrapper */}
+      {/* СОВЕТЫ УДАЛЕНЫ! Блок с currentLesson.tip удален. */}
+      
+      {/* Основной контент */}
       <div
         style={{
           flex: 1,
@@ -269,26 +216,13 @@ export function LearningMode() {
           justifyContent: "center",
           width: "100%",
           margin: "0 auto",
-          padding: "70px clamp(16px, 4vw, 40px) 160px", 
+          padding: "160px clamp(16px, 4vw, 40px) 160px", 
           zIndex: 5,
           boxSizing: "border-box",
         }}
       >
         {!isFinished ? (
           <>
-            <div
-              style={{
-                marginBottom: "32px",
-                opacity: isActive ? 0 : 1,
-                transition: "opacity 0.3s",
-                marginLeft: "-800px", 
-              }}
-            >
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.62rem", color: "rgba(96,165,250,0.4)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "6px" }}>урок {currentIndex + 1} · {currentLesson.subtitle}</div>
-              <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "1.5rem", fontWeight: 600, color: "rgba(224,224,224,0.7)", letterSpacing: "-0.02em" }}>{currentLesson.title}</div>
-            </div>
-
-            {/* Спидометр подключен через передачу пропсов */}
             <TypingDisplay
               text={currentLesson.text}
               typed={typed}

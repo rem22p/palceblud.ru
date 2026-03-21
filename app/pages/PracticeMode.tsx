@@ -323,7 +323,7 @@ function FloatingStat({ value, label, color, labelColor, size = "xl", align = "l
       flexDirection: "column",
       alignItems: align === "right" ? "flex-end" : "flex-start",
       gap: "2px",
-      opacity: muted ? 0.18 : 1,
+      opacity: muted ? 0.5 : 1, // Увеличена минимальная прозрачность с 0.18 до 0.5
       transition: "opacity 0.4s ease",
       transform: `scale(${scale})`,
       transformOrigin: align === "right" ? "top right" : "top left",
@@ -469,10 +469,11 @@ export function PracticeMode() {
             )}
           </div>
 
-          {/* Статистика слева */}
+          {/* Статистика слева (ИСПРАВЛЕНО: СЛОВА В МИНУТУ) */}
           <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
             <FloatingStat
-              value={wpm}
+              // ИСПОЛЬЗУЕМ rawWpm ДЛЯ ОТОБРАЖЕНИЯ СЛОВ (WPM)
+              value={Math.round(rawWpm)} 
               label="wpm"
               color="#ff6b35"
               labelColor="rgba(255,107,53,0.35)"
@@ -522,7 +523,7 @@ export function PracticeMode() {
               lineHeight="40px"
               maxWidth="1200px"
               
-              // !!! ВОТ ЭТИ ТРИ СТРОКИ БЫЛИ ДОБАВЛЕНЫ (ИХ НЕ ХВАТАЛО) !!!
+              // !!! ПЕРЕДАЕМ CPM (wpm) ДЛЯ СПИДОМЕТРА !!!
               wpm={wpm}
               accuracy={accuracy}
               isActive={isActive}
@@ -541,9 +542,9 @@ export function PracticeMode() {
       ) : (
         // Результат
         <ResultOverlay
-          wpm={wpm}
+          wpm={Math.round(rawWpm)} // Показываем WPM в результатах
           accuracy={accuracy}
-          rawWpm={rawWpm}
+          rawWpm={wpm} // Показываем CPM как raw (для информации)
           consistency={consistency}
           errorCount={errorCount}
           onRestart={handleRestart}

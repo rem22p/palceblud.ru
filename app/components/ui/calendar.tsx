@@ -60,11 +60,13 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("size-4", className)} {...props} />
+        // @ts-ignore - совместимость с react-day-picker
+        IconLeft: ({ className: _className, ...props }: { className?: string }) => (
+          <ChevronLeft className={cn("size-4", _className)} {...props} />
         ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("size-4", className)} {...props} />
+        // @ts-ignore - совместимость с react-day-picker
+        IconRight: ({ className: _className, ...props }: { className?: string }) => (
+          <ChevronRight className={cn("size-4", _className)} {...props} />
         ),
       }}
       {...props}

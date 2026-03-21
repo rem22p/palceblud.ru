@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 export interface TypingState {
   typed: string;
-  wpm: number; // Теперь здесь хранится CPM
+  wpm: number;
   accuracy: number;
   rawWpm: number;
   consistency: number;
@@ -46,6 +46,7 @@ export interface TypingDisplayProps {
   wpm?: number;
   accuracy?: number;
   progress?: number;
+  goalMet?: boolean;
 }
 
 export function useTyping(text: string, options: UseTypingOptions): TypingState {
@@ -61,23 +62,17 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   const completedWordsCount = (typed.match(/ /g) || []).length;
   const wordsLeft = mode === "words" ? Math.max(0, wordLimit - completedWordsCount) : 0;
 
-  // --- РАСЧЕТ CPM (ЗНАКОВ В МИНУТУ) ---
   const wpm = useMemo(() => {
     if (typed.length === 0) return 0;
-    
     let elapsedMinutes = 0;
     if (mode === "time") {
       elapsedMinutes = (timeLimit - timeLeft) / 60;
     } else {
       elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
     }
-
     if (elapsedMinutes < 0.01) return 0;
-    
-    // ФОРМУЛА CPM: Общее количество символов / Минуты
     const cpm = Math.round(typed.length / elapsedMinutes);
-    
-    return Math.min(Math.max(cpm, 0), 600); // Лимит увеличен до 600 для CPM
+    return Math.min(Math.max(cpm, 0), 600);
   }, [typed, timeLeft, timeLimit, mode]);
 
   const rawWpm = useMemo(() => {
@@ -147,12 +142,10 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
 
   const handleType = useCallback((val: string) => {
     if (isFinished) return;
-    
     if (!isActive && val.length > 0) {
       setIsActive(true);
       startTimeRef.current = Date.now();
     }
-    
     const spaceCount = (val.match(/ /g) || []).length;
     const typedWords = val.split(' ');
     const currentTypedWord = typedWords[spaceCount] || '';
@@ -162,10 +155,7 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
     if (currentWordIndex < wordsArray.length) {
       const currentWord = wordsArray[currentWordIndex];
       const extraLetters = currentTypedWord.length - currentWord.length;
-      
-      if (extraLetters > 7) {
-        return;
-      }
+      if (extraLetters > 7) return;
     }
     
     if (val.length <= text.length + 100) {
@@ -183,33 +173,20 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   }, [timeLimit]);
 
   return { 
-    typed, 
-    wpm, // Теперь это CPM
-    accuracy, 
-    rawWpm,
-    consistency,
-    errorCount,
-    timeLeft, 
-    wordsLeft, 
-    wordsCompleted: completedWordsCount, 
-    isActive, 
-    isFinished, 
-    mode, 
-    handleType, 
-    reset 
+    typed, wpm, accuracy, rawWpm, consistency, errorCount, timeLeft, wordsLeft, wordsCompleted: completedWordsCount, isActive, isFinished, mode, handleType, reset 
   };
 }
 
-// --- СПИДОМЕТР (ЦИФРЫ И CPM ВНУТРИ, В ЕДИНОМ СТИЛЕ) ---
-function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy: number, progress: number, isActive: boolean }) {
-  const maxWpm = 600; // Лимит для CPM
-  
+// --- СПИДОМЕТР ЗАКОММЕНТИРОВАН ---
+/*
+function StatsBar({ wpm, accuracy, progress, isActive, goalMet }: { wpm: number, accuracy: number, progress: number, isActive: boolean, goalMet?: boolean }) {
+  const maxWpm = 600;
   const percentage = Math.min(Math.max(wpm / maxWpm, 0), 1);
   const angle = -90 + (percentage * 180);
 
   const dim_color = "#333";
   const main_color = "#e0e0e0";
-  const accent_color = "#ff6b35";
+  const accent_color = goalMet ? "#34d399" : "#ff6b35";
 
   return (
     <div style={{
@@ -226,10 +203,7 @@ function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy
     }}>
       <div style={{ position: "relative", width: "360px", height: "210px" }}>
         <svg width="360" height="210" viewBox="0 0 360 210" style={{ overflow: "visible" }}>
-          {/* Фон дуги */}
           <path d="M 30 180 A 150 150 0 0 1 330 180" fill="none" stroke={dim_color} strokeWidth="12" strokeLinecap="round" />
-          
-          {/* Активная дуга (заполнение) */}
           <path 
             d="M 30 180 A 150 150 0 0 1 330 180" 
             fill="none" 
@@ -240,8 +214,6 @@ function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy
             strokeDashoffset={471 - (percentage * 471)}
             style={{ transition: "stroke-dashoffset 0.2s ease-out" }}
           />
-
-          {/* Риски (Сверху) */}
           {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => {
             const deg = 180 + (i * 18);
             const rad = (deg * Math.PI) / 180;
@@ -255,72 +227,21 @@ function StatsBar({ wpm, accuracy, progress, isActive }: { wpm: number, accuracy
               <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={dim_color} strokeWidth="2" />
             );
           })}
-
-          {/* СТРЕЛКА */}
           <g transform={`rotate(${angle}, 180, 180)`} style={{ transition: "transform 0.24s cubic-bezier(0.25, 0.1, 0.25, 1)" }}>
-            {/* Тело стрелки (треугольник) */}
-            <path 
-              d="M 176 180 L 180 50 L 184 180 Z" 
-              fill="#fff" 
-              style={{ filter: "drop-shadow(0 0 4px rgba(255,255,255,0.5))" }}
-            />
-            {/* Основание (круглый шарнир) */}
+            <path d="M 176 180 L 180 50 L 184 180 Z" fill="#fff" style={{ filter: "drop-shadow(0 0 4px rgba(255,255,255,0.5))" }} />
             <circle cx="180" cy="180" r="10" fill="#fff" />
-            {/* Декоративный центр шарнира */}
             <circle cx="180" cy="180" r="4" fill={accent_color} />
           </g>
-
-          {/* ЦИФРЫ (ПОДНЯТЫ ВЫШЕ: y=115) */}
-          <text 
-            x="180" 
-            y="115" 
-            textAnchor="middle" 
-            fill={main_color} 
-            fontSize="64" 
-            fontWeight="bold" 
-            style={{ 
-              fontFamily: "'JetBrains Mono', monospace",
-              textShadow: "0 2px 4px rgba(0,0,0,0.8)",
-              zIndex: 10
-            }}
-          >
-            {wpm}
-          </text>
-
-          {/* ПОДПИСЬ CPM (ПОДНЯТА: y=145, СТИЛЬ КАК У ЦИФР) */}
-          <text 
-            x="180" 
-            y="145" 
-            textAnchor="middle" 
-            fill={main_color} 
-            fontSize="16" 
-            fontWeight="500" 
-            style={{ 
-              fontFamily: "'JetBrains Mono', monospace",
-              textShadow: "0 2px 4px rgba(0,0,0,0.8)",
-              letterSpacing: "0.05em"
-            }}
-          >
-            CPM
-          </text>
-
+          <text x="180" y="115" textAnchor="middle" fill={main_color} fontSize="64" fontWeight="bold" style={{ fontFamily: "'JetBrains Mono', monospace", textShadow: "0 2px 4px rgba(0,0,0,0.8)", zIndex: 10 }}>{wpm}</text>
+          <text x="180" y="145" textAnchor="middle" fill={main_color} fontSize="16" fontWeight="500" style={{ fontFamily: "'JetBrains Mono', monospace", textShadow: "0 2px 4px rgba(0,0,0,0.8)", letterSpacing: "0.05em" }}>CPM</text>
         </svg>
-      </div>
-
-      {/* Прогресс бар */}
-      <div style={{ width: "300px", height: "6px", backgroundColor: dim_color, borderRadius: "3px", overflow: "hidden", marginTop: "15px" }}>
-        <div style={{
-          width: `${progress}%`,
-          height: "100%",
-          backgroundColor: accent_color,
-          transition: "width 0.2s ease-out",
-          boxShadow: `0 0 10px ${accent_color}40`
-        }} />
       </div>
     </div>
   );
 }
-export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize = "36px", lineHeight = "40px", maxWidth = "1200px", showIntroAnimation = false, isActive = false, wpm = 0, accuracy = 100, progress = 0 }: TypingDisplayProps) {
+*/
+
+export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize = "36px", lineHeight = "40px", maxWidth = "1200px", showIntroAnimation = false, isActive: _isActive, wpm: _wpm, accuracy: _accuracy, progress: _progress, goalMet: _goalMet }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -334,12 +255,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
 
   const words = useMemo(() => text.split(" "), [text]);
   const completedWordsCount = (typed.match(/ /g) || []).length;
-  
-  const localProgress = useMemo(() => {
-     if (progress > 0) return progress;
-     const totalWords = words.length;
-     return totalWords > 0 ? (completedWordsCount / totalWords) * 100 : 0;
-  }, [progress, completedWordsCount, words.length]);
 
   const ERROR_COLOR = "#EF6C75";
   const CORRECT_COLOR = "#ffffff";
@@ -366,9 +281,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
       const wordWidth = actualLength * avgCharWidth + wordSpacing;
       
       if (currentWidth + wordWidth > safeWidth) {
-        if (currentLine.length > 0) {
-          lines.push(currentLine);
-        }
+        if (currentLine.length > 0) lines.push(currentLine);
         currentLine = [originalWord];
         currentWidth = wordWidth;
       } else {
@@ -376,11 +289,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
         currentWidth += wordWidth;
       }
     }
-    
-    if (currentLine.length > 0) {
-      lines.push(currentLine);
-    }
-    
+    if (currentLine.length > 0) lines.push(currentLine);
     return lines;
   }, [words, typed, avgCharWidth, effectiveWidth]);
 
@@ -401,9 +310,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
 
   const getLineStartIndex = (lineIndex: number) => {
     let startIndex = 0;
-    for (let i = 0; i < visibleLineStart + lineIndex; i++) {
-      startIndex += allLines[i].length;
-    }
+    for (let i = 0; i < visibleLineStart + lineIndex; i++) startIndex += allLines[i].length;
     return startIndex;
   };
 
@@ -427,10 +334,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     const typedWords = typed.split(' ');
     const currentWordIndex = completedWordsCount;
     const currentTypedWord = typedWords[currentWordIndex] || "";
-    return {
-      wordIndex: currentWordIndex,
-      charIndex: currentTypedWord.length
-    };
+    return { wordIndex: currentWordIndex, charIndex: currentTypedWord.length };
   };
 
   const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
@@ -448,17 +352,11 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
         const progressVal = Math.min(1, distance / (avgCharWidth * 0.5));
         const eased = easeOutQuart(progressVal) * overshoot;
         const clampedEased = Math.min(eased, 1.07);
-        cursorCurrentRef.current = {
-          x: current.x + dx * clampedEased * 0.25,
-          y: current.y + dy * clampedEased * 0.25,
-        };
+        cursorCurrentRef.current = { x: current.x + dx * clampedEased * 0.25, y: current.y + dy * clampedEased * 0.25 };
         cursorRAFRef.current = requestAnimationFrame(animateCursor);
       } else {
         if (Math.abs(current.x - target.x) > 0.01 || Math.abs(current.y - target.y) > 0.01) {
-          cursorCurrentRef.current = {
-            x: current.x + (target.x - current.x) * 0.15,
-            y: current.y + (target.y - current.y) * 0.15,
-          };
+          cursorCurrentRef.current = { x: current.x + (target.x - current.x) * 0.15, y: current.y + (target.y - current.y) * 0.15 };
           cursorRAFRef.current = requestAnimationFrame(animateCursor);
         }
       }
@@ -570,11 +468,11 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     <div ref={containerRef} onClick={() => inputRef.current?.focus()} style={{ cursor: "text", position: "relative", width: "100%", maxWidth, margin: "0 auto", padding: "20px", fontFamily: "'JetBrains Mono', monospace", fontSize, lineHeight, boxSizing: "border-box", backgroundColor: "", borderRadius: "12px", minHeight: "200px" }}>
       <style>{`@keyframes cursorBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } } @keyframes cursorBlinkTypewriter { 0%, 70% { opacity: 1; } 70%, 100% { opacity: 0; } }`}</style>
       
-      {/* ПАНЕЛЬ СТАТИСТИКИ */}
-      <StatsBar wpm={wpm} accuracy={accuracy} progress={localProgress} isActive={isActive || isFocused} />
+      {/* СПИДОМЕТР ЗАКОММЕНТИРОВАН */}
+      {/* <StatsBar wpm={wpm} accuracy={accuracy} progress={localProgress} isActive={isActive || isFocused} goalMet={goalMet} /> */}
 
       {!isFocused && !isFinished && !isAnimating && (
-        <div style={{ position: "fixed", top: "55%", left: "50%", transform: "translate(-50%, -50%)", height: "180px", width: "100%", maxWidth: "1200px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 50, gap: "8px", backgroundColor: "rgba(42, 43, 46, 0.6)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderRadius: "16px", transition: "opacity 0.3s ease" }}>
+        <div style={{ position: "fixed", top: "calc(55% + 20px)", left: "50%", transform: "translate(-50%, -50%)", height: "180px", width: "100%", maxWidth: "1200px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 50, gap: "8px", backgroundColor: "rgba(42, 43, 46, 0.6)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderRadius: "16px", transition: "opacity 0.3s ease" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "16px", color: "rgba(224,224,224,0.8)", letterSpacing: "0.2em", textTransform: "uppercase", textAlign: "center" }}>кликните для фокуса</span>
         </div>
       )}

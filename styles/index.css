@@ -16,6 +16,22 @@
   }
 }
 
+/* Анимация для модального окна аутентификации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
 /* Опционально: анимация ухода (если захочешь усложнить) */
 .page-transition-exit {
   animation: pageFadeOut 0.6s ease-in forwards;
@@ -25,7 +41,7 @@
 html, body, #root {
   background-color: #2b2d31;
   min-height: 100vh;
- 
+
 }
 
 /* Скользящий индикатор */
