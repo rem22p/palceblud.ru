@@ -147,6 +147,7 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
 
   const handleType = useCallback((val: string) => {
     if (isFinished || isPaused) return;
+    
     if (!isActive && val.length > 0) {
       setIsActive(true);
       startTimeRef.current = Date.now();
@@ -154,10 +155,12 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
 
     const prevSpaceCount = (typed.match(/ /g) || []).length;
     const newSpaceCount = (val.match(/ /g) || []).length;
-    
+
+    // Обработка пробела - переход к следующему слову
     if (newSpaceCount > prevSpaceCount) {
       const typedWords = typed.split(' ');
       const currentTypedWord = typedWords[prevSpaceCount] || '';
+      // Запрещаем пробел если слово пустое (ничего не введено)
       if (currentTypedWord.length === 0) {
         return;
       }
@@ -175,9 +178,7 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
       if (extraLetters > 7) return;
     }
 
-    if (val.length <= text.length + 100) {
-      setTyped(val);
-    }
+    setTyped(val);
   }, [isFinished, isPaused, isActive, typed, text]);
 
   const reset = useCallback(() => {
@@ -218,6 +219,12 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
   const cursorPosRef = useRef<{ x: number; y: number }>({ x: 60, y: 0 });
   const targetPosRef = useRef<{ x: number; y: number }>({ x: 60, y: 0 });
 
+  // Обёртка для onType - игнорирует ввод пока не в фокусе
+  const handleTypeWrapper = useCallback((val: string) => {
+    if (!isFocused && typed.length === 0) return;
+    onType(val);
+  }, [onType, isFocused, typed.length]);
+
   const effectiveIsPaused = isPaused !== undefined ? isPaused : isPausedInternal;
   const effectiveTogglePause = togglePause !== undefined ? togglePause : () => setIsPausedInternal(p => !p);
 
@@ -242,6 +249,30 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
 
   const words = useMemo(() => text.split(" "), [text]);
   const completedWordsCount = (typed.match(/ /g) || []).length;
+
+  // Сбрасываем фокус при смене текста (новый урок) - чтобы был блюр
+  useEffect(() => {
+    setIsFocused(false);
+  }, [text]);
+
+  // Обработчик клика для снятия блюра
+  const handleContainerClick = useCallback(() => {
+    setIsFocused(true);
+    inputRef.current?.focus();
+  }, []);
+
+  // Обработчик нажатия пробела для снятия блюра
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isFocused && e.key === ' ' && typed.length === 0 && !isFinished) {
+        e.preventDefault();
+        setIsFocused(true);
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [isFocused, typed.length, isFinished]);
 
   const ERROR_COLOR = colors.error || "#ca4754";
   const CORRECT_COLOR = colors.correct || "#e0e0e0";
@@ -378,10 +409,27 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     return startIndex;
   };
 
+  // Обработка клавиш ESC (пауза) и TAB (заново)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isFinished) {
+        e.preventDefault();
+        effectiveTogglePause();
+      }
+      if (e.key === "Tab" && isFinished) {
+        e.preventDefault();
+        onReset();
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFinished, effectiveTogglePause, onReset]);
+
   return (
     <div
       ref={containerRef}
-      onClick={() => inputRef.current?.focus()}
+      onClick={handleContainerClick}
       style={{
         cursor: "text",
         position: "relative",
@@ -560,22 +608,61 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
       <input
         ref={inputRef}
         value={typed}
-        onChange={(e) => onType(e.target.value)}
+        onChange={(e) => handleTypeWrapper(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => { if (typed.length === 0) setIsFocused(false); }}
         disabled={isFinished}
         style={{
           position: "absolute",
           opacity: 0,
-          pointerEvents: "none",
-          width: "1px",
-          height: "1px"
+          width: "100%",
+          height: "100%",
+          top: 0,
+          left: 0,
+          cursor: "text"
         }}
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
       />
+
+      {/* Пауза (ESC) */}
+      {effectiveIsPaused && !isFinished && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 200,
+            pointerEvents: "none"
+          }}
+        >
+          <div style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "1.5rem",
+            color: "#e0e0e0",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            marginBottom: "16px"
+          }}>
+            ПАУЗА
+          </div>
+          <div style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.85rem",
+            color: "rgba(224,224,224,0.6)",
+            letterSpacing: "0.05em"
+          }}>
+            ESC — продолжить &nbsp;·&nbsp; TAB — заново
+          </div>
+        </div>
+      )}
     </div>
   );
 }

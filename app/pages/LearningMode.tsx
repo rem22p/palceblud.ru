@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   CheckCircle,
   Circle,
@@ -8,6 +8,7 @@ import {
   RotateCcw,
   HelpCircle,
   X,
+  Keyboard as KeyboardIcon,
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
@@ -28,101 +29,101 @@ interface Lesson {
 const LESSONS: Lesson[] = [
   {
     id: 1,
-    title: "Домашняя строка",
-    subtitle: "Основные клавиши",
-    keys: ["а", "б", "в", "г", "д", "е", "ё", "ж", "з", "и"],
-    tip: "Держите пальцы на домашней строке между нажатиями.",
-    text: "все они как раз был стал мир дом был лук дар жар пар вар ток сок лук мир стал был все они как раз",
-    targetWpm: 25,
-    completed: true,
+    title: "Пулеметная очередь",
+    subtitle: "Указательные пальцы",
+    keys: ["а", "п", "р", "о", "в", "ы", "м", "и", "т", "к"],
+    tip: "Указательные пальцы — самые сильные. Работайте ритмично, как пулемёт.",
+    text: "так так тик тик кот кот ток ток рак мак лак бак сок бок пот топ вот кот там мак мир тих ива мак пар том кот вон рак мак пар кот ива мак пар том вон так тик так тик кот ток кот ток рак мак рак мак сок бок сок бок пот топ пот топ вот кот там мак мир тих ива мак пар том кот вон",
+    targetWpm: 120,
+    completed: false,
   },
   {
     id: 2,
-    title: "Верхний ряд",
-    subtitle: "Точные движения",
-    keys: ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з"],
-    tip: "Тянитесь от домашней строки — не смещайте всю кисть.",
-    text: "укеенгшщз йцукеенгшщз зщшгнеук й зщшгнеук йцукеенгшщз укеенгшщз зщшгнеук йцукеен",
-    targetWpm: 30,
-    completed: true,
+    title: "Шаги краба",
+    subtitle: "Движение вдоль ряда",
+    keys: ["ф", "ы", "в", "а", "о", "л", "д", "ж", "с", "м", "р", "к"],
+    tip: "Двигайтесь плавно вдоль домашнего ряда, как краб — строго влево или вправо, не отрываясь.",
+    text: "олово молоко шалаш какао лава ваза рама папа джаз каша марка парта мама мыла раму папа пил какао дед дал сок ваза стояла на столе мама дала сок папа ел кашу рама была стара лава текла медленно ваза упала и разбилась молоко было свежее каша была вкусная папа читал газету мама шила платье рама окна была белая",
+    targetWpm: 140,
+    completed: false,
   },
   {
     id: 3,
-    title: "Нижний ряд",
-    subtitle: "Движения вниз",
-    keys: ["ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
-    tip: "Слегка согните пальцы вниз — минимизируйте движение запястья.",
-    text: "ывапролджэ ывапролджэ пролджэыва ы пролджэыва ывапролджэ пролджэыва ывапролджэ",
-    targetWpm: 28,
+    title: "Лифт",
+    subtitle: "Вертикальное движение",
+    keys: ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "р", "о", "л", "д", "ж", "э"],
+    tip: "Пальцы — кабинки лифта. Двигайтесь строго вверх и вниз по своим шахтам, не сдвигая запястье.",
+    text: "кедр укроп небо цена кит год зонтик утка ель нить куст щит гнев плечо мяч сыр винт арбуз боль юла тень пень борт роль дверь зверь крот рыл норку цапля ела рыбу щука плавала в пруду гном нёс пень куст рос у реки небо ясно кот спал щит висел на стене крот рыл глубокую норку цапля стояла на одной ноге щука быстро плавала в воде гном нашёл гриб в лесу нить была тонкая и крепкая утка плавала в пруду куст цвёл весной небо было ясное и чистое",
+    targetWpm: 150,
     completed: false,
   },
   {
     id: 4,
-    title: "Заглавные буквы",
-    subtitle: "Управление Shift",
-    keys: ["Shift", "Все буквы"],
-    tip: "Используйте противоположный Shift от буквы, которую делаете заглавной.",
-    text: "Съешь Ещё Этих Мягких Французских Булок Да Выпей Чаю Каждый День Для Здоровья",
-    targetWpm: 35,
+    title: "Аккорды пианиста",
+    subtitle: "Синхронизация рук",
+    keys: ["вся клавиатура"],
+    tip: "Печатайте ритмично, как пианист — левая и правая руки работают согласованно, создавая ровный ритм.",
+    text: "топо то папа лапа сала са дерево колоко молоко мир дом лес сад снег град ветер огонь вода земля небо река поле море горы степь пустыня океан остров полуостров программист клавиатура университет чемпионат футболист космонавт преподаватель университет библиотека лаборатория исследование эксперимент технология инновация революция эволюция цивилизация пополам перепел топот деде река дерево колокол молоко топот кокон половодье переполох молоко околомолочный",
+    targetWpm: 160,
     completed: false,
   },
   {
     id: 5,
-    title: "Частые слова",
-    subtitle: "Высокочастотная лексика",
-    keys: ["все клавиши"],
-    tip: "Эти 200 слов составляют 50% всего текста. Изучите их на ощупь.",
-    text: "и в не на я что тот быть этот все для есть один ты как его она так ты мне себя ну",
-    targetWpm: 45,
+    title: "Грязный трюк",
+    subtitle: "Спецсимволы и цифры",
+    keys: ["ъ", "ё", "э", "й", "ш", "щ", "ж", "0-9", "Shift", "., ! ? : ; -"],
+    tip: "Используйте мизинцы для Shift и спецсимволов. Возвращайте пальцы на базу после каждого удара.",
+    text: "подъезд объём съел ёлка эхо пьяный вьюга адъюнкт жжёшь подъём ещё жёсткий шёпот щётка жизнь 2024 год 100% 50/50 ID: 777 tel: 8-900 цена: 1500 руб. ошибка 404 IP: 192.168 привет! как дела? всё супер (работаю). скинь файл на mail@ru. жду! P.S. встреча в 14:00. внимание: скоро 18+ событие! вопрос? ответ: да! 2025-01-15 09:30 утра",
+    targetWpm: 140,
     completed: false,
   },
   {
     id: 6,
-    title: "Скоростной тест",
-    subtitle: "Без ограничений",
+    title: "Мастер скорости",
+    subtitle: "Финальный тест",
     keys: ["полная клавиатура"],
-    tip: "Не замедляйтесь из-за ошибок — постоянство важнее совершенства.",
-    text: "практика делает мастера и каждое нажатие клавиши строит мышечную память которая приведёт к мастерству",
-    targetWpm: 60,
+    tip: "Объедините все навыки. Держите ритм, не смотрите на клавиатуру, доверяйте мышечной памяти.",
+    text: "практика делает мастера каждое нажатие строит мышечную память которая приведёт к мастерству скорость и точность приходят со временем не сдавайтесь продолжайте тренироваться каждый день и вы достигнете невероятных результатов в слепой печати на клавиатуре",
+    targetWpm: 180,
     completed: false,
   },
 ];
 
-function StepIndicator({ lessons, currentIndex, onSelect }: any) {
+function StepIndicator({ lessons, currentIndex, onSelect, completedLessons }: any) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
       {lessons.map((lesson: any, i: number) => {
-        const isCompleted = i < currentIndex;
+        const isCompleted = completedLessons.includes(i);
         const isCurrent = i === currentIndex;
         const bgColor = isCompleted ? "#34d399" : (isCurrent ? "#60a5fa" : "rgba(255,255,255,0.06)");
         const borderColor = isCurrent ? "rgba(96,165,250,0.4)" : "transparent";
         const boxShadow = isCurrent ? "0 0 10px rgba(96,165,250,0.4)" : "none";
-        
+
         return (
           <div key={lesson.id} style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            <button 
-              onClick={() => onSelect(i)} 
-              title={lesson.title} 
-              style={{ 
-                background: "none", 
-                border: "none", 
-                padding: "0", 
-                cursor: "pointer", 
-                display: "flex", 
-                alignItems: "center", 
+            <button
+              onClick={() => onSelect(i)}
+              title={lesson.title}
+              style={{
+                background: "none",
+                border: "none",
+                padding: "0",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
                 justifyContent: "center",
                 transition: "all 0.25s ease"
               }}
             >
-              <div style={{ 
-                width: "28px", 
-                height: "28px", 
-                borderRadius: "50%", 
-                backgroundColor: bgColor, 
-                border: `2px solid ${borderColor}`, 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center", 
+              <div style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "50%",
+                backgroundColor: bgColor,
+                border: `2px solid ${borderColor}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 transition: "all 0.25s ease",
                 boxShadow: isCurrent ? boxShadow : "none"
               }}>
@@ -136,10 +137,10 @@ function StepIndicator({ lessons, currentIndex, onSelect }: any) {
               </div>
             </button>
             {i < lessons.length - 1 && (
-              <div style={{ 
-                width: "24px", 
-                height: "2px", 
-                backgroundColor: i < currentIndex ? "#34d399" : "rgba(255,255,255,0.07)", 
+              <div style={{
+                width: "24px",
+                height: "2px",
+                backgroundColor: completedLessons.includes(i) ? "#34d399" : "rgba(255,255,255,0.07)",
                 transition: "background-color 0.3s",
                 marginLeft: "2px"
               }} />
@@ -151,30 +152,104 @@ function StepIndicator({ lessons, currentIndex, onSelect }: any) {
   );
 }
 
-function LessonCard({ lesson }: { lesson: Lesson }) {
+function LessonCard({ lesson, activeKeys }: { lesson: Lesson; activeKeys: Set<string> }) {
+  const KEYBOARD_ROWS = [
+    ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ"],
+    ["ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
+    ["я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "."]
+  ];
+
+  const isAllKeys = lesson.keys[0] === "вся клавиатура" || lesson.id === 4 || lesson.id === 6;
+
   return (
-    <div style={{ backgroundColor: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.12)", borderRadius: "14px", padding: "18px", width: "220px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-        <BookOpen size={13} color="rgba(96,165,250,0.7)" />
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.62rem", color: "rgba(96,165,250,0.5)", letterSpacing: "0.12em", textTransform: "uppercase" }}>урок {lesson.id}</span>
+    <div style={{ backgroundColor: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.12)", borderRadius: "14px", padding: "12px 16px", width: "220px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
+        <BookOpen size={12} color="rgba(96,165,250,0.7)" />
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.5)", letterSpacing: "0.12em", textTransform: "uppercase" }}>урок {lesson.id}</span>
       </div>
       <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.95rem", fontWeight: 600, color: "rgba(224,224,224,0.85)", marginBottom: "4px", letterSpacing: "-0.01em" }}>{lesson.title}</div>
-      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.75rem", color: "rgba(224,224,224,0.3)", marginBottom: "18px" }}>{lesson.subtitle}</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginBottom: "16px" }}>
-        {lesson.keys.slice(0, 8).map((key) => (
-          <span key={key} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.62rem", color: "rgba(96,165,250,0.8)", backgroundColor: "rgba(96,165,250,0.1)", border: "1px solid rgba(96,165,250,0.15)", borderRadius: "5px", padding: "2px 6px" }}>{key}</span>
-        ))}
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        <Zap size={11} color="rgba(52,211,153,0.6)" />
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.65rem", color: "rgba(52,211,153,0.6)" }}>цель: {lesson.targetWpm} CPM</span>
-      </div>
+      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.75rem", color: "rgba(224,224,224,0.3)", marginBottom: "14px" }}>{lesson.subtitle}</div>
+
+      {isAllKeys ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+          {KEYBOARD_ROWS.map((row, rIdx) => (
+            <div key={rIdx} style={{ display: "flex", justifyContent: "center", gap: "2px" }}>
+              {row.map((key) => {
+                const isPressed = activeKeys.has(key);
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      width: "14px",
+                      height: "16px",
+                      backgroundColor: isPressed ? "rgba(96,165,250,0.9)" : "rgba(96,165,250,0.15)",
+                      border: `1px solid ${isPressed ? "rgba(96,165,250,0.9)" : "rgba(96,165,250,0.2)"}`,
+                      borderRadius: "3px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.1s ease-out",
+                      transform: isPressed ? "scale(1.15)" : "scale(1)",
+                      boxShadow: isPressed ? "0 0 8px rgba(96,165,250,0.6)" : "none",
+                    }}
+                  >
+                    <span style={{ fontSize: "0.5rem", color: isPressed ? "#fff" : "rgba(96,165,250,0.7)", fontWeight: "bold" }}>{key}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "3px" }}>
+            <div
+              style={{
+                width: "50%",
+                height: "12px",
+                backgroundColor: activeKeys.has(" ") ? "rgba(96,165,250,0.9)" : "rgba(96,165,250,0.15)",
+                border: `1px solid ${activeKeys.has(" ") ? "rgba(96,165,250,0.9)" : "rgba(96,165,250,0.2)"}`,
+                borderRadius: "3px",
+                transition: "all 0.1s ease-out",
+                transform: activeKeys.has(" ") ? "scale(1.05, 0.9)" : "scale(1)",
+                boxShadow: activeKeys.has(" ") ? "0 0 8px rgba(96,165,250,0.6)" : "none",
+              }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px" }}>
+          {lesson.keys.slice(0, 8).map((key) => {
+            const isPressed = activeKeys.has(key.toLowerCase());
+            return (
+              <span
+                key={key}
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  color: isPressed ? "#fff" : "rgba(96,165,250,0.9)",
+                  backgroundColor: isPressed ? "rgba(96,165,250,0.9)" : "rgba(96,165,250,0.15)",
+                  border: `1px solid ${isPressed ? "rgba(96,165,250,0.9)" : "rgba(96,165,250,0.2)"}`,
+                  borderRadius: "6px",
+                  padding: "6px 8px",
+                  textAlign: "center",
+                  transition: "all 0.1s ease-out",
+                  boxShadow: isPressed ? "0 0 8px rgba(96,165,250,0.6)" : "none",
+                }}
+              >
+                {key}
+              </span>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-function LessonComplete({ lesson, wpm, accuracy, onNext, onRetry, isLastLesson }: any) {
-  const passed = wpm >= lesson.targetWpm && accuracy >= 90;
+function LessonComplete({ lesson, wpm, accuracy, onRetry, isLastLesson }: any) {
+  const targetWpm = 0;
+  const targetAccuracy = 0;
+  const passed = wpm >= targetWpm && accuracy >= targetAccuracy;
+  
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "32px", textAlign: "center", animation: "fadeUp 0.5s ease forwards", maxWidth: "440px", width: "100%" }}>
       <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
@@ -182,11 +257,21 @@ function LessonComplete({ lesson, wpm, accuracy, onNext, onRetry, isLastLesson }
         {passed ? <Star size={28} color="#34d399" /> : <RotateCcw size={24} color="rgba(248,113,113,0.7)" />}
       </div>
       <div>
-        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "1.4rem", fontWeight: 600, color: "rgba(224,224,224,0.85)", letterSpacing: "-0.02em", marginBottom: "6px" }}>{passed ? "Урок завершён!" : "Почти готово!"}</div>
-        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.82rem", color: "rgba(224,224,224,0.3)" }}>{passed ? `Вы набрали ${wpm} CPM с точностью ${accuracy}%` : `Цель: ${lesson.targetWpm} CPM — вы набрали ${wpm} CPM`}</div>
+        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "1.4rem", fontWeight: 600, color: "rgba(224,224,224,0.85)", letterSpacing: "-0.02em", marginBottom: "6px" }}>{passed ? "Урок пройден!" : "Нужно лучше!"}</div>
+        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.82rem", color: "rgba(224,224,224,0.3)", marginBottom: "8px" }}>
+          {passed 
+            ? `Отлично! ${currentIndex < LESSONS.length - 1 ? 'Переход на следующий уровень...' : 'Все уроки пройдены!'}`
+            : `Цель: ${targetWpm} CPM и ${targetAccuracy}% точности`
+          }
+        </div>
+        {!passed && (
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", color: "rgba(248,113,113,0.5)" }}>
+            {!hasProcessedFinish.current && 'Попробуйте ещё раз'}
+          </div>
+        )}
       </div>
       <div style={{ display: "flex", gap: "40px" }}>
-        {[{ label: "CPM", value: wpm, target: lesson.targetWpm, color: wpm >= lesson.targetWpm ? "#34d399" : "rgba(248,113,113,0.7)" }, { label: "точность", value: `${accuracy}%`, target: "90%", color: accuracy >= 90 ? "#34d399" : "rgba(248,113,113,0.7)" }].map((s: any) => (
+        {[{ label: "CPM", value: wpm, target: targetWpm, color: wpm >= targetWpm ? "#34d399" : "rgba(248,113,113,0.7)" }, { label: "точность", value: `${accuracy}%`, target: `${targetAccuracy}%`, color: accuracy >= targetAccuracy ? "#34d399" : "rgba(248,113,113,0.7)" }].map((s: any) => (
           <div key={s.label}>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "2.5rem", fontWeight: 200, color: s.color, lineHeight: 1, letterSpacing: "-0.04em" }}>{s.value}</div>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "4px" }}>{s.label}</div>
@@ -195,19 +280,42 @@ function LessonComplete({ lesson, wpm, accuracy, onNext, onRetry, isLastLesson }
       </div>
       <div style={{ display: "flex", gap: "12px" }}>
         <button onClick={onRetry} style={{ background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "10px 20px", color: "rgba(224,224,224,0.35)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", transition: "all 0.2s" }}><RotateCcw size={12} />повторить</button>
-        {!isLastLesson && passed && <button onClick={onNext} style={{ background: "linear-gradient(135deg, #60a5fa, #34d399)", border: "none", borderRadius: "10px", padding: "10px 24px", color: "#111", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", transition: "opacity 0.2s" }}>следующий урок<ChevronRight size={13} /></button>}
       </div>
     </div>
   );
 }
 
 export function LearningMode() {
-  const [currentIndex, setCurrentIndex] = useState(2);
-  const [completedLessons, setCompletedLessons] = useState<number[]>([0, 1]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState<number[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const fontSize = useSettingsStore((state) => state.fontSize);
+  const hasProcessedFinish = useRef(false);
 
   const currentLesson = LESSONS[currentIndex];
+  
+  // Обработка нажатий клавиш для визуализации
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.length === 1 || e.key === " ") {
+        const key = e.key.toLowerCase();
+        setActiveKeys(prev => new Set(prev).add(key));
+      }
+    };
+    const handleKeyUp = () => {
+      setActiveKeys(new Set());
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
+  
   // Используем rawWpm для левой статистики (Слова в минуту)
   const { typed, wpm, rawWpm, accuracy, isActive, isFinished, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
 
@@ -217,12 +325,35 @@ export function LearningMode() {
       window.dispatchEvent(new CustomEvent('user-is-typing'));
     }
   }, [typed, isFinished]);
+  
+  // --- ЛОГИКА ПЕРЕХОДА УРОКОВ ---
+  useEffect(() => {
+    if (isFinished && !hasProcessedFinish.current) {
+      hasProcessedFinish.current = true;
 
-  const handleNext = () => {
-    setCompletedLessons((prev) => prev.includes(currentIndex) ? prev : [...prev, currentIndex]);
-    setCurrentIndex((i) => Math.min(i + 1, LESSONS.length - 1));
-    reset();
-  };
+      // Условия: 0 CPM и 0% точности (временно)
+      const targetCpm = 0;
+      const targetAccuracy = 0;
+      const currentCpm = rawWpm;
+      const isGoodAccuracy = accuracy >= targetAccuracy;
+      const isFastEnough = currentCpm >= targetCpm;
+
+      if (isGoodAccuracy && isFastEnough) {
+        // УСПЕХ - помечаем урок как пройденный
+        setCompletedLessons((prev) => [...prev, currentIndex]);
+      }
+      
+      // Сбрасываем флаг
+      setTimeout(() => {
+        hasProcessedFinish.current = false;
+        reset();
+      }, 0);
+    }
+
+    if (!isFinished) {
+      hasProcessedFinish.current = false;
+    }
+  }, [isFinished, rawWpm, accuracy, currentIndex, reset]);
 
   const handleSelectLesson = (i: number) => {
     setCurrentIndex(i);
@@ -235,11 +366,11 @@ export function LearningMode() {
     <div className="page-transition" style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflowX: "hidden", overflowY: "auto" }}>
       <style>{`::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #555; }`}</style>
 
-      {/* ЛЕВАЯ СТАТИСТИКА (СЛОВА В МИНУТУ - rawWpm) */}
+      {/* ЛЕВАЯ СТАТИСТИКА (CPM) */}
       <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: rawWpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)", lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{Math.round(rawWpm)}</span>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>слов/мин</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>CPM</span>
         </div>
       </div>
       
@@ -251,8 +382,17 @@ export function LearningMode() {
       </div>
 
       {/* Правая сторона: Карточка урока */}
-      <div style={{ position: "fixed", top: "80px", right: "clamp(20px, 5vw, 80px)", zIndex: 10 }}><LessonCard lesson={currentLesson} /></div>
-      
+      <div style={{ position: "fixed", top: "80px", right: "clamp(20px, 5vw, 80px)", zIndex: 10 }}>
+        <LessonCard lesson={currentLesson} activeKeys={activeKeys} />
+      </div>
+
+      {/* Суть задания */}
+      <div style={{ position: "fixed", top: "80px", left: "50%", transform: "translateX(-50%)", zIndex: 10, textAlign: "center", maxWidth: "600px" }}>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: "rgba(96,165,250,0.8)", letterSpacing: "0.05em", lineHeight: 1.5 }}>
+          {currentLesson.tip}
+        </div>
+      </div>
+
       {/* СОВЕТЫ УДАЛЕНЫ! Блок с currentLesson.tip удален. */}
       
       {/* Основной контент */}
@@ -289,7 +429,7 @@ export function LearningMode() {
             />
           </>
         ) : (
-          <LessonComplete lesson={currentLesson} wpm={wpm} accuracy={accuracy} onNext={handleNext} onRetry={reset} isLastLesson={currentIndex === LESSONS.length - 1} />
+          <LessonComplete lesson={currentLesson} wpm={wpm} accuracy={accuracy} onRetry={reset} isLastLesson={currentIndex === LESSONS.length - 1} />
         )}
       </div>
 
@@ -299,8 +439,7 @@ export function LearningMode() {
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.1em" }}>ДО СЛЕДУЮЩЕГО УРОКА</div>
           <div onClick={() => setIsHelpOpen(true)} style={{ marginLeft: "6px", cursor: "pointer", transition: "transform 0.2s", display: "flex", alignItems: "center", color: "rgba(96,165,250,0.6)" }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
         </div>
-        <StepIndicator lessons={lessonsWithCompletion} currentIndex={currentIndex} onSelect={handleSelectLesson} />
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 150 CPM</div>
+        <StepIndicator lessons={lessonsWithCompletion} currentIndex={currentIndex} onSelect={handleSelectLesson} completedLessons={completedLessons} />
       </div>
       {!isActive && !isFinished && (<div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>)}
       

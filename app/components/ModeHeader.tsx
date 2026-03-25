@@ -42,7 +42,7 @@ function LangDropdown({ isOpen, onClose, currentLang, onLangChange }: any) {
   const languages = [{ code: "ru", label: "Русский" }, { code: "en", label: "English" }];
   return (<>
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
-    <div style={{ position: "absolute", bottom: "calc(100% + 10px)", left: 0, zIndex: 50, backgroundColor: "#1e2028", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "6px", minWidth: "140px", boxShadow: "0 -24px 48px rgba(0,0,0,0.4)" }}>
+    <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 50, backgroundColor: "#1e2028", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "6px", minWidth: "140px", boxShadow: "0 24px 48px rgba(0,0,0,0.4)" }}>
       {languages.map((lang: any) => (
         <button key={lang.code} onClick={() => { onLangChange(lang.code); onClose(); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "8px 14px", borderRadius: "6px", background: "none", border: "none", cursor: "pointer" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: currentLang === lang.code ? "#fff" : "rgba(224,224,224,0.5)", fontWeight: currentLang === lang.code ? 600 : 400 }}>{lang.label}</span>
@@ -207,29 +207,13 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
     <>
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 30, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", height: "60px", opacity: shouldHideControls ? 1 : 1, transition: "opacity 0.4s ease", pointerEvents: "auto", backgroundColor: "transparent" }}>
 
-        {/* ЛЕВАЯ ЧАСТЬ: Логотип + ОГОНЕК */}
+        {/* ЛЕВАЯ ЧАСТЬ: Логотип */}
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer", zIndex: 31, opacity: shouldHideControls ? 0 : 1, pointerEvents: shouldHideControls ? "none" : "auto", transition: "opacity 0.3s" }} onClick={() => navigate("/")}>
             <div style={{ width: "28px", height: "28px", borderRadius: "7px", backgroundColor: accentColor, display: "flex", alignItems: "center", justifyContent: "center", transition: "background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)" }}>
               <Keyboard size={15} color="#111" strokeWidth={2.5} />
             </div>
             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.95rem", fontWeight: 600, color: "rgba(224,224,224,0.85)", letterSpacing: "-0.02em" }}>пальцеблуд.рф</span>
-          </div>
-
-          {/* ОГОНЕК */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "6px 10px",
-            borderRadius: "14px",
-            backgroundColor: hasActivityToday ? "rgba(255,107,53,0.0)" : "transparent",
-            transition: "all 0.3s ease",
-            opacity: shouldHideControls ? 0 : 1,
-            pointerEvents: "none"
-          }}>
-            <Flame size={24} fill={hasActivityToday ? "#ff6b35" : "none"} color={flameColor} style={{ opacity: flameOpacity, filter: glowEffect, transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: hasActivityToday ? "scale(1.15)" : "scale(1)" }} />
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.9rem", fontWeight: 700, color: textColor, opacity: flameOpacity, transition: "all 0.3s ease", minWidth: "16px", textAlign: "center" }}>{streakCount}</span>
           </div>
         </div>
 
@@ -300,9 +284,16 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
           </div>
         )}
 
-      {/* ПРАВЫЙ УГОЛ: Профиль */}
+      {/* ПРАВЫЙ УГОЛ: Профиль + Язык */}
         {!shouldHideControls && (
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", zIndex: 31 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", zIndex: 31 }}>
+            {/* Значок языка (левее) */}
+            <div style={{ position: "relative" }}>
+              <LangDropdown isOpen={langOpen} onClose={() => setLangOpen(false)} currentLang={currentLang} onLangChange={setCurrentLang} />
+              <button onClick={() => { setLangOpen(!langOpen); closeAllMenus(); setLangOpen(true); }} style={{ background: "transparent", border: "none", color: langOpen ? "#fff" : "rgba(224,224,224,0.5)", cursor: "pointer", padding: "8px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} onMouseEnter={(e: any) => { if (!langOpen) { e.currentTarget.style.color = "#fff"; } }} onMouseLeave={(e: any) => { if (!langOpen) { e.currentTarget.style.color = "rgba(224,224,224,0.5)"; } }} title="Переключить язык"><Languages size={20} /></button>
+            </div>
+            
+            {/* Значок профиля (правее) */}
             <div style={{ position: "relative" }}>
               {isLoading ? (
                 <div className="w-5 h-5 animate-pulse bg-gray-800 rounded-full" />
@@ -340,12 +331,22 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
         )}
       </header>
 
-      {/* НИЖНИЙ ЛЕВЫЙ УГОЛ: Язык */}
+      {/* НИЖНИЙ ЛЕВЫЙ УГОЛ: Огонёк */}
       {!shouldHideControls && (
         <div style={{ position: "fixed", bottom: "20px", left: "40px", zIndex: 100 }}>
-          <div style={{ position: "relative" }}>
-            <LangDropdown isOpen={langOpen} onClose={() => setLangOpen(false)} currentLang={currentLang} onLangChange={setCurrentLang} />
-            <button onClick={() => { setLangOpen(!langOpen); closeAllMenus(); setLangOpen(true); }} style={{ background: "transparent", border: "none", color: langOpen ? GOLD_COLOR : "rgba(224,224,224,0.5)", cursor: "pointer", padding: "8px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} onMouseEnter={(e: any) => { if (!langOpen) { e.currentTarget.style.color = "#fff"; } }} onMouseLeave={(e: any) => { if (!langOpen) { e.currentTarget.style.color = "rgba(224,224,224,0.5)"; } }} title="Переключить язык"><Languages size={20} /></button>
+          {/* Огонёк */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "6px 10px",
+            borderRadius: "14px",
+            backgroundColor: hasActivityToday ? "rgba(255,107,53,0.0)" : "transparent",
+            transition: "all 0.3s ease",
+            pointerEvents: "none"
+          }}>
+            <Flame size={24} fill={hasActivityToday ? "#ff6b35" : "none"} color={flameColor} style={{ opacity: flameOpacity, filter: glowEffect, transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: hasActivityToday ? "scale(1.15)" : "scale(1)" }} />
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.9rem", fontWeight: 700, color: textColor, opacity: flameOpacity, transition: "all 0.3s ease", minWidth: "16px", textAlign: "center" }}>{streakCount}</span>
           </div>
         </div>
       )}

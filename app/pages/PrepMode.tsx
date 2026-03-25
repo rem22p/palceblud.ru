@@ -136,7 +136,7 @@ function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef }: { unlockedCoun
               const isPressed = activeKeyRef.current === key;
               let bgColor = KEY_INACTIVE_BG, textColor = KEY_INACTIVE_TEXT, borderColor = "transparent", showLock = true, opacity = 0.6, transform = "scale(1)", boxShadow = "none";
               if (indexInProgress !== -1) {
-                if (indexInProgress < unlockedCount) { bgColor = ACCENT_COLOR; textColor = "#fff"; borderColor = "transparent"; showLock = false; opacity = 1; } 
+                if (indexInProgress < unlockedCount) { bgColor = ACCENT_COLOR; textColor = "#fff"; borderColor = "transparent"; showLock = false; opacity = 1; }
                 else { showLock = true; opacity = 0.6; }
               }
               if (isPressed) { bgColor = "#4ade80"; textColor = "#022c22"; borderColor = "#4ade80"; opacity = 1; transform = "scale(1.2)"; boxShadow = "0 0 15px #4ade80"; showLock = false; }
@@ -186,7 +186,7 @@ function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: 
           );
         })}
       </div>
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(52, 211, 153, 0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 150 CPM</div>
+      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(52, 211, 153, 0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 130 CPM</div>
     </div>
   );
 }
@@ -203,16 +203,16 @@ function HelpModal({ isOpen, onClose, nextKey, currentWpm: _currentWpm }: any) {
           <button onClick={onClose} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", padding: "4px" }} onMouseEnter={(e: any) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e: any) => e.currentTarget.style.color = "#666"}><X size={20} /></button>
         </div>
         <div style={{ marginBottom: "20px" }}>
-          <p style={{ fontSize: "0.85rem", color: "#aaa", lineHeight: 1.6, marginBottom: "16px" }}>Чтобы открыть следующую букву, необходимо пройти <strong>5 уроков</strong> со скоростью ≥ 150 CPM (символов в мин.) и точностью 100%.</p>
+          <p style={{ fontSize: "0.85rem", color: "#aaa", lineHeight: 1.6, marginBottom: "16px" }}>Чтобы открыть следующую букву, необходимо пройти <strong>5 уроков</strong> со скоростью ≥ 130 CPM (символов в мин.) и точностью ≥ 95%.</p>
           <div style={{ backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "8px", padding: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
             <div style={{ fontSize: "0.75rem", color: "#888", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.1em" }}>Требования к уроку:</div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
               <span style={{ fontSize: "0.9rem", color: "#e0e0e0" }}>Скорость (CPM)</span>
-              <span style={{ fontSize: "0.9rem", color: themeColor, fontWeight: "bold" }}>≥ 150</span>
+              <span style={{ fontSize: "0.9rem", color: themeColor, fontWeight: "bold" }}>≥ 130</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: "0.9rem", color: "#e0e0e0" }}>Точность</span>
-              <span style={{ fontSize: "0.9rem", color: themeColor, fontWeight: "bold" }}>100%</span>
+              <span style={{ fontSize: "0.9rem", color: themeColor, fontWeight: "bold" }}>≥ 95%</span>
             </div>
           </div>
         </div>
@@ -223,20 +223,40 @@ function HelpModal({ isOpen, onClose, nextKey, currentWpm: _currentWpm }: any) {
   );
 }
 
+const PREP_PROGRESS_KEY = "palceblud_prep_progress";
+
 export function PrepMode() {
-  const [unlockedCount, setUnlockedCount] = useState<number>(5);
-  const [streak, setStreak] = useState<number>(0);
+  // Загружаем прогресс из localStorage
+  const [unlockedCount, setUnlockedCount] = useState<number>(() => {
+    const saved = localStorage.getItem(PREP_PROGRESS_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      return data.unlockedCount ?? 5;
+    }
+    return 5;
+  });
+
+  const [streak, setStreak] = useState<number>(() => {
+    const saved = localStorage.getItem(PREP_PROGRESS_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      return data.streak ?? 0;
+    }
+    return 0;
+  });
   const [notification, setNotification] = useState<string | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showAllKeysComplete, setShowAllKeysComplete] = useState(false);
   const fontSize = useSettingsStore((state) => state.fontSize);
 
   const activeKeyRef = useRef<string | null>(null);
   const [, setTick] = useState(0);
   const hasProcessedFinish = useRef<boolean>(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const currentKeys = useMemo(() => KEY_PROGRESSION.slice(0, unlockedCount), [unlockedCount]);
   const nextKey = KEY_PROGRESSION[unlockedCount];
-  const lessonText = useMemo(() => generateRealLessonText(currentKeys, WORDS_PER_LESSON), [currentKeys]);
+  const lessonText = useMemo(() => generateRealLessonText(currentKeys, WORDS_PER_LESSON), [currentKeys, streak, retryCount]);
 
   // Получаем данные из хука.
   // ВАЖНО: wpm в нашем хуке уже рассчитан как CPM (Chars Per Minute).
@@ -268,51 +288,59 @@ export function PrepMode() {
     if (isFinished && !hasProcessedFinish.current) {
       hasProcessedFinish.current = true;
 
-      // Жесткие условия: 150 CPM и 100% точности
+      // Условия: 150 CPM и 95% точности
       const targetCpm = 150;
+      const targetAccuracy = 95;
       const currentCpm = wpm; // Это уже символы в минуту
-      const isPerfect = accuracy === 100;
+      const isGoodAccuracy = accuracy >= targetAccuracy;
       const isFastEnough = currentCpm >= targetCpm;
 
-      if (isPerfect && isFastEnough) {
+      if (isGoodAccuracy && isFastEnough) {
         // УСПЕХ
         const newStreak = streak + 1;
-        
+
         if (newStreak >= LESSONS_PER_LEVEL && unlockedCount < KEY_PROGRESSION.length) {
           // ОТКРЫВАЕМ НОВУЮ БУКВУ
-          setNotification(`Открыта новая буква: ${nextKey}! (CPM: ${Math.round(currentCpm)})`);
-          setTimeout(() => setNotification(null), 5000);
-          
+          setNotification(`Открыта новая буква: ${nextKey}!`);
+          setTimeout(() => setNotification(null), 4000);
+
           setUnlockedCount(prev => prev + 1);
           setStreak(0);
+
+          // Проверяем, была ли это последняя буква
+          if (unlockedCount + 1 >= KEY_PROGRESSION.length) {
+            setShowAllKeysComplete(true);
+          }
 
           setTimeout(() => {
             hasProcessedFinish.current = false;
             reset();
-          }, 2500);
+          }, 0);
         } else {
           // СЛЕДУЮЩИЙ УРОК
           setStreak(newStreak);
           setTimeout(() => {
             hasProcessedFinish.current = false;
             reset();
-          }, 1000);
+          }, 0);
         }
       } else {
-        // НЕУДАЧА (Сброс серии)
-        setStreak(0);
-        // Можно добавить уведомление о причине неудачи, если нужно
-        setTimeout(() => {
-          hasProcessedFinish.current = false;
-          reset();
-        }, 1500);
+        // НЕУДАЧА (перезапуск этапа с новыми словами и блюром)
+        setRetryCount(prev => prev + 1); // Генерируем новый текст
+        hasProcessedFinish.current = false;
+        reset();
       }
     }
-    
+
     if (!isFinished) {
       hasProcessedFinish.current = false;
     }
   }, [isFinished, wpm, accuracy, streak, unlockedCount, nextKey, reset]);
+
+  // Сохраняем прогресс в localStorage
+  useEffect(() => {
+    localStorage.setItem(PREP_PROGRESS_KEY, JSON.stringify({ unlockedCount, streak }));
+  }, [unlockedCount, streak]);
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", color: "#e0e0e0", fontFamily: "'JetBrains Mono', monospace", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
@@ -333,7 +361,7 @@ export function PrepMode() {
       <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px", opacity: (!isFinished && typed.length === 0) ? 0.5 : 1, transition: "opacity 0.4s" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: rawWpm > 0 ? ACCENT_LIGHT : ACCENT_DIM, lineHeight: 1, letterSpacing: "-0.04em" }}>{Math.round(rawWpm)}</span>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: ACCENT_DIM, letterSpacing: "0.2em", textTransform: "uppercase" }}>слов/мин</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: ACCENT_DIM, letterSpacing: "0.2em", textTransform: "uppercase" }}>CPM</span>
         </div>
       </div>
       <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
@@ -348,7 +376,11 @@ export function PrepMode() {
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} nextKey={nextKey} currentWpm={wpm} />
 
       <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", paddingTop: "40px", paddingBottom: "40px" }}>
-        {notification && <div style={{ marginBottom: "20px", padding: "12px 24px", backgroundColor: "rgba(10, 95, 56, 0.2)", color: ACCENT_LIGHT, border: `1px solid ${ACCENT_COLOR}`, borderRadius: "8px", fontWeight: "bold", textAlign: "center", animation: "fadeUp 0.3s ease" }}>🎉 {notification}</div>}
+        {notification && (
+          <div style={{ position: "fixed", top: "180px", left: "50%", marginLeft: "-150px", padding: "10px 20px", backgroundColor: "rgba(10, 95, 56, 0.3)", color: ACCENT_LIGHT, border: `1px solid ${ACCENT_LIGHT}`, borderRadius: "10px", fontWeight: "bold", textAlign: "center", animation: "fadeIn 0.3s ease", zIndex: 50, width: "300px" }}>
+            🎉 {notification}
+          </div>
+        )}
         <TypingDisplay
           text={lessonText} typed={typed} onType={handleType} onReset={reset}
           colors={{ correct: "#e0e0e0", error: "#ca4754", untyped: "rgba(255,255,255,0.1)", cursor: ACCENT_LIGHT, errorBg: "rgba(239, 68, 68, 0.1)" }}
@@ -363,7 +395,50 @@ export function PrepMode() {
       {!isFinished && typed.length === 0 && (
         <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>esc — пауза</div>
       )}
-      <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+
+      {/* Модальное окно - все буквы открыты */}
+      {showAllKeysComplete && (
+        <>
+          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", zIndex: 300 }} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", marginLeft: "-225px", marginTop: "-180px", zIndex: 301, backgroundColor: "#1e2028", border: `2px solid ${ACCENT_LIGHT}`, borderRadius: "20px", padding: "48px 64px", minWidth: "450px", textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", animation: "fadeIn 0.5s ease" }}>
+            <div style={{ fontSize: "4rem", marginBottom: "16px" }}>🏆</div>
+            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "1.8rem", fontWeight: 700, color: "#fff", marginBottom: "12px" }}>Поздравляем!</div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.9rem", color: "rgba(224,224,224,0.6)", marginBottom: "32px", lineHeight: 1.6 }}>
+              Вы открыли все буквы!<br/>
+              Теперь продолжайте практиковаться, чтобы достичь скорости 150+ CPM
+            </div>
+            <button
+              onClick={() => setShowAllKeysComplete(false)}
+              style={{
+                background: `linear-gradient(135deg, ${ACCENT_COLOR}, ${ACCENT_LIGHT})`,
+                border: "none",
+                borderRadius: "12px",
+                padding: "16px 48px",
+                color: "#111",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.95rem",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                boxShadow: "0 4px 20px rgba(74, 222, 128, 0.3)"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.boxShadow = "0 6px 30px rgba(74, 222, 128, 0.5)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow = "0 4px 20px rgba(74, 222, 128, 0.3)";
+              }}
+            >
+              ПРОДОЛЖИТЬ
+            </button>
+          </div>
+        </>
+      )}
+
+      <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
   );
 }

@@ -452,7 +452,7 @@ export function PracticeMode() {
       {!isFinished ? (
         <>
           {/* Верхняя панель */}
-          <div style={{ position: "fixed", top: "11px", right: "110px", display: "flex", alignItems: "center", gap: "8px", zIndex: 99999 }}>
+          <div style={{ position: "fixed", top: "11px", right: "130px", display: "flex", alignItems: "center", gap: "8px", zIndex: 99999 }}>
             <ModeToggle mode={mode} onChange={handleModeChange} disabled={isActive} />
             <div style={{ display: "flex", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px 12px", cursor: isActive ? "not-allowed" : "pointer", opacity: isActive ? 0.5 : 1, gap: "8px", height: "38px", minWidth: "90px", justifyContent: "space-between", flexShrink: 0 }} onClick={() => !isActive && setShowMenu(!showMenu)}>
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", fontWeight: 600, color: "rgba(224,224,224,0.6)", minWidth: "50px", textAlign: "right" }}>{mode === "time" ? `${timeLimit}s` : wordLimit === "infinity" ? "∞" : `${wordLimit}`}</span>
