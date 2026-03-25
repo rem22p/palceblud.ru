@@ -166,7 +166,10 @@ function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef }: { unlockedCoun
 function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: _currentWpm }: any) {
   return (
     <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20 }}>
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(224,224,224,0.4)", letterSpacing: "0.1em" }}>ДО ОТКРЫТИЯ НОВОЙ БУКВЫ</div>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(52, 211, 153, 0.6)", letterSpacing: "0.1em" }}>ДО ОТКРЫТИЯ НОВОЙ БУКВЫ</div>
+        <div onClick={onShowHelp} style={{ marginLeft: "6px", cursor: "pointer", transition: "transform 0.2s", display: "flex", alignItems: "center", color: STAGE_COMPLETED }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         {Array.from({ length: LESSONS_PER_LEVEL }).map((_, i) => {
           const isCompleted = i < streak;
@@ -182,7 +185,6 @@ function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: 
             </div>
           );
         })}
-        <div onClick={onShowHelp} style={{ marginLeft: "6px", cursor: "pointer", transition: "transform 0.2s", display: "flex", alignItems: "center", color: STAGE_COMPLETED }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
       </div>
       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(52, 211, 153, 0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 150 CPM</div>
     </div>

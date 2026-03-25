@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import {
   CheckCircle,
   Circle,
-  ChevronRight,
-  ChevronLeft,
   Star,
   Zap,
   BookOpen,
   RotateCcw,
+  HelpCircle,
+  X,
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
@@ -90,17 +90,63 @@ const LESSONS: Lesson[] = [
 
 function StepIndicator({ lessons, currentIndex, onSelect }: any) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0" }}>
-      {lessons.map((lesson: any, i: number) => (
-        <div key={lesson.id} style={{ display: "flex", alignItems: "center" }}>
-          <button onClick={() => onSelect(i)} title={lesson.title} style={{ background: "none", border: "none", padding: "4px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "5px" }}>
-            <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: i < currentIndex ? "#34d399" : i === currentIndex ? "#60a5fa" : "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s ease", border: i === currentIndex ? "2px solid rgba(96,165,250,0.4)" : "2px solid transparent" }}>
-              {i < currentIndex ? <CheckCircle size={13} color="#111" strokeWidth={2.5} /> : i === currentIndex ? <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.62rem", color: "#111", fontWeight: 700 }}>{i + 1}</span> : <Circle size={11} color="rgba(224,224,224,0.2)" />}
-            </div>
-          </button>
-          {i < lessons.length - 1 && <div style={{ width: "28px", height: "2px", backgroundColor: i < currentIndex ? "#34d399" : "rgba(255,255,255,0.07)", transition: "background-color 0.3s" }} />}
-        </div>
-      ))}
+    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+      {lessons.map((lesson: any, i: number) => {
+        const isCompleted = i < currentIndex;
+        const isCurrent = i === currentIndex;
+        const bgColor = isCompleted ? "#34d399" : (isCurrent ? "#60a5fa" : "rgba(255,255,255,0.06)");
+        const borderColor = isCurrent ? "rgba(96,165,250,0.4)" : "transparent";
+        const boxShadow = isCurrent ? "0 0 10px rgba(96,165,250,0.4)" : "none";
+        
+        return (
+          <div key={lesson.id} style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <button 
+              onClick={() => onSelect(i)} 
+              title={lesson.title} 
+              style={{ 
+                background: "none", 
+                border: "none", 
+                padding: "0", 
+                cursor: "pointer", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center",
+                transition: "all 0.25s ease"
+              }}
+            >
+              <div style={{ 
+                width: "28px", 
+                height: "28px", 
+                borderRadius: "50%", 
+                backgroundColor: bgColor, 
+                border: `2px solid ${borderColor}`, 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                transition: "all 0.25s ease",
+                boxShadow: isCurrent ? boxShadow : "none"
+              }}>
+                {isCompleted ? (
+                  <CheckCircle size={14} color="#111" strokeWidth={3} />
+                ) : isCurrent ? (
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: "#fff", fontWeight: 700 }}>{i + 1}</span>
+                ) : (
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.1)" }} />
+                )}
+              </div>
+            </button>
+            {i < lessons.length - 1 && (
+              <div style={{ 
+                width: "24px", 
+                height: "2px", 
+                backgroundColor: i < currentIndex ? "#34d399" : "rgba(255,255,255,0.07)", 
+                transition: "background-color 0.3s",
+                marginLeft: "2px"
+              }} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -158,6 +204,7 @@ function LessonComplete({ lesson, wpm, accuracy, onNext, onRetry, isLastLesson }
 export function LearningMode() {
   const [currentIndex, setCurrentIndex] = useState(2);
   const [completedLessons, setCompletedLessons] = useState<number[]>([0, 1]);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const fontSize = useSettingsStore((state) => state.fontSize);
 
   const currentLesson = LESSONS[currentIndex];
@@ -214,11 +261,11 @@ export function LearningMode() {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center", 
+          alignItems: "center",
           justifyContent: "center",
           width: "100%",
           margin: "0 auto",
-          padding: "160px clamp(16px, 4vw, 40px) 160px", 
+          padding: "80px clamp(16px, 4vw, 40px) 40px",
           zIndex: 5,
           boxSizing: "border-box",
         }}
@@ -247,17 +294,39 @@ export function LearningMode() {
       </div>
 
       {/* Индикатор шагов */}
-      <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", zIndex: 20, opacity: isActive && !isFinished ? 0.2 : 1, transition: "opacity 0.4s ease" }}>
+      <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, opacity: isActive && !isFinished ? 0.2 : 1, transition: "opacity 0.4s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.1em" }}>ДО СЛЕДУЮЩЕГО УРОКА</div>
+          <div onClick={() => setIsHelpOpen(true)} style={{ marginLeft: "6px", cursor: "pointer", transition: "transform 0.2s", display: "flex", alignItems: "center", color: "rgba(96,165,250,0.6)" }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
+        </div>
         <StepIndicator lessons={lessonsWithCompletion} currentIndex={currentIndex} onSelect={handleSelectLesson} />
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.15)", letterSpacing: "0.15em" }}>урок {currentIndex + 1} из {LESSONS.length} — {currentLesson.title}</div>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 150 CPM</div>
       </div>
-
-      {/* Навигация */}
-      <div style={{ position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: "16px", opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s", pointerEvents: isActive && !isFinished ? "none" : "auto", zIndex: 20 }}>
-        <button onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))} disabled={currentIndex === 0} style={{ background: "none", border: "none", color: currentIndex === 0 ? "rgba(224,224,224,0.06)" : "rgba(224,224,224,0.2)", cursor: currentIndex === 0 ? "not-allowed" : "pointer", padding: "8px", borderRadius: "8px", display: "flex", alignItems: "center", gap: "5px", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.65rem", letterSpacing: "0.08em", transition: "color 0.2s" }}><ChevronLeft size={14} />prev</button>
-        <button onClick={reset} style={{ background: "none", border: "none", color: "rgba(224,224,224,0.18)", cursor: "pointer", padding: "8px 12px", borderRadius: "8px", display: "flex", alignItems: "center", gap: "6px", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.65rem", letterSpacing: "0.08em", transition: "color 0.2s" }}><RotateCcw size={13} />restart</button>
-        <button onClick={() => setCurrentIndex((i) => Math.min(i + 1, LESSONS.length - 1))} disabled={currentIndex === LESSONS.length - 1} style={{ background: "none", border: "none", color: currentIndex === LESSONS.length - 1 ? "rgba(224,224,224,0.06)" : "rgba(224,224,224,0.2)", cursor: currentIndex === LESSONS.length - 1 ? "not-allowed" : "pointer", padding: "8px", borderRadius: "8px", display: "flex", alignItems: "center", gap: "5px", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.65rem", letterSpacing: "0.08em", transition: "color 0.2s" }}>next<ChevronRight size={14} /></button>
-      </div>
+      {!isActive && !isFinished && (<div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>)}
+      
+      {/* Help Modal */}
+      {isHelpOpen && (
+        <>
+          <div onClick={() => setIsHelpOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 90, cursor: "pointer" }} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 100, backgroundColor: "#2b2d31", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "24px", width: "90%", maxWidth: "400px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", fontFamily: "'JetBrains Mono', monospace", animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ fontSize: "1.1rem", color: "#e0e0e0", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}><HelpCircle size={20} color="rgba(96,165,250,0.6)" />Условия раздела</h2>
+              <button onClick={() => setIsHelpOpen(false)} style={{ background: "none", border: "none", color: "rgba(224,224,224,0.5)", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={18} /></button>
+            </div>
+            <p style={{ fontSize: "0.85rem", color: "#aaa", lineHeight: 1.6, marginBottom: "16px" }}>Чтобы перейти к следующему уроку, необходимо пройти текущий урок со скоростью <strong>≥ 150 CPM</strong> (символов в мин.) и точностью <strong>90%</strong>.</p>
+            <div style={{ fontSize: "0.75rem", color: "#888", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.1em" }}>Требования к уроку:</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <span style={{ fontSize: "0.9rem", color: "#e0e0e0" }}>Скорость (CPM)</span>
+              <span style={{ fontSize: "0.9rem", color: "rgba(96,165,250,0.6)", fontWeight: "bold" }}>≥ 150</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "8px" }}>
+              <span style={{ fontSize: "0.9rem", color: "#e0e0e0" }}>Точность</span>
+              <span style={{ fontSize: "0.9rem", color: "rgba(96,165,250,0.6)", fontWeight: "bold" }}>≥ 90%</span>
+            </div>
+          </div>
+        </>
+      )}
+      <style>{`@keyframes slideUp { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }`}</style>
     </div>
   );
 }
