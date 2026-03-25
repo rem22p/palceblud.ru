@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { RotateCcw, SkipForward, MoreHorizontal, ChevronDown } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
+import { useSettingsStore } from "../features/settings/store/settingsStore";
 
 const WORD_POOL = [
   // Основные глаголы
@@ -402,6 +403,8 @@ export function PracticeMode() {
   const [wordLimit, setWordLimit] = useState<number | "infinity">("infinity");
   const [showMenu, setShowMenu] = useState(false);
   const [text, setText] = useState(() => generateText(1000));
+  const accentColor = useSettingsStore((state) => state.accentColor);
+  const fontSize = useSettingsStore((state) => state.fontSize);
 
   const { typed, wpm, accuracy, rawWpm, consistency, errorCount, timeLeft, wordsLeft, isActive, isFinished, handleType, reset } = useTyping(text, { mode, timeLimit, wordLimit: wordLimit === "infinity" ? 999999 : wordLimit });
 
@@ -513,14 +516,14 @@ export function PracticeMode() {
               onReset={handleRestart}
               colors={{
                 correct: "rgba(224,224,224,0.9)",
-                error: "#ff6b35",
+                error: "#ca4754",
                 untyped: "rgba(224,224,224,0.18)",
-                cursor: "#ff6b35",
+                cursor: accentColor || "#ff6b35",
                 errorBg: "rgba(255,107,53,0.12)"
               }}
               isFinished={isFinished}
-              fontSize="36px"
-              lineHeight="40px"
+              fontSize={`${fontSize}px`}
+              lineHeight={`${fontSize + 32}px`}
               maxWidth="1200px"
               
               // !!! ПЕРЕДАЕМ CPM (wpm) ДЛЯ СПИДОМЕТРА !!!

@@ -10,6 +10,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
+import { useSettingsStore } from "../features/settings/store/settingsStore";
 
 // ─── Lesson data ───────────────────────────────────────────────────────────
 interface Lesson {
@@ -157,6 +158,7 @@ function LessonComplete({ lesson, wpm, accuracy, onNext, onRetry, isLastLesson }
 export function LearningMode() {
   const [currentIndex, setCurrentIndex] = useState(2);
   const [completedLessons, setCompletedLessons] = useState<number[]>([0, 1]);
+  const fontSize = useSettingsStore((state) => state.fontSize);
 
   const currentLesson = LESSONS[currentIndex];
   // Используем rawWpm для левой статистики (Слова в минуту)
@@ -228,10 +230,10 @@ export function LearningMode() {
               typed={typed}
               onType={handleType}
               onReset={reset}
-              colors={{ correct: "rgba(224,224,224,0.9)", error: "#ff6b35", untyped: "rgba(224,224,224,0.18)", cursor: "#60a5fa", errorBg: "rgba(248,113,113,0.1)" }}
+              colors={{ correct: "rgba(224,224,224,0.9)", error: "#ca4754", untyped: "rgba(224,224,224,0.18)", cursor: "#60a5fa", errorBg: "rgba(248,113,113,0.1)" }}
               isFinished={isFinished}
-              fontSize="36px"
-              lineHeight="40px"
+              fontSize={`${fontSize}px`}
+              lineHeight={`${fontSize + 32}px`}
               maxWidth="1200px"
               
               wpm={wpm}

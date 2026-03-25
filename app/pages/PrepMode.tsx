@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 import { Lock, Keyboard as KeyboardIcon, CheckCircle, HelpCircle, X } from "lucide-react";
+import { useSettingsStore } from "../features/settings/store/settingsStore";
 
 // --- КОНФИГУРАЦИЯ ---
 const ACCENT_COLOR = "#0A5F38"; 
@@ -225,7 +226,8 @@ export function PrepMode() {
   const [streak, setStreak] = useState<number>(0);
   const [notification, setNotification] = useState<string | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  
+  const fontSize = useSettingsStore((state) => state.fontSize);
+
   const activeKeyRef = useRef<string | null>(null);
   const [, setTick] = useState(0);
   const hasProcessedFinish = useRef<boolean>(false);
@@ -234,7 +236,7 @@ export function PrepMode() {
   const nextKey = KEY_PROGRESSION[unlockedCount];
   const lessonText = useMemo(() => generateRealLessonText(currentKeys, WORDS_PER_LESSON), [currentKeys]);
 
-  // Получаем данные из хука. 
+  // Получаем данные из хука.
   // ВАЖНО: wpm в нашем хуке уже рассчитан как CPM (Chars Per Minute).
   const { typed, wpm, rawWpm, accuracy, isFinished, handleType, reset } = useTyping(lessonText, { mode: "words", wordLimit: WORDS_PER_LESSON });
 
@@ -347,9 +349,11 @@ export function PrepMode() {
         {notification && <div style={{ marginBottom: "20px", padding: "12px 24px", backgroundColor: "rgba(10, 95, 56, 0.2)", color: ACCENT_LIGHT, border: `1px solid ${ACCENT_COLOR}`, borderRadius: "8px", fontWeight: "bold", textAlign: "center", animation: "fadeUp 0.3s ease" }}>🎉 {notification}</div>}
         <TypingDisplay
           text={lessonText} typed={typed} onType={handleType} onReset={reset}
-          colors={{ correct: "#e0e0e0", error: "#ef4444", untyped: "rgba(255,255,255,0.1)", cursor: ACCENT_LIGHT, errorBg: "rgba(239, 68, 68, 0.1)" }}
+          colors={{ correct: "#e0e0e0", error: "#ca4754", untyped: "rgba(255,255,255,0.1)", cursor: ACCENT_LIGHT, errorBg: "rgba(239, 68, 68, 0.1)" }}
           isFinished={isFinished} isActive={!isFinished && typed.length > 0}
           wpm={wpm} accuracy={accuracy} progress={0}
+          fontSize={`${fontSize}px`}
+          lineHeight={`${fontSize + 32}px`}
           goalMet={isGoalMet}
         />
       </div>
