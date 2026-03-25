@@ -244,6 +244,7 @@ function StatsBar({ wpm, accuracy, progress, isActive, goalMet }: { wpm: number,
 export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize = "36px", lineHeight = "40px", maxWidth = "1200px", showIntroAnimation = false, isActive: _isActive, wpm: _wpm, accuracy: _accuracy, progress: _progress, goalMet: _goalMet }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [blurEnabled, setBlurEnabled] = useState<boolean>(true);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const [animProgress, setAnimProgress] = useState<number>(0);

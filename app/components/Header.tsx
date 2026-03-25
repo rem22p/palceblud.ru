@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Keyboard,
-  Settings,
   Sun,
   Moon,
   BarChart2,
@@ -12,11 +11,9 @@ import { useAuth } from "../features/auth/hooks/useAuth";
 import { AuthModal } from "../features/auth/components/AuthModal";
 import { ProfileMenu } from "../features/auth/components/ProfileMenu";
 
-interface HeaderProps {
-  onSettingsClick?: () => void;
-}
+interface HeaderProps {}
 
-export function Header({ onSettingsClick }: HeaderProps) {
+export function Header({}: HeaderProps) {
   const [isDark, setIsDark] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
@@ -105,24 +102,6 @@ export function Header({ onSettingsClick }: HeaderProps) {
             title="Сменить тему"
           >
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-
-          {/* Settings */}
-          <button
-            onClick={onSettingsClick}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#646669",
-              padding: "8px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-            className="hover:!text-[#d1d0c5] hover:!bg-[#2a2a2a]"
-            title="Настройки"
-          >
-            <Settings size={18} />
           </button>
 
           {/* Divider */}

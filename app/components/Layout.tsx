@@ -1,11 +1,19 @@
 import { Outlet } from "react-router";
 import { ModeHeader } from "./ModeHeader";
+import { Header } from "./Header";
 
-export function Layout() {
+interface LayoutProps {
+  children?: React.ReactNode;
+  isFinished?: boolean;
+  isActive?: boolean;
+  showHeader?: boolean;
+}
+
+export function Layout({ children, isFinished = false, isActive = false, showHeader = false }: LayoutProps) {
   return (
     <>
-      <ModeHeader />
-      <Outlet />
+      {showHeader ? <Header /> : <ModeHeader isFinished={isFinished} isActive={isActive} />}
+      {children || <Outlet />}
     </>
   );
 }
