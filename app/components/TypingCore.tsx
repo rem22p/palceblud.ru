@@ -50,6 +50,9 @@ export interface TypingDisplayProps {
   accuracy?: number;
   isPaused?: boolean;
   togglePause?: () => void;
+  mode?: "time" | "words";
+  timeLimit?: number;
+  timeLeft?: number;
 }
 
 export function useTyping(text: string, options: UseTypingOptions): TypingState {
@@ -60,6 +63,7 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [displayStats, setDisplayStats] = useState<{ wpm: number, rawWpm: number, accuracy: number, consistency: number, errorCount: number }>({ wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 });
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const pausedTimeRef = useRef<number>(0);
@@ -67,56 +71,40 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   const completedWordsCount = (typed.match(/ /g) || []).length;
   const wordsLeft = mode === "words" ? Math.max(0, wordLimit - completedWordsCount) : 0;
 
-  const wpm = useMemo(() => {
-    if (typed.length === 0) return 0;
+  // Вычисляем статистику только если не пауза
+  const computedStats = useMemo(() => {
+    if (typed.length === 0) return { wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 };
+    
     let elapsedMinutes = 0;
     if (mode === "time") {
       elapsedMinutes = (timeLimit - timeLeft) / 60;
     } else {
       elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
     }
-    if (elapsedMinutes < 0.01) return 0;
+    if (elapsedMinutes < 0.01) return { wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 };
+    
     const cpm = Math.round(typed.length / elapsedMinutes);
-    return Math.min(Math.max(cpm, 0), 600);
-  }, [typed, timeLeft, timeLimit, mode]);
-
-  const rawWpm = useMemo(() => {
-     if (typed.length === 0) return 0;
-     let elapsedMinutes = 0;
-     if (mode === "time") {
-       elapsedMinutes = (timeLimit - timeLeft) / 60;
-     } else {
-       elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
-     }
-     if (elapsedMinutes < 0.01) return 0;
-     return Math.round((typed.length / 5) / elapsedMinutes);
-  }, [typed, timeLeft, timeLimit, mode]);
-
-  const accuracy = useMemo(() => {
-    if (typed.length === 0) return 100;
+    const wpm = Math.min(Math.max(cpm, 0), 600);
+    const rawWpm = Math.round((typed.length / 5) / elapsedMinutes);
+    
     let correct = 0;
-    for (let i = 0; i < typed.length; i++) {
-      if (typed[i] === text[i]) correct++;
-    }
-    return Math.round((correct / typed.length) * 100);
-  }, [typed, text]);
-
-  const consistency = useMemo(() => {
-    if (typed.length === 0) return 100;
-    let correct = 0;
-    for (let i = 0; i < typed.length; i++) {
-      if (typed[i] === text[i]) correct++;
-    }
-    return Math.round((correct / typed.length) * 100);
-  }, [typed, text]);
-
-  const errorCount = useMemo(() => {
     let errors = 0;
     for (let i = 0; i < typed.length; i++) {
-      if (typed[i] !== text[i]) errors++;
+      if (typed[i] === text[i]) correct++;
+      else errors++;
     }
-    return errors;
-  }, [typed, text]);
+    const accuracy = Math.round((correct / typed.length) * 100);
+    
+    return { wpm, rawWpm, accuracy, consistency: accuracy, errorCount: errors };
+  }, [typed, timeLeft, timeLimit, mode, text, isPaused]);
+
+  // Возвращаем либо замороженную статистику (пауза), либо текущую
+  const stats = isPaused ? displayStats : computedStats;
+  const wpm = stats.wpm;
+  const rawWpm = stats.rawWpm;
+  const accuracy = stats.accuracy;
+  const consistency = stats.consistency;
+  const errorCount = stats.errorCount;
 
   useEffect(() => {
     if (isActive && !isFinished && !isPaused && mode === "time") {
@@ -192,23 +180,55 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   }, [timeLimit]);
 
   const togglePause = useCallback(() => {
+    console.log('togglePause called, isPaused:', isPaused, 'typed.length:', typed.length);
     if (isFinished || typed.length === 0) return;
     if (isPaused) {
+      // Возобновление - сбрасываем замороженную статистику
+      console.log('Resuming...');
       setIsPaused(false);
-      startTimeRef.current = Date.now();
+      setDisplayStats({ wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 });
     } else {
+      // Пауза - сохраняем текущую статистику для отображения
+      console.log('Pausing...');
+      let elapsedMinutes = 0;
+      if (mode === "time") {
+        elapsedMinutes = (timeLimit - timeLeft) / 60;
+      } else {
+        elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
+      }
+
+      const currentWpm = elapsedMinutes >= 0.01 ? Math.round(typed.length / elapsedMinutes) : 0;
+      const currentRawWpm = elapsedMinutes >= 0.01 ? Math.round((typed.length / 5) / elapsedMinutes) : 0;
+
+      let correct = 0;
+      let errors = 0;
+      for (let i = 0; i < typed.length; i++) {
+        if (typed[i] === text[i]) correct++;
+        else errors++;
+      }
+      const currentAccuracy = typed.length > 0 ? Math.round((correct / typed.length) * 100) : 100;
+
+      console.log('Freezing stats:', { wpm: currentWpm, rawWpm: currentRawWpm, accuracy: currentAccuracy });
+      setDisplayStats({
+        wpm: currentWpm,
+        rawWpm: currentRawWpm,
+        accuracy: currentAccuracy,
+        consistency: currentAccuracy,
+        errorCount: errors
+      });
+
       setIsPaused(true);
       pausedTimeRef.current = Date.now();
       if (intervalRef.current) clearInterval(intervalRef.current);
     }
-  }, [isFinished, isPaused, typed.length]);
+  }, [isFinished, isPaused, typed.length, mode, timeLimit, timeLeft, text]);
 
   return {
     typed, wpm, accuracy, rawWpm, consistency, errorCount, timeLeft, wordsLeft, wordsCompleted: completedWordsCount, isActive, isFinished, isPaused, mode, handleType, reset, togglePause
   };
 }
 
-export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize: propFontSize, lineHeight: propLineHeight, maxWidth: propMaxWidth, isActive: _isActive, wpm: _wpm, accuracy: _accuracy, isPaused, togglePause }: TypingDisplayProps) {
+export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize: propFontSize, lineHeight: propLineHeight, maxWidth: propMaxWidth, isActive: _isActive, wpm: _wpm, accuracy: _accuracy, isPaused, togglePause, mode = "words", timeLimit = 60, timeLeft = 60 }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isPausedInternal, setIsPausedInternal] = useState<boolean>(false);
@@ -218,6 +238,8 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
   const animationRef = useRef<number | null>(null);
   const cursorPosRef = useRef<{ x: number; y: number }>({ x: 60, y: 0 });
   const targetPosRef = useRef<{ x: number; y: number }>({ x: 60, y: 0 });
+  const startTimeRef = useRef<number>(Date.now());
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Обёртка для onType - игнорирует ввод пока не в фокусе
   const handleTypeWrapper = useCallback((val: string) => {
@@ -273,6 +295,23 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [isFocused, typed.length, isFinished]);
+
+  // Глобальный обработчик ESC и TAB для паузы
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isFinished) return;
+      
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        togglePause?.();
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        onReset();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [isFinished, togglePause, onReset]);
 
   const ERROR_COLOR = colors.error || "#ca4754";
   const CORRECT_COLOR = colors.correct || "#e0e0e0";
@@ -633,8 +672,8 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           style={{
             position: "absolute",
             inset: 0,
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",

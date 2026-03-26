@@ -260,7 +260,7 @@ export function PrepMode() {
 
   // Получаем данные из хука.
   // ВАЖНО: wpm в нашем хуке уже рассчитан как CPM (Chars Per Minute).
-  const { typed, wpm, rawWpm, accuracy, isFinished, handleType, reset } = useTyping(lessonText, { mode: "words", wordLimit: WORDS_PER_LESSON });
+  const { typed, wpm, rawWpm, accuracy, isFinished, isPaused, togglePause, handleType, reset } = useTyping(lessonText, { mode: "words", wordLimit: WORDS_PER_LESSON });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -389,6 +389,9 @@ export function PrepMode() {
           fontSize={`${fontSize}px`}
           lineHeight={`${fontSize + 32}px`}
           goalMet={isGoalMet}
+          isPaused={isPaused}
+          togglePause={togglePause}
+          mode="words"
         />
       </div>
       

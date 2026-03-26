@@ -44,7 +44,7 @@ function LangDropdown({ isOpen, onClose, currentLang, onLangChange }: any) {
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
     <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 50, backgroundColor: "#1e2028", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "6px", minWidth: "140px", boxShadow: "0 24px 48px rgba(0,0,0,0.4)" }}>
       {languages.map((lang: any) => (
-        <button key={lang.code} onClick={() => { onLangChange(lang.code); onClose(); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "8px 14px", borderRadius: "6px", background: "none", border: "none", cursor: "pointer" }}>
+        <button key={lang.code} onClick={() => { localStorage.setItem("palceblud_language", lang.code); onLangChange(lang.code); onClose(); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "8px 14px", borderRadius: "6px", background: "none", border: "none", cursor: "pointer" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: currentLang === lang.code ? "#fff" : "rgba(224,224,224,0.5)", fontWeight: currentLang === lang.code ? 600 : 400 }}>{lang.label}</span>
           {currentLang === lang.code && <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: GOLD_COLOR }} />}
         </button>
@@ -64,7 +64,10 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
   const { isAuthenticated, isLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState("ru");
+  const [currentLang, setCurrentLang] = useState(() => {
+    const saved = localStorage.getItem("palceblud_language");
+    return saved || "ru";
+  });
 
   const [currentTip, setCurrentTip] = useState(TIPS[0]);
   const [tipKey, setTipKey] = useState(0);
