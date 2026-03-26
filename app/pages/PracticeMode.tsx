@@ -206,7 +206,7 @@ export function PracticeMode() {
       {!isFinished ? (
         <>
           {/* Верхняя панель - скрыта во время печати */}
-          <div style={{ position: "fixed", top: "11px", right: "150px", display: "flex", alignItems: "center", gap: "8px", zIndex: 99999, opacity: isActive ? 0 : 1, pointerEvents: isActive ? "none" : "auto", transition: "opacity 0.3s ease" }}>
+          <div style={{ position: "fixed", top: "11px", right: "150px", display: "flex", alignItems: "center", gap: "8px", zIndex: 50, opacity: isActive ? 0 : 1, pointerEvents: isActive ? "none" : "auto", transition: "opacity 0.3s ease" }}>
             <ModeToggle mode={mode} onChange={handleModeChange} disabled={isActive} />
 
             <div style={{ display: "flex", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px 12px", cursor: isActive ? "not-allowed" : "pointer", opacity: isActive ? 0.5 : 1, gap: "8px", height: "38px", minWidth: "90px", justifyContent: "space-between", flexShrink: 0 }} onClick={() => !isActive && setShowMenu(!showMenu)}>
@@ -215,8 +215,8 @@ export function PracticeMode() {
             </div>
             {showMenu && !isActive && (
               <>
-                <div onClick={() => setShowMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 99998 }} />
-                <div style={{ position: "absolute", top: "100%", right: "0", backgroundColor: "#1e2028", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", padding: "6px", zIndex: 99999, minWidth: "120px" }}>
+                <div onClick={() => setShowMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 60 }} />
+                <div style={{ position: "absolute", top: "100%", right: "0", backgroundColor: "#1e2028", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", padding: "6px", zIndex: 61, minWidth: "120px" }}>
                   {currentOptions.map((opt) => (
                     <button key={String(opt)} onClick={() => mode === "time" ? handleTimeChange(opt as number) : handleWordChange(opt as number | "infinity")} style={{ display: "block", width: "100%", padding: "8px 16px", background: "none", border: "none", borderRadius: "6px", color: opt === currentValue ? "#ff6b35" : "rgba(224,224,224,0.4)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", cursor: "pointer", textAlign: "right", backgroundColor: opt === currentValue ? "rgba(255,107,53,0.07)" : "transparent" }}>
                       {mode === "time" ? `${opt}s` : opt === "infinity" ? "∞" : opt}
@@ -262,7 +262,7 @@ export function PracticeMode() {
           </div>
 
           {/* Текст */}
-          <div style={{ width: "100%", maxWidth: "1400px", padding: "0 60px", zIndex: 5, marginTop: "20px", margin: "0 auto" }}>
+          <div style={{ width: "1000px", margin: "0 auto", padding: "0", zIndex: 5, marginTop: "20px" }}>
             <TypingDisplay
               text={text}
               typed={typed}
@@ -281,6 +281,7 @@ export function PracticeMode() {
               isActive={isActive}
               isPaused={isPaused}
               togglePause={togglePause}
+              paddingRight={40}
             />
           </div>
 
@@ -290,7 +291,11 @@ export function PracticeMode() {
             <button onClick={() => { setText(generateText(WORD_POOLS[language], typeof wordLimit === 'number' ? wordLimit : 25)); reset(); }} title="Следующий текст" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><SkipForward size={17} /></button>
             <button title="Ещё опции" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><MoreHorizontal size={17} /></button>
           </div>
-          {!isActive && (<div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>)}
+          {isFinished ? (
+            <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново</div>
+          ) : (
+            <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: isActive ? "rgba(255,255,255,0.8)" : "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap", textShadow: isActive ? "0 0 10px rgba(255,255,255,0.5)" : "none", transition: "all 0.3s ease" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>
+          )}
         </>
       ) : (
         // Результат

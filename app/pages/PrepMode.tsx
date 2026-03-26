@@ -372,11 +372,11 @@ export function PrepMode() {
         </div>
       </div>
 
-      <PrepRightPanel unlockedCount={unlockedCount} nextKey={nextKey} activeKeyRef={activeKeyRef} style={{ opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s ease" }} />
+      <PrepRightPanel unlockedCount={unlockedCount} nextKey={nextKey} activeKeyRef={activeKeyRef} />
       <ProgressSteps streak={streak} onNextKey={nextKey} onShowHelp={() => setIsHelpOpen(true)} currentWpm={wpm} style={{ opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s ease" }} />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} nextKey={nextKey} currentWpm={wpm} />
 
-      <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", paddingTop: "40px", paddingBottom: "40px", opacity: isActive && !isFinished ? 0.3 : 1, transition: "opacity 0.3s ease" }}>
+      <div style={{ width: "1000px", margin: "0 auto", padding: "0", opacity: 1, transition: "opacity 0.3s ease" }}>
         {notification && (
           <div style={{ position: "fixed", top: "180px", left: "50%", marginLeft: "-150px", padding: "10px 20px", backgroundColor: "rgba(10, 95, 56, 0.3)", color: ACCENT_LIGHT, border: `1px solid ${ACCENT_LIGHT}`, borderRadius: "10px", fontWeight: "bold", textAlign: "center", animation: "fadeIn 0.3s ease", zIndex: 50, width: "300px" }}>
             🎉 {notification}
@@ -395,8 +395,10 @@ export function PrepMode() {
         />
       </div>
       
-      {!isFinished && typed.length === 0 && (
-        <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>esc — пауза</div>
+      {isFinished ? (
+        <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново</div>
+      ) : (
+        <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: isActive ? "rgba(255,255,255,0.8)" : "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap", textShadow: isActive ? "0 0 10px rgba(255,255,255,0.5)" : "none", transition: "all 0.3s ease" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>
       )}
 
       {/* Модальное окно - все буквы открыты */}

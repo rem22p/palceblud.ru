@@ -1,14 +1,21 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import { PracticeMode } from "./pages/PracticeMode";
 import { LearningMode } from "./pages/LearningMode";
 import { PrepMode } from "./pages/PrepMode";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
 
+// Компонент для перенаправления на последний выбранный режим
+function LastModeRedirect() {
+  const lastMode = localStorage.getItem("palceblud_last_mode") as "learning" | "prep" | "practice" | null;
+  const target = lastMode && ["learning", "prep", "practice"].includes(lastMode) ? lastMode : "practice";
+  return <Navigate to={`/${target}`} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <PracticeMode />,
+    element: <LastModeRedirect />,
   },
   {
     path: "practice",

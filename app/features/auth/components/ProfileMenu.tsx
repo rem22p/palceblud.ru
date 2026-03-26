@@ -2,12 +2,18 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router';
 import { User, Settings, LogOut, Trophy, Crown, Mail } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export const ProfileMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,28 +64,30 @@ export const ProfileMenu: React.FC = () => {
         />
       </button>
 
-      {isOpen && (
+      {isOpen && mounted && createPortal(
         <>
-          <div 
+          <div
             onClick={() => setIsOpen(false)}
-            style={{ 
-              position: 'fixed', 
-              inset: 0, 
-              zIndex: 40 
-            }} 
-          />
-          <div 
             style={{
-              position: 'absolute',
-              top: 'calc(100% + 8px)',
-              right: 0,
+              position: 'fixed',
+              inset: 0,
+              zIndex: 100000,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)'
+            }}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              top: '60px',
+              right: '40px',
               backgroundColor: '#2b2d31',
               border: `1px solid rgba(212, 175, 55, 0.3)`,
               borderRadius: '12px',
               padding: '8px',
               minWidth: '220px',
               boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
-              zIndex: 50,
+              zIndex: 100001,
               fontFamily: "'JetBrains Mono', monospace"
             }}
           >
@@ -325,7 +333,8 @@ export const ProfileMenu: React.FC = () => {
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

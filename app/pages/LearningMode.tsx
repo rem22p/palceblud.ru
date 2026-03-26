@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   CheckCircle,
   Star,
@@ -10,6 +10,17 @@ import {
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 import { ModeHeader } from "../components/ModeHeader";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
+
+// Функция для перемешивания слов в тексте
+function shuffleText(text: string): string {
+  const words = text.split(' ');
+  // Перемешиваем массив слов (алгоритм Фишера-Йетса)
+  for (let i = words.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [words[i], words[j]] = [words[j], words[i]];
+  }
+  return words.join(' ');
+}
 
 // ─── Lesson data ───────────────────────────────────────────────────────────
 interface Lesson {
@@ -282,6 +293,7 @@ export function LearningMode() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedLessons, setCompletedLessons] = useState<number[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [shuffleKey, setShuffleKey] = useState(0); // Для перемешивания при перезапуске
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const fontSize = useSettingsStore((state) => state.fontSize);
   const hasProcessedFinish = useRef(false);
@@ -291,6 +303,13 @@ export function LearningMode() {
   // Обработка нажатий клавиш для визуализации
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Обработка Tab для перемешивания текста
+      if (e.key === 'Tab' && !isFinished) {
+        e.preventDefault();
+        setShuffleKey(prev => prev + 1);
+        return;
+      }
+      
       if (e.key.length === 1 || e.key === " ") {
         const key = e.key.toLowerCase();
         setActiveKeys(prev => new Set(prev).add(key));
@@ -302,15 +321,18 @@ export function LearningMode() {
     
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
-    
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
-  
+
   // Используем wpm для левой статистики (CPM - символы в минуту)
   const { typed, wpm, rawWpm, accuracy, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
+
+  // Перемешиваем текст урока при смене урока (currentIndex) или перезапуске (shuffleKey)
+  const shuffledLessonText = useMemo(() => shuffleText(currentLesson.text), [currentIndex, shuffleKey]);
 
   // Отправка сигнала хедеру при печати (для огонька)
   useEffect(() => {
@@ -382,7 +404,7 @@ export function LearningMode() {
       </div>
 
       {/* Суть задания */}
-      <div style={{ position: "fixed", top: "80px", left: "50%", transform: "translateX(-50%)", zIndex: 10, textAlign: "center", maxWidth: "600px" }}>
+      <div style={{ position: "fixed", top: "80px", left: "50%", transform: "translateX(-50%)", zIndex: 10, textAlign: "center", maxWidth: "600px", opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto", transition: "opacity 0.3s ease" }}>
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: "rgba(96,165,250,0.8)", letterSpacing: "0.05em", lineHeight: 1.5 }}>
           {currentLesson.tip}
         </div>
@@ -391,24 +413,11 @@ export function LearningMode() {
       {/* СОВЕТЫ УДАЛЕНЫ! Блок с currentLesson.tip удален. */}
       
       {/* Основной контент */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-          margin: "0 auto",
-          padding: "80px clamp(16px, 4vw, 40px) 40px",
-          zIndex: 5,
-          boxSizing: "border-box",
-        }}
-      >
+      <div style={{ width: "1000px", margin: "0 auto", padding: "80px 0 40px 0", zIndex: 5 }}>
         {!isFinished ? (
           <>
             <TypingDisplay
-              text={currentLesson.text}
+              text={shuffledLessonText}
               typed={typed}
               onType={handleType}
               onReset={reset}
@@ -416,7 +425,6 @@ export function LearningMode() {
               isFinished={isFinished}
               fontSize={`${fontSize}px`}
               lineHeight={`${fontSize + 32}px`}
-              maxWidth="1200px"
 
               wpm={wpm}
               accuracy={accuracy}
@@ -431,14 +439,18 @@ export function LearningMode() {
       </div>
 
       {/* Индикатор шагов */}
-      <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, opacity: isActive && !isFinished ? 0.2 : 1, transition: "opacity 0.4s ease" }}>
+      <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto", transition: "opacity 0.4s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.1em" }}>ДО СЛЕДУЮЩЕГО УРОКА</div>
           <div onClick={() => setIsHelpOpen(true)} style={{ marginLeft: "6px", cursor: "pointer", transition: "transform 0.2s", display: "flex", alignItems: "center", color: "rgba(96,165,250,0.6)" }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
         </div>
         <StepIndicator lessons={lessonsWithCompletion} currentIndex={currentIndex} onSelect={handleSelectLesson} completedLessons={completedLessons} />
       </div>
-      {!isActive && !isFinished && (<div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>)}
+      {isFinished ? (
+        <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново</div>
+      ) : (
+        <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: isActive ? "rgba(255,255,255,0.8)" : "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap", textShadow: isActive ? "0 0 10px rgba(255,255,255,0.5)" : "none", transition: "all 0.3s ease" }}>tab — заново &nbsp;·&nbsp; esc — пауза</div>
+      )}
       
       {/* Help Modal */}
       {isHelpOpen && (

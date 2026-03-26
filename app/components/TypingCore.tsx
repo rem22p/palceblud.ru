@@ -44,7 +44,8 @@ export interface TypingDisplayProps {
   isFinished: boolean;
   fontSize?: string;
   lineHeight?: string;
-  maxWidth?: string;
+  width?: string;
+  paddingRight?: number;
   isActive?: boolean;
   wpm?: number;
   accuracy?: number;
@@ -310,7 +311,7 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   };
 }
 
-export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize: propFontSize, lineHeight: propLineHeight, maxWidth: propMaxWidth, isPaused, togglePause }: TypingDisplayProps) {
+export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize: propFontSize, lineHeight: propLineHeight, width: propWidth, paddingRight: propPaddingRight, isPaused, togglePause }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -325,7 +326,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
 
   const settingsFontSize = useSettingsStore((state) => state.fontSize);
   const settingsLineHeight = useSettingsStore((state) => state.lineHeight);
-  const settingsMaxWidth = useSettingsStore((state) => state.maxWidth);
   const settingsFontFamily = useSettingsStore((state) => state.fontFamily);
   const settingsAccentColor = useSettingsStore((state) => state.accentColor);
   const settingsCursorBlink = useSettingsStore((state) => state.cursorBlink);
@@ -335,9 +335,11 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
 
   const fontSize = propFontSize || `${settingsFontSize || 24}px`;
   const lineHeight = propLineHeight || `${settingsLineHeight || 48}px`;
-  const maxWidth = propMaxWidth || settingsMaxWidth || 1200;
+  const width = propWidth || 1000;
+  const paddingRight = propPaddingRight !== undefined ? propPaddingRight : 80;
   const fontFamily = settingsFontFamily || "JetBrains Mono";
   const fontFamilyStack = `${fontFamily}, 'JetBrains Mono', 'Cascadia Code', 'Consolas', 'Lucida Console', 'Courier New', monospace`;
+  const widthNum = typeof width === 'string' ? parseInt(width, 10) : width;
   const accentColor = settingsAccentColor || "#60a5fa";
   const cursorBlink = settingsCursorBlink !== undefined ? settingsCursorBlink : true;
   const soundEnabled = settingsSoundEnabled;
@@ -419,7 +421,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     let currentLine: string[] = [];
     let currentWidth = 0;
     const wordSpacing = 10;
-    const safeWidth = (typeof maxWidth === 'string' ? parseInt(maxWidth, 10) : maxWidth || 1200) * 0.9;
+    const safeWidth = widthNum - paddingRight;
 
     for (let i = 0; i < words.length; i++) {
       const originalWord = words[i];
@@ -438,7 +440,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     }
     if (currentLine.length > 0) lines.push(currentLine);
     return lines;
-  }, [words, typed, avgCharWidth, maxWidth]);
+  }, [words, typed, avgCharWidth, widthNum]);
 
   const allLines = useMemo(() => distributeWordsToLines(), [distributeWordsToLines]);
 
@@ -614,8 +616,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
       style={{
         cursor: "text",
         position: "relative",
-        width: "100%",
-        maxWidth,
+        width: widthNum,
         margin: "0 auto",
         padding: "0",
         fontFamily: fontFamilyStack,
@@ -711,13 +712,22 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0, width: "100%", paddingLeft: "60px" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0, width: "100%" }}>
         {visibleLines.map((line, lineIdx) => {
           const actualIndex = visibleLineStart + lineIdx;
           const isCurrentLine = actualIndex === activeLineIndex;
           const isPastLine = actualIndex < activeLineIndex;
           const isNotFocused = !isFocused && typed.length === 0;
-          const opacityStyle = isCurrentLine ? { opacity: isNotFocused ? 0.3 : 1 } : isPastLine ? { opacity: 0.3 } : { opacity: 0.5 };
+          
+          // Когда нет фокуса - все строки имеют пониженную прозрачность
+          const opacityStyle = isCurrentLine 
+            ? { opacity: isNotFocused ? 0.3 : 1 } 
+            : isPastLine 
+              ? { opacity: isNotFocused ? 0.2 : 0.3 } 
+              : { opacity: isNotFocused ? 0.2 : 0.5 };
+          
+          // Когда нет фокуса - ВСЕ строки размываются
+          const blurStyle = isNotFocused ? { filter: "blur(4px)", WebkitFilter: "blur(4px)" } : {};
 
           return (
             <div
@@ -728,7 +738,8 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
                 lineHeight: `${lineHeightNum}px`,
                 whiteSpace: "nowrap",
                 ...opacityStyle,
-                transition: "opacity 0.2s ease",
+                ...blurStyle,
+                transition: "opacity 0.2s ease, filter 0.2s ease",
                 textAlign: "left"
               }}
             >
@@ -751,6 +762,8 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
                     style={{
                       display: "inline-block",
                       marginRight: "0.5em",
+                      position: "relative",
+                      bottom: shouldUnderline ? "6px" : "0",
                       borderBottom: shouldUnderline ? `2px solid ${ERROR_COLOR}` : "2px solid transparent",
                     }}
                   >
