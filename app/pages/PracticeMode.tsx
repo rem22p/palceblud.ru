@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { RotateCcw, SkipForward, MoreHorizontal, ChevronDown } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
-import { useSettingsStore } from "../features/settings/store/settingsStore";
+import { ModeHeader } from "../components/ModeHeader";
 import { RUSSIAN_WORDS } from "../lib/russianWords";
 import { ENGLISH_WORDS } from "../lib/englishWords";
 
@@ -158,7 +158,7 @@ export function PracticeMode() {
     };
   }, [language, wordLimit]);
 
-  const { typed, wpm, accuracy, rawWpm, consistency, errorCount, timeLeft, wordsLeft, isActive, isFinished, handleType, reset } = useTyping(text, { mode, timeLimit, wordLimit: wordLimit === "infinity" ? 999999 : wordLimit });
+  const { typed, wpm, accuracy, rawWpm, consistency, errorCount, timeLeft, wordsLeft, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(text, { mode, timeLimit, wordLimit: wordLimit === "infinity" ? 999999 : wordLimit });
 
   const handleTypeWithExpand = useCallback((val: string) => {
     handleType(val);
@@ -200,11 +200,13 @@ export function PracticeMode() {
   const currentValue = mode === "time" ? timeLimit : wordLimit;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
+    <>
+      <ModeHeader isFinished={isFinished} isActive={isActive} />
+      <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
       {!isFinished ? (
         <>
-          {/* Верхняя панель */}
-          <div style={{ position: "fixed", top: "11px", right: "150px", display: "flex", alignItems: "center", gap: "8px", zIndex: 99999 }}>
+          {/* Верхняя панель - скрыта во время печати */}
+          <div style={{ position: "fixed", top: "11px", right: "150px", display: "flex", alignItems: "center", gap: "8px", zIndex: 99999, opacity: isActive ? 0 : 1, pointerEvents: isActive ? "none" : "auto", transition: "opacity 0.3s ease" }}>
             <ModeToggle mode={mode} onChange={handleModeChange} disabled={isActive} />
 
             <div style={{ display: "flex", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px 12px", cursor: isActive ? "not-allowed" : "pointer", opacity: isActive ? 0.5 : 1, gap: "8px", height: "38px", minWidth: "90px", justifyContent: "space-between", flexShrink: 0 }} onClick={() => !isActive && setShowMenu(!showMenu)}>
@@ -277,6 +279,8 @@ export function PracticeMode() {
               wpm={wpm}
               accuracy={accuracy}
               isActive={isActive}
+              isPaused={isPaused}
+              togglePause={togglePause}
             />
           </div>
 
@@ -300,5 +304,6 @@ export function PracticeMode() {
         />
       )}
     </div>
+    </>
   );
 }

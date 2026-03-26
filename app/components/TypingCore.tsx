@@ -67,6 +67,8 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const pausedTimeRef = useRef<number>(0);
+  const lastTypedTimeRef = useRef<number>(Date.now());
+  const typedHistoryRef = useRef<{ time: number, typedLength: number }[]>([]);
 
   const completedWordsCount = (typed.match(/ /g) || []).length;
   const wordsLeft = mode === "words" ? Math.max(0, wordLimit - completedWordsCount) : 0;
@@ -74,19 +76,20 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   // Вычисляем статистику только если не пауза
   const computedStats = useMemo(() => {
     if (typed.length === 0) return { wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 };
-    
+
     let elapsedMinutes = 0;
     if (mode === "time") {
       elapsedMinutes = (timeLimit - timeLeft) / 60;
     } else {
-      elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
+      // В режиме words используем lastTypedTimeRef вместо Date.now() чтобы статистика замирала при паузе
+      elapsedMinutes = (lastTypedTimeRef.current - startTimeRef.current) / 60000;
     }
     if (elapsedMinutes < 0.01) return { wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 };
-    
+
     const cpm = Math.round(typed.length / elapsedMinutes);
     const wpm = Math.min(Math.max(cpm, 0), 600);
     const rawWpm = Math.round((typed.length / 5) / elapsedMinutes);
-    
+
     let correct = 0;
     let errors = 0;
     for (let i = 0; i < typed.length; i++) {
@@ -94,9 +97,9 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
       else errors++;
     }
     const accuracy = Math.round((correct / typed.length) * 100);
-    
+
     return { wpm, rawWpm, accuracy, consistency: accuracy, errorCount: errors };
-  }, [typed, timeLeft, timeLimit, mode, text, isPaused]);
+  }, [typed, timeLeft, timeLimit, mode, text]);
 
   // Возвращаем либо замороженную статистику (пауза), либо текущую
   const stats = isPaused ? displayStats : computedStats;
@@ -105,6 +108,15 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   const accuracy = stats.accuracy;
   const consistency = stats.consistency;
   const errorCount = stats.errorCount;
+
+  // При паузе останавливаем обновление статистики (используется displayStats)
+  // При возобновлении сбрасываем displayStats чтобы использовалась computedStats
+  useEffect(() => {
+    if (!isPaused) {
+      // При возобновлении сбрасываем displayStats
+      setDisplayStats({ wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 });
+    }
+  }, [isPaused]);
 
   useEffect(() => {
     if (isActive && !isFinished && !isPaused && mode === "time") {
@@ -122,6 +134,64 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isActive, isFinished, isPaused, mode]);
+
+  // Обновляем статистику в реальном времени во время печати
+  useEffect(() => {
+    if (isActive && !isFinished && !isPaused && typed.length > 0) {
+      const updateInterval = setInterval(() => {
+        const now = Date.now();
+        
+        // Проверяем, печатал ли пользователь в последнюю секунду
+        const timeSinceLastTyped = now - lastTypedTimeRef.current;
+        
+        if (timeSinceLastTyped > 1000) {
+          // Если не печатал больше 1 секунды, сбрасываем статистику
+          setDisplayStats({ wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 });
+          return;
+        }
+        
+        // Рассчитываем WPM на основе последних 15 секунд
+        const history = typedHistoryRef.current;
+        if (history.length < 2) {
+          setDisplayStats({ wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 });
+          return;
+        }
+        
+        const oldestRecord = history[0];
+        const newestRecord = history[history.length - 1];
+        const timeDiffMs = newestRecord.time - oldestRecord.time;
+        const typedDiff = newestRecord.typedLength - oldestRecord.typedLength;
+        
+        if (timeDiffMs < 1000) {
+          // Нужно хотя бы 1 секунда данных для расчёта
+          return;
+        }
+        
+        const elapsedMinutes = timeDiffMs / 60000;
+        const cpm = Math.round(typedDiff / elapsedMinutes);
+        const currentWpm = Math.min(Math.max(cpm, 0), 600);
+        const currentRawWpm = Math.round((typedDiff / 5) / elapsedMinutes);
+        
+        // Считаем точность по текущему тексту
+        let correct = 0;
+        let errors = 0;
+        for (let i = 0; i < typed.length; i++) {
+          if (typed[i] === text[i]) correct++;
+          else errors++;
+        }
+        const currentAccuracy = typed.length > 0 ? Math.round((correct / typed.length) * 100) : 100;
+        
+        setDisplayStats({
+          wpm: currentWpm,
+          rawWpm: currentRawWpm,
+          accuracy: currentAccuracy,
+          consistency: currentAccuracy,
+          errorCount: errors
+        });
+      }, 200);
+      return () => clearInterval(updateInterval);
+    }
+  }, [isActive, isFinished, isPaused, typed.length, text]);
 
   useEffect(() => {
     if (mode === "words" && completedWordsCount >= wordLimit && !isFinished && typed.length > 0) {
@@ -169,6 +239,23 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
     setTyped(val);
   }, [isFinished, isPaused, isActive, typed, text]);
 
+  // Отслеживаем изменения typed для обновления истории и lastTypedTime
+  const prevTypedRef = useRef<string>("");
+  useEffect(() => {
+    if (typed !== prevTypedRef.current) {
+      const now = Date.now();
+      lastTypedTimeRef.current = now;
+      typedHistoryRef.current.push({ time: now, typedLength: typed.length });
+      // Очищаем старые записи (старше 15 секунд)
+      typedHistoryRef.current = typedHistoryRef.current.filter(h => now - h.time < 15000);
+      // Оставляем только последние 100 записей для производительности
+      if (typedHistoryRef.current.length > 100) {
+        typedHistoryRef.current = typedHistoryRef.current.slice(-100);
+      }
+      prevTypedRef.current = typed;
+    }
+  }, [typed]);
+
   const reset = useCallback(() => {
     setTyped("");
     setIsActive(false);
@@ -180,21 +267,17 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   }, [timeLimit]);
 
   const togglePause = useCallback(() => {
-    console.log('togglePause called, isPaused:', isPaused, 'typed.length:', typed.length);
     if (isFinished || typed.length === 0) return;
     if (isPaused) {
-      // Возобновление - сбрасываем замороженную статистику
-      console.log('Resuming...');
+      // Возобновление
       setIsPaused(false);
-      setDisplayStats({ wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100, errorCount: 0 });
     } else {
       // Пауза - сохраняем текущую статистику для отображения
-      console.log('Pausing...');
       let elapsedMinutes = 0;
       if (mode === "time") {
         elapsedMinutes = (timeLimit - timeLeft) / 60;
       } else {
-        elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
+        elapsedMinutes = (lastTypedTimeRef.current - startTimeRef.current) / 60000;
       }
 
       const currentWpm = elapsedMinutes >= 0.01 ? Math.round(typed.length / elapsedMinutes) : 0;
@@ -208,7 +291,6 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
       }
       const currentAccuracy = typed.length > 0 ? Math.round((correct / typed.length) * 100) : 100;
 
-      console.log('Freezing stats:', { wpm: currentWpm, rawWpm: currentRawWpm, accuracy: currentAccuracy });
       setDisplayStats({
         wpm: currentWpm,
         rawWpm: currentRawWpm,
@@ -228,18 +310,12 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   };
 }
 
-export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize: propFontSize, lineHeight: propLineHeight, maxWidth: propMaxWidth, isActive: _isActive, wpm: _wpm, accuracy: _accuracy, isPaused, togglePause, mode = "words", timeLimit = 60, timeLeft = 60 }: TypingDisplayProps) {
+export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished, fontSize: propFontSize, lineHeight: propLineHeight, maxWidth: propMaxWidth, isPaused, togglePause }: TypingDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [isPausedInternal, setIsPausedInternal] = useState<boolean>(false);
-  const [blurEnabled, setBlurEnabled] = useState<boolean>(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number | null>(null);
   const cursorPosRef = useRef<{ x: number; y: number }>({ x: 60, y: 0 });
-  const targetPosRef = useRef<{ x: number; y: number }>({ x: 60, y: 0 });
-  const startTimeRef = useRef<number>(Date.now());
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Обёртка для onType - игнорирует ввод пока не в фокусе
   const handleTypeWrapper = useCallback((val: string) => {
@@ -247,15 +323,13 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     onType(val);
   }, [onType, isFocused, typed.length]);
 
-  const effectiveIsPaused = isPaused !== undefined ? isPaused : isPausedInternal;
-  const effectiveTogglePause = togglePause !== undefined ? togglePause : () => setIsPausedInternal(p => !p);
-
   const settingsFontSize = useSettingsStore((state) => state.fontSize);
   const settingsLineHeight = useSettingsStore((state) => state.lineHeight);
   const settingsMaxWidth = useSettingsStore((state) => state.maxWidth);
   const settingsFontFamily = useSettingsStore((state) => state.fontFamily);
   const settingsAccentColor = useSettingsStore((state) => state.accentColor);
   const settingsCursorBlink = useSettingsStore((state) => state.cursorBlink);
+  const settingsCursorStyle = useSettingsStore((state) => state.cursorStyle);
   const settingsSoundEnabled = useSettingsStore((state) => state.soundEnabled);
   const settingsSoundVolume = useSettingsStore((state) => state.soundVolume);
 
@@ -300,7 +374,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isFinished) return;
-      
+
       if (e.key === 'Escape') {
         e.preventDefault();
         togglePause?.();
@@ -319,66 +393,13 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
 
   const fontSizeNum = parseInt(fontSize, 10) || 32;
   const avgCharWidth = fontSizeNum * 0.6;
-  const containerWidth = typeof maxWidth === 'string' ? parseInt(maxWidth, 10) : maxWidth || 1400;
-  const effectiveWidth = containerWidth;
   const lineHeightNum = parseInt(lineHeight, 10) || 64;
 
   const cursorWordIndex = completedWordsCount;
   const currentTypedWord = typed.split(' ')[cursorWordIndex] || "";
   const cursorCharPos = currentTypedWord.length;
-  const showCursor = isFocused && !effectiveIsPaused && !isFinished;
-
-  useEffect(() => {
-    if (!showCursor || !cursorRef.current || !containerRef.current) return;
-
-    const container = containerRef.current;
-    const lines = container.querySelectorAll('[data-line-key]');
-    
-    if (lines.length > 0) {
-      const activeLineIndex = Math.min(cursorWordIndex, lines.length - 1);
-      const lineEl = lines[activeLineIndex] as HTMLElement;
-      
-      if (lineEl) {
-        const lineRect = lineEl.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        
-        const xOffset = cursorCharPos * avgCharWidth;
-        const targetX = (lineRect.left - containerRect.left) + xOffset;
-        const targetY = lineRect.top - containerRect.top + 2;
-
-        targetPosRef.current = { x: targetX, y: targetY };
-      }
-    }
-
-    const animate = () => {
-      const dx = targetPosRef.current.x - cursorPosRef.current.x;
-      const dy = targetPosRef.current.y - cursorPosRef.current.y;
-
-      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
-        cursorPosRef.current = { ...targetPosRef.current };
-        animationRef.current = null;
-      } else {
-        cursorPosRef.current.x += dx * 0.25;
-        cursorPosRef.current.y += dy * 0.25;
-        animationRef.current = requestAnimationFrame(animate);
-      }
-
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate(${cursorPosRef.current.x}px, ${cursorPosRef.current.y}px)`;
-      }
-    };
-
-    if (animationRef.current === null) {
-      animate();
-    }
-
-    return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [showCursor, cursorWordIndex, cursorCharPos, avgCharWidth]);
-
+  const showCursor = isFocused && !isPaused && !isFinished;
+  
   const prevTypedRef = useRef<string>("");
   useEffect(() => {
     if (!soundEnabled || isFinished) return;
@@ -393,20 +414,12 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     prevTypedRef.current = typed;
   }, [typed, soundEnabled, soundVolume, isFinished]);
 
-  useEffect(() => {
-    return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, []);
-
   const distributeWordsToLines = useCallback(() => {
     const lines: string[][] = [];
     let currentLine: string[] = [];
     let currentWidth = 0;
-    const wordSpacing = 16;
-    const safeWidth = effectiveWidth - 40;
+    const wordSpacing = 10;
+    const safeWidth = (typeof maxWidth === 'string' ? parseInt(maxWidth, 10) : maxWidth || 1200) * 0.9;
 
     for (let i = 0; i < words.length; i++) {
       const originalWord = words[i];
@@ -414,8 +427,8 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
       const displayLength = Math.max(originalWord.length, typedWord.length);
       const wordWidth = displayLength * avgCharWidth + wordSpacing;
 
-      if (currentWidth + wordWidth > safeWidth) {
-        if (currentLine.length > 0) lines.push(currentLine);
+      if (currentWidth + wordWidth > safeWidth && currentLine.length > 0) {
+        lines.push(currentLine);
         currentLine = [originalWord];
         currentWidth = wordWidth;
       } else {
@@ -425,18 +438,25 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     }
     if (currentLine.length > 0) lines.push(currentLine);
     return lines;
-  }, [words, typed, avgCharWidth, effectiveWidth]);
+  }, [words, typed, avgCharWidth, maxWidth]);
 
   const allLines = useMemo(() => distributeWordsToLines(), [distributeWordsToLines]);
 
+  // Определяем активную строку по позиции курсора
   let activeLineIndex = 0;
-  let wordCount = 0;
+  let cumulativeWordCount = 0;
   for (let i = 0; i < allLines.length; i++) {
-    if (completedWordsCount < wordCount + allLines[i].length) {
+    const lineWordCount = allLines[i].length;
+    // Курсор находится в этой строке, если completedWordsCount попадает в диапазон этой строки
+    if (completedWordsCount >= cumulativeWordCount && completedWordsCount < cumulativeWordCount + lineWordCount) {
       activeLineIndex = i;
       break;
     }
-    wordCount += allLines[i].length;
+    cumulativeWordCount += lineWordCount;
+    // Если это последняя строка
+    if (i === allLines.length - 1) {
+      activeLineIndex = i;
+    }
   }
 
   const visibleLineStart = activeLineIndex >= 1 ? activeLineIndex - 1 : 0;
@@ -448,22 +468,144 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     return startIndex;
   };
 
-  // Обработка клавиш ESC (пауза) и TAB (заново)
+  // Ref для хранения текущей целевой позиции
+  const targetPosRef = useRef<{ x: number; y: number }>({ x: 60, y: 0 });
+  const animationFrameRef = useRef<number | null>(null);
+
+  // Обновляем целевую позицию при изменении typed
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isFinished) {
-        e.preventDefault();
-        effectiveTogglePause();
+    if (!showCursor || !containerRef.current) return;
+    
+    const container = containerRef.current;
+    const lines = container.querySelectorAll('[data-line-key]');
+    
+    if (lines.length === 0) return;
+
+    // Находим активную строку по глобальному индексу cursorWordIndex
+    let activeLine: HTMLElement | null = null;
+    let wordCountSoFar = 0;
+    
+    for (let i = 0; i < allLines.length; i++) {
+      const lineWordCount = allLines[i].length;
+      
+      if (cursorWordIndex >= wordCountSoFar && cursorWordIndex < wordCountSoFar + lineWordCount) {
+        activeLine = container.querySelector(`[data-line-key="line-${i}"]`) as HTMLElement;
+        break;
       }
-      if (e.key === "Tab" && isFinished) {
-        e.preventDefault();
-        onReset();
+      wordCountSoFar += lineWordCount;
+      
+      if (i === allLines.length - 1) {
+        activeLine = container.querySelector(`[data-line-key="line-${i}"]`) as HTMLElement;
       }
+    }
+
+    if (!activeLine) return;
+
+    const lineRect = activeLine.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    const allChars = Array.from(activeLine.querySelectorAll('span[id^="char-"], span[id^="extra-"]')) as HTMLElement[];
+    
+    interface CharInfo {
+      element: HTMLElement;
+      wordIdx: number;
+      charIdx: number;
+      isExtra: boolean;
+    }
+    const sortedChars: CharInfo[] = [];
+    const wordLengths = new Map<number, number>();
+    
+    for (const charSpan of allChars) {
+      const charMatch = charSpan.id.match(/char-(\d+)-(\d+)/);
+      if (charMatch) {
+        const wordIdx = parseInt(charMatch[1], 10);
+        const charIdx = parseInt(charMatch[2], 10);
+        sortedChars.push({ element: charSpan, wordIdx, charIdx, isExtra: false });
+        const currentMax = wordLengths.get(wordIdx) || 0;
+        wordLengths.set(wordIdx, Math.max(currentMax, charIdx + 1));
+      }
+    }
+    
+    for (const charSpan of allChars) {
+      const extraMatch = charSpan.id.match(/extra-(\d+)-(\d+)/);
+      if (extraMatch) {
+        const wordIdx = parseInt(extraMatch[1], 10);
+        const extraIdx = parseInt(extraMatch[2], 10);
+        const wordLength = wordLengths.get(wordIdx) || 0;
+        const actualCharIdx = wordLength + extraIdx;
+        sortedChars.push({ element: charSpan, wordIdx, charIdx: actualCharIdx, isExtra: true });
+      }
+    }
+    
+    sortedChars.sort((a, b) => {
+      if (a.wordIdx !== b.wordIdx) return a.wordIdx - b.wordIdx;
+      return a.charIdx - b.charIdx;
+    });
+    
+    const currentWordChars = sortedChars.filter(c => c.wordIdx === cursorWordIndex);
+    
+    let baseLineY: number | null = null;
+    for (const charSpan of allChars) {
+      const charMatch = charSpan.id.match(/char-(\d+)-(\d+)/);
+      if (charMatch) {
+        const charRect = charSpan.getBoundingClientRect();
+        baseLineY = charRect.top - containerRect.top + 2;
+        break;
+      }
+    }
+    
+    if (baseLineY === null) {
+      baseLineY = lineRect.top - containerRect.top + 2;
+    }
+    
+    let targetX: number;
+    
+    if (currentWordChars.length > 0 && currentWordChars[cursorCharPos]) {
+      const charRect = currentWordChars[cursorCharPos].element.getBoundingClientRect();
+      targetX = charRect.left - containerRect.left - 2;
+    } else if (currentWordChars.length > 0) {
+      const lastChar = currentWordChars[currentWordChars.length - 1];
+      if (lastChar) {
+        const lastCharRect = lastChar.element.getBoundingClientRect();
+        targetX = lastCharRect.right - containerRect.left - 2;
+      } else {
+        targetX = lineRect.left - containerRect.left;
+      }
+    } else {
+      targetX = lineRect.left - containerRect.left;
+    }
+
+    // Обновляем целевую позицию
+    targetPosRef.current = { x: targetX, y: baseLineY };
+  }, [showCursor, typed, cursorWordIndex, cursorCharPos, allLines]);
+  
+  // Постоянная анимация курсора к целевой позиции
+  useEffect(() => {
+    if (!showCursor || !cursorRef.current) return;
+    
+    const animate = () => {
+      const dx = targetPosRef.current.x - cursorPosRef.current.x;
+      const dy = targetPosRef.current.y - cursorPosRef.current.y;
+      
+      // Плавная интерполяция (linear interpolation с коэффициентом 0.2)
+      cursorPosRef.current.x += dx * 0.2;
+      cursorPosRef.current.y += dy * 0.2;
+      
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${cursorPosRef.current.x}px, ${cursorPosRef.current.y}px, 0)`;
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
     
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFinished, effectiveTogglePause, onReset]);
+    animationFrameRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [showCursor]);
 
   return (
     <div
@@ -497,13 +639,47 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
         .typing-line.future {
           opacity: 0.5;
         }
-        @keyframes monkeytype-blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+        @keyframes cursor-blink {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0; }
         }
-        @keyframes cursor-smooth-fade {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+        @keyframes cursor-pulse {
+          0%, 100% { opacity: 1; transform: translate3d(var(--cursor-x, 0), var(--cursor-y, 0), 0) scaleY(1); }
+          50% { opacity: 0.4; transform: translate3d(var(--cursor-x, 0), var(--cursor-y, 0), 0) scaleY(0.95); }
+        }
+        .cursor-line {
+          width: 3px;
+          height: ${fontSizeNum * 1.1}px;
+          background-color: ${accentColor};
+          border-radius: 2px;
+          transform-origin: center;
+          will-change: transform, opacity;
+        }
+        .cursor-line.blink {
+          animation: cursor-blink 1s step-end infinite;
+        }
+        .cursor-block {
+          width: ${fontSizeNum * 0.6}px;
+          height: ${fontSizeNum * 1.1}px;
+          background-color: ${accentColor}40;
+          border: 2px solid ${accentColor};
+          border-radius: 4px;
+          transform-origin: center;
+          will-change: transform, opacity;
+        }
+        .cursor-block.blink {
+          animation: cursor-blink 1s step-end infinite;
+        }
+        .cursor-underline {
+          width: ${fontSizeNum * 0.6}px;
+          height: 3px;
+          background-color: ${accentColor};
+          border-radius: 1px;
+          transform-origin: center;
+          will-change: transform, opacity;
+        }
+        .cursor-underline.blink {
+          animation: cursor-blink 1s step-end infinite;
         }
       `}</style>
 
@@ -514,16 +690,25 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
             position: "absolute",
             top: "0",
             left: "0",
-            width: "3px",
-            height: `${fontSizeNum * 1.1}px`,
-            backgroundColor: accentColor,
-            animation: cursorBlink ? "cursor-smooth-fade 1s ease-in-out infinite" : "none",
-            borderRadius: "2px",
+            transform: `translate3d(${cursorPosRef.current.x}px, ${cursorPosRef.current.y}px, 0)`,
             pointerEvents: "none",
             zIndex: 100,
-            willChange: "transform",
           }}
-        />
+          className={cursorBlink ? "blink" : ""}
+        >
+          {settingsCursorStyle === "block" && (
+            <div className="cursor-block" />
+          )}
+          {settingsCursorStyle === "underline" && (
+            <div 
+              className="cursor-underline"
+              style={{ marginTop: fontSizeNum * 0.95 }}
+            />
+          )}
+          {settingsCursorStyle === "line" && (
+            <div className="cursor-line" />
+          )}
+        </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0, width: "100%", paddingLeft: "60px" }}>
@@ -533,19 +718,17 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           const isPastLine = actualIndex < activeLineIndex;
           const isNotFocused = !isFocused && typed.length === 0;
           const opacityStyle = isCurrentLine ? { opacity: isNotFocused ? 0.3 : 1 } : isPastLine ? { opacity: 0.3 } : { opacity: 0.5 };
-          const blurStyle = blurEnabled && isNotFocused ? { filter: "blur(4px)", WebkitFilter: "blur(4px)" } : {};
 
           return (
             <div
               key={lineIdx}
-              data-line-key={`line-${lineIdx}`}
+              data-line-key={`line-${visibleLineStart + lineIdx}`}
               style={{
                 fontSize,
                 lineHeight: `${lineHeightNum}px`,
                 whiteSpace: "nowrap",
                 ...opacityStyle,
-                ...blurStyle,
-                transition: "opacity 0.2s ease, filter 0.2s ease",
+                transition: "opacity 0.2s ease",
                 textAlign: "left"
               }}
             >
@@ -553,7 +736,6 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
                 const wordGlobalIndex = getLineStartIndex(lineIdx) + i;
                 const typedWord = typed.split(' ')[wordGlobalIndex] || "";
                 const isWordCompleted = wordGlobalIndex < completedWordsCount;
-                const isCurrentWord = wordGlobalIndex === cursorWordIndex;
 
                 const hasError = typedWord.length > 0 && (
                   typedWord.split('').some((c, idx) => c !== w[idx]) ||
@@ -585,7 +767,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
                       }
 
                       return (
-                        <span key={`char-${wordGlobalIndex}-${charIdx}`} style={{
+                        <span id={`char-${wordGlobalIndex}-${charIdx}`} key={`char-${wordGlobalIndex}-${charIdx}`} style={{
                           color: charColor,
                           transition: "color 0.1s ease",
                         }}>
@@ -596,9 +778,9 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
 
                     {Array.from({ length: Math.max(0, typedWord.length - w.length) }, (_, extraIdx: number) => {
                       const extraChar = typedWord[w.length + extraIdx];
-                      
+
                       return (
-                        <span key={`extra-${wordGlobalIndex}-${extraIdx}`} style={{
+                        <span id={`extra-${wordGlobalIndex}-${extraIdx}`} key={`extra-${wordGlobalIndex}-${extraIdx}`} style={{
                           color: "#4D2113",
                           fontSize: "0.85em",
                         }}>
@@ -667,7 +849,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
       />
 
       {/* Пауза (ESC) */}
-      {effectiveIsPaused && !isFinished && (
+      {isPaused && !isFinished && (
         <div
           style={{
             position: "absolute",

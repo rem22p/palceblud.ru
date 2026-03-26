@@ -1,16 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import {
   CheckCircle,
-  Circle,
   Star,
-  Zap,
   BookOpen,
   RotateCcw,
   HelpCircle,
   X,
-  Keyboard as KeyboardIcon,
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
+import { ModeHeader } from "../components/ModeHeader";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
 
 // ─── Lesson data ───────────────────────────────────────────────────────────
@@ -245,11 +243,11 @@ function LessonCard({ lesson, activeKeys }: { lesson: Lesson; activeKeys: Set<st
   );
 }
 
-function LessonComplete({ lesson, wpm, accuracy, onRetry, isLastLesson }: any) {
+function LessonComplete({ wpm, accuracy, onRetry }: any) {
   const targetWpm = 0;
   const targetAccuracy = 0;
   const passed = wpm >= targetWpm && accuracy >= targetAccuracy;
-  
+
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "32px", textAlign: "center", animation: "fadeUp 0.5s ease forwards", maxWidth: "440px", width: "100%" }}>
       <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
@@ -259,16 +257,11 @@ function LessonComplete({ lesson, wpm, accuracy, onRetry, isLastLesson }: any) {
       <div>
         <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "1.4rem", fontWeight: 600, color: "rgba(224,224,224,0.85)", letterSpacing: "-0.02em", marginBottom: "6px" }}>{passed ? "Урок пройден!" : "Нужно лучше!"}</div>
         <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.82rem", color: "rgba(224,224,224,0.3)", marginBottom: "8px" }}>
-          {passed 
-            ? `Отлично! ${currentIndex < LESSONS.length - 1 ? 'Переход на следующий уровень...' : 'Все уроки пройдены!'}`
+          {passed
+            ? `Отлично!`
             : `Цель: ${targetWpm} CPM и ${targetAccuracy}% точности`
           }
         </div>
-        {!passed && (
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", color: "rgba(248,113,113,0.5)" }}>
-            {!hasProcessedFinish.current && 'Попробуйте ещё раз'}
-          </div>
-        )}
       </div>
       <div style={{ display: "flex", gap: "40px" }}>
         {[{ label: "CPM", value: wpm, target: targetWpm, color: wpm >= targetWpm ? "#34d399" : "rgba(248,113,113,0.7)" }, { label: "точность", value: `${accuracy}%`, target: `${targetAccuracy}%`, color: accuracy >= targetAccuracy ? "#34d399" : "rgba(248,113,113,0.7)" }].map((s: any) => (
@@ -316,8 +309,8 @@ export function LearningMode() {
     };
   }, []);
   
-  // Используем rawWpm для левой статистики (Слова в минуту)
-  const { typed, wpm, rawWpm, accuracy, isActive, isFinished, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
+  // Используем wpm для левой статистики (CPM - символы в минуту)
+  const { typed, wpm, rawWpm, accuracy, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
 
   // Отправка сигнала хедеру при печати (для огонька)
   useEffect(() => {
@@ -334,7 +327,7 @@ export function LearningMode() {
       // Условия: 0 CPM и 0% точности (временно)
       const targetCpm = 0;
       const targetAccuracy = 0;
-      const currentCpm = rawWpm;
+      const currentCpm = wpm;
       const isGoodAccuracy = accuracy >= targetAccuracy;
       const isFastEnough = currentCpm >= targetCpm;
 
@@ -363,13 +356,15 @@ export function LearningMode() {
   const lessonsWithCompletion = LESSONS.map((l, i) => ({ ...l, completed: completedLessons.includes(i) }));
 
   return (
-    <div className="page-transition" style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflowX: "hidden", overflowY: "auto" }}>
+    <>
+      <ModeHeader isFinished={isFinished} isActive={isActive} />
+      <div className="page-transition" style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflowX: "hidden", overflowY: "auto" }}>
       <style>{`::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #555; }`}</style>
 
       {/* ЛЕВАЯ СТАТИСТИКА (CPM) */}
       <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: rawWpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)", lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{Math.round(rawWpm)}</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: wpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)", lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{Math.round(wpm)}</span>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>CPM</span>
         </div>
       </div>
@@ -422,10 +417,12 @@ export function LearningMode() {
               fontSize={`${fontSize}px`}
               lineHeight={`${fontSize + 32}px`}
               maxWidth="1200px"
-              
+
               wpm={wpm}
               accuracy={accuracy}
               isActive={isActive}
+              isPaused={isPaused}
+              togglePause={togglePause}
             />
           </>
         ) : (
@@ -467,5 +464,6 @@ export function LearningMode() {
       )}
       <style>{`@keyframes slideUp { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }`}</style>
     </div>
+    </>
   );
 }

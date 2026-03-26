@@ -208,7 +208,7 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
 
   return (
     <>
-      <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 30, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", height: "60px", opacity: shouldHideControls ? 1 : 1, transition: "opacity 0.4s ease", pointerEvents: "auto", backgroundColor: "transparent" }}>
+      <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 30, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", height: "60px", opacity: shouldHideControls ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: shouldHideControls ? "none" : "auto", backgroundColor: "transparent" }}>
 
         {/* ЛЕВАЯ ЧАСТЬ: Логотип */}
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
@@ -349,7 +349,7 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
             pointerEvents: "none"
           }}>
             <Flame size={24} fill={hasActivityToday ? "#ff6b35" : "none"} color={flameColor} style={{ opacity: flameOpacity, filter: glowEffect, transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: hasActivityToday ? "scale(1.15)" : "scale(1)" }} />
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.9rem", fontWeight: 700, color: textColor, opacity: flameOpacity, transition: "all 0.3s ease", minWidth: "16px", textAlign: "center" }}>{streakCount}</span>
+            {streakCount > 0 && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.9rem", fontWeight: 700, color: textColor, opacity: flameOpacity, transition: "all 0.3s ease", minWidth: "16px", textAlign: "center" }}>{streakCount}</span>}
           </div>
         </div>
       )}

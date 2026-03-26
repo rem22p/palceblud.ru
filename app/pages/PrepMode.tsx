@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
+import { ModeHeader } from "../components/ModeHeader";
 import { Lock, Keyboard as KeyboardIcon, CheckCircle, HelpCircle, X } from "lucide-react";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
 
@@ -101,12 +102,13 @@ function generateRealLessonText(availableKeys: string[], wordCount: number): str
 }
 
 // --- ПРАВАЯ ПАНЕЛЬ ---
-function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef }: { unlockedCount: number, nextKey: string | undefined, activeKeyRef: React.MutableRefObject<string | null> }) {
+function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef, style }: { unlockedCount: number, nextKey: string | undefined, activeKeyRef: React.MutableRefObject<string | null>, style?: React.CSSProperties }) {
   return (
     <div style={{
       position: "fixed", top: "80px", right: "clamp(20px, 5vw, 80px)", zIndex: 10,
       backgroundColor: PANEL_BG, border: `1px solid ${PANEL_BORDER}`, borderRadius: "14px",
-      padding: "12px 16px", width: "220px", display: "flex", flexDirection: "column", gap: "10px"
+      padding: "12px 16px", width: "220px", display: "flex", flexDirection: "column", gap: "10px",
+      ...style
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <KeyboardIcon size={12} color={ACCENT_LIGHT} />
@@ -163,9 +165,9 @@ function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef }: { unlockedCoun
   );
 }
 
-function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: _currentWpm }: any) {
+function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: _currentWpm, style }: any) {
   return (
-    <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20 }}>
+    <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, ...style }}>
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(52, 211, 153, 0.6)", letterSpacing: "0.1em" }}>ДО ОТКРЫТИЯ НОВОЙ БУКВЫ</div>
         <div onClick={onShowHelp} style={{ marginLeft: "6px", cursor: "pointer", transition: "transform 0.2s", display: "flex", alignItems: "center", color: STAGE_COMPLETED }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
@@ -260,7 +262,7 @@ export function PrepMode() {
 
   // Получаем данные из хука.
   // ВАЖНО: wpm в нашем хуке уже рассчитан как CPM (Chars Per Minute).
-  const { typed, wpm, rawWpm, accuracy, isFinished, isPaused, togglePause, handleType, reset } = useTyping(lessonText, { mode: "words", wordLimit: WORDS_PER_LESSON });
+  const { typed, wpm, accuracy, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(lessonText, { mode: "words", wordLimit: WORDS_PER_LESSON });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -279,9 +281,6 @@ export function PrepMode() {
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, []);
-
-  // Флаг цели (для спидометра)
-  const isGoalMet = wpm >= 150 && typed.length > 0;
 
   // --- ЛОГИКА ПЕРЕХОДА ЭТАПОВ ---
   useEffect(() => {
@@ -343,7 +342,9 @@ export function PrepMode() {
   }, [unlockedCount, streak]);
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", color: "#e0e0e0", fontFamily: "'JetBrains Mono', monospace", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
+    <>
+      <ModeHeader isFinished={isFinished} isActive={isActive} />
+      <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", color: "#e0e0e0", fontFamily: "'JetBrains Mono', monospace", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
       <style>{`
         .page-transition button[onclick*="onReset"] { 
           background: ${ACCENT_COLOR} !important; 
@@ -360,7 +361,7 @@ export function PrepMode() {
       {/* Статистика */}
       <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px", opacity: (!isFinished && typed.length === 0) ? 0.5 : 1, transition: "opacity 0.4s" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: rawWpm > 0 ? ACCENT_LIGHT : ACCENT_DIM, lineHeight: 1, letterSpacing: "-0.04em" }}>{Math.round(rawWpm)}</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: wpm > 0 ? ACCENT_LIGHT : ACCENT_DIM, lineHeight: 1, letterSpacing: "-0.04em" }}>{Math.round(wpm)}</span>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: ACCENT_DIM, letterSpacing: "0.2em", textTransform: "uppercase" }}>CPM</span>
         </div>
       </div>
@@ -371,11 +372,11 @@ export function PrepMode() {
         </div>
       </div>
 
-      <PrepRightPanel unlockedCount={unlockedCount} nextKey={nextKey} activeKeyRef={activeKeyRef} />
-      <ProgressSteps streak={streak} onNextKey={nextKey} onShowHelp={() => setIsHelpOpen(true)} currentWpm={wpm} />
+      <PrepRightPanel unlockedCount={unlockedCount} nextKey={nextKey} activeKeyRef={activeKeyRef} style={{ opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s ease" }} />
+      <ProgressSteps streak={streak} onNextKey={nextKey} onShowHelp={() => setIsHelpOpen(true)} currentWpm={wpm} style={{ opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s ease" }} />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} nextKey={nextKey} currentWpm={wpm} />
 
-      <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", paddingTop: "40px", paddingBottom: "40px" }}>
+      <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", paddingTop: "40px", paddingBottom: "40px", opacity: isActive && !isFinished ? 0.3 : 1, transition: "opacity 0.3s ease" }}>
         {notification && (
           <div style={{ position: "fixed", top: "180px", left: "50%", marginLeft: "-150px", padding: "10px 20px", backgroundColor: "rgba(10, 95, 56, 0.3)", color: ACCENT_LIGHT, border: `1px solid ${ACCENT_LIGHT}`, borderRadius: "10px", fontWeight: "bold", textAlign: "center", animation: "fadeIn 0.3s ease", zIndex: 50, width: "300px" }}>
             🎉 {notification}
@@ -384,11 +385,10 @@ export function PrepMode() {
         <TypingDisplay
           text={lessonText} typed={typed} onType={handleType} onReset={reset}
           colors={{ correct: "#e0e0e0", error: "#ca4754", untyped: "rgba(255,255,255,0.1)", cursor: ACCENT_LIGHT, errorBg: "rgba(239, 68, 68, 0.1)" }}
-          isFinished={isFinished} isActive={!isFinished && typed.length > 0}
-          wpm={wpm} accuracy={accuracy} progress={0}
+          isFinished={isFinished}
+          wpm={wpm} accuracy={accuracy}
           fontSize={`${fontSize}px`}
           lineHeight={`${fontSize + 32}px`}
-          goalMet={isGoalMet}
           isPaused={isPaused}
           togglePause={togglePause}
           mode="words"
@@ -443,5 +443,6 @@ export function PrepMode() {
 
       <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
+    </>
   );
 }
