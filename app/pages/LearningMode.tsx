@@ -8,7 +8,6 @@ import {
   X,
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
-import { ModeHeader } from "../components/ModeHeader";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
 
 // Функция для перемешивания слов в тексте
@@ -379,7 +378,6 @@ export function LearningMode() {
 
   return (
     <>
-      <ModeHeader isFinished={isFinished} isActive={isActive} />
       <div className="page-transition" style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflowX: "hidden", overflowY: "auto" }}>
       <style>{`::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #555; }`}</style>
 

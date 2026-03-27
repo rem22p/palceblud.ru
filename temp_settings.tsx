@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router";
 import { X, Type, Languages, Palette, MousePointer, Volume2, Check } from "lucide-react";
 import { useSettingsStore, FONTS, THEMES, CursorStyle } from "../features/settings/store/settingsStore";
-import { useRef } from "react";
+
+const ACCENT_COLOR = "#60a5fa"; // голубой акцент
 
 export function SettingsPage() {
   const navigate = useNavigate();
@@ -21,9 +22,6 @@ export function SettingsPage() {
   const setSoundEnabled = useSettingsStore((state) => state.setSoundEnabled);
   const soundVolume = useSettingsStore((state) => state.soundVolume);
   const setSoundVolume = useSettingsStore((state) => state.setSoundVolume);
-
-  const fontSizeSliderRef = useRef<HTMLInputElement>(null);
-  const volumeSliderRef = useRef<HTMLInputElement>(null);
 
   return (
     <div style={{
@@ -115,11 +113,11 @@ export function SettingsPage() {
                   justifyContent: "center",
                 }}
               >
-                <Type size={16} color={accentColor} />
+                <Type size={16} color={ACCENT_COLOR} />
               </div>
               <div>
                 <p style={{ fontSize: "0.85rem", color: "rgba(224,224,224,0.7)", margin: 0 }}>
-                  Размер: <span style={{ color: accentColor, fontWeight: 600 }}>{fontSize}px</span> • Шрифт: <span style={{ color: accentColor, fontWeight: 600 }}>{fontFamily}</span>
+                  Размер: <span style={{ color: ACCENT_COLOR, fontWeight: 600 }}>{fontSize}px</span> • Шрифт: <span style={{ color: ACCENT_COLOR, fontWeight: 600 }}>{fontFamily}</span>
                 </p>
               </div>
             </div>
@@ -149,7 +147,7 @@ export function SettingsPage() {
                   justifyContent: "center",
                 }}
               >
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.85rem", fontWeight: 700, color: accentColor }}>Aa</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.85rem", fontWeight: 700, color: ACCENT_COLOR }}>Aa</span>
               </div>
               <div>
                 <div
@@ -194,8 +192,8 @@ export function SettingsPage() {
                   flexShrink: 0,
                 }}
                 onMouseEnter={(e: any) => {
-                  e.currentTarget.style.borderColor = accentColor;
-                  e.currentTarget.style.color = accentColor;
+                  e.currentTarget.style.borderColor = ACCENT_COLOR;
+                  e.currentTarget.style.color = ACCENT_COLOR;
                 }}
                 onMouseLeave={(e: any) => {
                   e.currentTarget.style.borderColor = "#3a3d40";
@@ -207,25 +205,16 @@ export function SettingsPage() {
 
               <div style={{ flex: 1, position: "relative" }}>
                 <input
-                  ref={fontSizeSliderRef}
                   type="range"
                   min="12"
                   max="72"
                   value={fontSize}
                   onChange={(e) => setFontSize(parseInt(e.target.value))}
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const percentage = x / rect.width;
-                    const newValue = Math.round(percentage * (72 - 12) + 12);
-                    setFontSize(newValue);
-                  }}
-                  id="fontSizeSlider"
                   style={{
                     width: "100%",
                     height: "6px",
                     borderRadius: "3px",
-                    background: `linear-gradient(to right, ${accentColor} ${((fontSize - 12) / (72 - 12)) * 100}%, #3a3d40 ${((fontSize - 12) / (72 - 12)) * 100}%)`,
+                    background: "rgba(96, 165, 250, 0.15)",
                     outline: "none",
                     cursor: "pointer",
                     appearance: "none",
@@ -233,49 +222,31 @@ export function SettingsPage() {
                   }}
                 />
                 <style>{`
-                  #fontSizeSlider {
+                  input[type="range"] {
                     background: rgba(96, 165, 250, 0.15) !important;
                   }
-                  #fontSizeSlider::-webkit-slider-thumb {
+                  input[type="range"]::-webkit-slider-thumb {
                     appearance: none;
                     -webkit-appearance: none;
                     width: 18px;
                     height: 18px;
                     border-radius: 50%;
-                    background: ${accentColor};
+                    background: ${ACCENT_COLOR};
                     cursor: pointer;
                     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    transition: transform 0.15s;
                   }
-                  #fontSizeSlider::-webkit-slider-thumb:hover {
-                    width: 22px;
-                    height: 22px;
-                    box-shadow: 0 2px 10px ${accentColor}99, 0 2px 15px ${accentColor}4D;
+                  input[type="range"]::-webkit-slider-thumb:hover {
+                    transform: scale(1.1);
                   }
-                  #fontSizeSlider::-webkit-slider-thumb:active {
-                    width: 20px;
-                    height: 20px;
-                    box-shadow: 0 2px 15px ${accentColor}CC, 0 2px 25px ${accentColor}80;
-                  }
-                  #fontSizeSlider::-moz-range-thumb {
+                  input[type="range"]::-moz-range-thumb {
                     width: 18px;
                     height: 18px;
                     border-radius: 50%;
-                    background: ${accentColor};
+                    background: ${ACCENT_COLOR};
                     cursor: pointer;
                     border: none;
                     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                  }
-                  #fontSizeSlider::-moz-range-thumb:hover {
-                    width: 22px;
-                    height: 22px;
-                    box-shadow: 0 2px 10px ${accentColor}99, 0 2px 15px ${accentColor}4D;
-                  }
-                  #fontSizeSlider::-moz-range-thumb:active {
-                    width: 20px;
-                    height: 20px;
-                    box-shadow: 0 2px 15px ${accentColor}CC, 0 2px 25px ${accentColor}80;
                   }
                 `}</style>
               </div>
@@ -290,7 +261,7 @@ export function SettingsPage() {
                   textAlign: "center",
                 }}
               >
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "1rem", fontWeight: 700, color: accentColor }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "1rem", fontWeight: 700, color: ACCENT_COLOR }}>
                   {fontSize}
                 </span>
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", color: "#8a8d91", marginLeft: "2px" }}>px</span>
@@ -313,8 +284,8 @@ export function SettingsPage() {
                   flexShrink: 0,
                 }}
                 onMouseEnter={(e: any) => {
-                  e.currentTarget.style.borderColor = accentColor;
-                  e.currentTarget.style.color = accentColor;
+                  e.currentTarget.style.borderColor = ACCENT_COLOR;
+                  e.currentTarget.style.color = ACCENT_COLOR;
                 }}
                 onMouseLeave={(e: any) => {
                   e.currentTarget.style.borderColor = "#3a3d40";
@@ -352,7 +323,7 @@ export function SettingsPage() {
                     }
                   }}
                 >
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", color: fontSize === size ? accentColor : "#646669", fontWeight: fontSize === size ? 600 : 400 }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", color: fontSize === size ? ACCENT_COLOR : "#646669", fontWeight: fontSize === size ? 600 : 400 }}>
                     {size}
                   </span>
                 </button>
@@ -384,7 +355,7 @@ export function SettingsPage() {
                   justifyContent: "center",
                 }}
               >
-                <Languages size={18} strokeWidth={2.5} color={accentColor} />
+                <Languages size={18} strokeWidth={2.5} color={ACCENT_COLOR} />
               </div>
               <div>
                 <div
@@ -420,7 +391,7 @@ export function SettingsPage() {
                     padding: "14px 16px",
                     borderRadius: "8px",
                     backgroundColor: fontFamily === font ? "rgba(96, 165, 250, 0.15)" : "transparent",
-                    border: fontFamily === font ? `1px solid ${accentColor}` : "1px solid #3a3d40",
+                    border: fontFamily === font ? `1px solid ${ACCENT_COLOR}` : "1px solid #3a3d40",
                     cursor: "pointer",
                     transition: "all 0.15s",
                     textAlign: "left",
@@ -441,7 +412,7 @@ export function SettingsPage() {
                   <span style={{ 
                     fontFamily: font, 
                     fontSize: "0.9rem", 
-                    color: fontFamily === font ? accentColor : "#d1d0c5",
+                    color: fontFamily === font ? ACCENT_COLOR : "#d1d0c5",
                     fontWeight: fontFamily === font ? 600 : 400,
                   }}>
                     {font}
@@ -449,7 +420,7 @@ export function SettingsPage() {
                   {fontFamily === font && (
                     <span style={{
                       marginLeft: "8px",
-                      color: accentColor,
+                      color: ACCENT_COLOR,
                       fontSize: "0.75rem",
                       fontFamily: "'JetBrains Mono', monospace",
                       fontWeight: 600,
@@ -486,7 +457,7 @@ export function SettingsPage() {
                   justifyContent: "center",
                 }}
               >
-                <Palette size={18} strokeWidth={2.5} color={accentColor} />
+                <Palette size={18} strokeWidth={2.5} color={ACCENT_COLOR} />
               </div>
               <div>
                 <div
@@ -626,7 +597,7 @@ export function SettingsPage() {
                   justifyContent: "center",
                 }}
               >
-                <MousePointer size={18} strokeWidth={2.5} color={accentColor} />
+                <MousePointer size={18} strokeWidth={2.5} color={ACCENT_COLOR} />
               </div>
               <div>
                 <div
@@ -791,7 +762,7 @@ export function SettingsPage() {
                   justifyContent: "center",
                 }}
               >
-                <Volume2 size={18} strokeWidth={2.5} color={accentColor} />
+                <Volume2 size={18} strokeWidth={2.5} color={ACCENT_COLOR} />
               </div>
               <div>
                 <div
@@ -872,81 +843,49 @@ export function SettingsPage() {
                   {Math.round(soundVolume * 100)}%
                 </span>
               </div>
-              <div style={{ position: "relative", width: "100%" }}>
-                <input
-                  ref={volumeSliderRef}
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={soundVolume}
-                  onChange={(e) => setSoundVolume(parseFloat(e.target.value))}
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const percentage = x / rect.width;
-                    const newValue = Math.max(0, Math.min(1, percentage));
-                    setSoundVolume(Math.round(newValue * 10) / 10);
-                  }}
-                  id="soundVolumeSlider"
-                  style={{
-                    width: "100%",
-                    height: "6px",
-                    borderRadius: "3px",
-                    background: "#3a3d40",
-                    outline: "none",
-                    cursor: "pointer",
-                    appearance: "none",
-                    WebkitAppearance: "none",
-                  }}
-                />
-                <style>{`
-                  #soundVolumeSlider {
-                    background: #3a3d40 !important;
-                  }
-                  #soundVolumeSlider::-webkit-slider-thumb {
-                    appearance: none;
-                    -webkit-appearance: none;
-                    width: 18px;
-                    height: 18px;
-                    border-radius: 50%;
-                    background: ${accentColor};
-                    cursor: pointer;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                  }
-                  #soundVolumeSlider::-webkit-slider-thumb:hover {
-                    width: 22px;
-                    height: 22px;
-                    box-shadow: 0 2px 10px ${accentColor}99, 0 2px 15px ${accentColor}4D;
-                  }
-                  #soundVolumeSlider::-webkit-slider-thumb:active {
-                    width: 20px;
-                    height: 20px;
-                    box-shadow: 0 2px 15px ${accentColor}CC, 0 2px 25px ${accentColor}80;
-                  }
-                  #soundVolumeSlider::-moz-range-thumb {
-                    width: 18px;
-                    height: 18px;
-                    border-radius: 50%;
-                    background: ${accentColor};
-                    cursor: pointer;
-                    border: none;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                  }
-                  #soundVolumeSlider::-moz-range-thumb:hover {
-                    width: 22px;
-                    height: 22px;
-                    box-shadow: 0 2px 10px ${accentColor}99, 0 2px 15px ${accentColor}4D;
-                  }
-                  #soundVolumeSlider::-moz-range-thumb:active {
-                    width: 20px;
-                    height: 20px;
-                    box-shadow: 0 2px 15px ${accentColor}CC, 0 2px 25px ${accentColor}80;
-                  }
-                `}</style>
-              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={soundVolume}
+                onChange={(e) => setSoundVolume(parseFloat(e.target.value))}
+                style={{
+                  width: "100%",
+                  height: "6px",
+                  borderRadius: "3px",
+                  background: "#3a3d40",
+                  outline: "none",
+                  cursor: "pointer",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                }}
+              />
+              <style>{`
+                input[type="range"]::-webkit-slider-thumb {
+                  appearance: none;
+                  -webkit-appearance: none;
+                  width: 18px;
+                  height: 18px;
+                  border-radius: 50%;
+                  background: ${accentColor};
+                  cursor: pointer;
+                  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                  transition: transform 0.15s;
+                }
+                input[type="range"]::-webkit-slider-thumb:hover {
+                  transform: scale(1.1);
+                }
+                input[type="range"]::-moz-range-thumb {
+                  width: 18px;
+                  height: 18px;
+                  border-radius: 50%;
+                  background: ${accentColor};
+                  cursor: pointer;
+                  border: none;
+                  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                }
+              `}</style>
             </div>
           </div>
         </section>

@@ -1,0 +1,125 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Анимация появления страницы */
+.page-transition {
+  animation: pageFadeIn 0.6s ease-out forwards;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Анимация для модального окна аутентификации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Опционально: анимация ухода (если захочешь усложнить) */
+.page-transition-exit {
+  animation: pageFadeOut 0.6s ease-in forwards;
+}
+
+
+html, body, #root {
+  background-color: #2b2d31;
+  min-height: 100vh;
+
+}
+
+/* Скользящий индикатор */
+.mode-indicator {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  border-radius: 99px;
+  z-index: 0;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mode-indicator.learning {
+  background-color: #60a5fa;
+  transform: translateX(0);
+}
+
+.mode-indicator.practice {
+  background-color: #ff6b35;
+  transform: translateX(calc(100% + 4px));
+}
+
+/* Mode Toggle - как обучение/практика */
+.mode-toggle-container {
+  position: relative;
+  display: flex;
+  width: 160px;
+  height: 38px;
+  background-color: #2b2d31;
+  border-radius: 19px;
+  padding: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mode-toggle-container.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Скользящий индикатор */
+.mode-toggle-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  background-color: #ff6b35;
+  border-radius: 15px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+  left: 4px;  /* По умолчанию на "время" */
+}
+
+.mode-toggle-indicator.words {
+  left: calc(50% + 0px);  /* На "слова" */
+}
+
+/* Текст */
+.mode-toggle-text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  pointer-events: auto;  /* ← ВАЖНО: разрешить клики */
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.mode-toggle-text.active {
+  color: #ffffff;
+}
+
+.mode-toggle-text.inactive {
+  color: rgba(224, 224, 224, 0.3);
+}

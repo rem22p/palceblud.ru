@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Keyboard, Languages, Flame, User, Trophy, Settings } from "lucide-react";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import { AuthModal } from "../features/auth/components/AuthModal";
@@ -74,6 +74,9 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
   const [streakCount, setStreakCount] = useState(1);
   const [hasActivityToday, setHasActivityToday] = useState(false);
   const [lastMode, setLastMode] = useState<"learning" | "prep" | "practice">("practice");
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const prevModeRef = useRef<"learning" | "prep" | "practice">("practice");
+  const isInitialRef = useRef(true);
 
   // Получаем последний режим из localStorage или определяем из pathname
   useEffect(() => {
@@ -92,6 +95,43 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
 
   // Для настроек и рейтинга используем последний выбранный режим
   const displayMode = currentMode === "settings" || currentMode === "leaderboard" ? lastMode : currentMode;
+
+  // Анимация переключения через Web Animations API
+  useEffect(() => {
+    const indicator = indicatorRef.current;
+    if (!indicator) return;
+
+    const positions = {
+      learning: { left: "5px", color: "#60a5fa" },
+      prep: { left: "calc(33.33% + 2.5px)", color: "#0A5F38" },
+      practice: { left: "calc(66.66% + 2.5px)", color: "#ff6b35" }
+    };
+
+    const { left, color } = positions[displayMode];
+
+    if (isInitialRef.current) {
+      // Первая загрузка - без анимации
+      indicator.style.left = left;
+      indicator.style.backgroundColor = color;
+      isInitialRef.current = false;
+    } else if (prevModeRef.current !== displayMode) {
+      // Переключение - анимация через Web Animations API
+      const fromLeft = prevModeRef.current === "learning" ? "5px" 
+                    : prevModeRef.current === "prep" ? "calc(33.33% + 2.5px)" 
+                    : "calc(66.66% + 2.5px)";
+      
+      indicator.animate([
+        { left: fromLeft, backgroundColor: positions[prevModeRef.current].color },
+        { left, backgroundColor: color }
+      ], {
+        duration: 500,
+        easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+        fill: "forwards"
+      });
+    }
+
+    prevModeRef.current = displayMode;
+  }, [displayMode]);
 
   // Сохраняем режим при переключении
   useEffect(() => {
@@ -262,10 +302,26 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
             </div>
 
             {/* Основной переключатель режимов */}
-            <div style={{ position: "relative", display: "flex", alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", borderRadius: "99px", padding: "5px", border: "1px solid rgba(255,255,255,0.06)", zIndex: 31, opacity: 1, pointerEvents: "auto", transition: "opacity 0.3s" }}>
-              <div style={{ position: "absolute", left: displayMode === "learning" ? "5px" : displayMode === "prep" ? "calc(33.33% + 2.5px)" : "calc(66.66% + 0px)", top: "5px", bottom: "5px", width: "calc(33.33% - 5px)", backgroundColor: accentColor, borderRadius: "99px", transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)", zIndex: 0 }} />
+            <div style={{ position: "relative", display: "flex", alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", borderRadius: "99px", padding: "5px", border: "1px solid rgba(255,255,255,0.06)", zIndex: 31 }}>
+              {/* Индикатор — скользящая плашка */}
+              <div
+                ref={indicatorRef}
+                style={{
+                  position: "absolute",
+                  left: "5px",
+                  top: "5px",
+                  bottom: "5px",
+                  width: "calc(33.33% - 5px)",
+                  backgroundColor: "#60a5fa",
+                  borderRadius: "99px",
+                  zIndex: 0
+                }}
+              />
+              {/* Кнопка ОБУЧЕНИЕ */}
               <button onClick={() => navigate("/learning")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "learning" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "learning" ? 700 : 400, transition: "color 0.5s ease", whiteSpace: "nowrap" }}>обучение</button>
+              {/* Кнопка ПОДГОТОВКА */}
               <button onClick={() => navigate("/prep")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "prep" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "prep" ? 700 : 400, transition: "color 0.5s ease", whiteSpace: "nowrap" }}>подготовка</button>
+              {/* Кнопка ПРАКТИКА */}
               <button onClick={() => navigate("/practice")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "practice" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "practice" ? 700 : 400, transition: "color 0.5s ease", whiteSpace: "nowrap" }}>практика</button>
             </div>
 

@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router";
+import { Layout } from "./components/Layout";
 import { PracticeMode } from "./pages/PracticeMode";
 import { LearningMode } from "./pages/LearningMode";
 import { PrepMode } from "./pages/PrepMode";
@@ -14,28 +15,33 @@ function LastModeRedirect() {
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <LastModeRedirect />,
-  },
-  {
-    path: "practice",
-    element: <PracticeMode />,
-  },
-  {
-    path: "learning",
-    element: <LearningMode />,
-  },
-  {
-    path: "prep",
-    element: <PrepMode />,
-  },
-  {
-    path: "settings",
-    element: <SettingsPage />,
-  },
-  {
-    path: "leaderboard",
-    element: <LeaderboardPage />,
+    element: <Layout />,
+    children: [
+      {
+        path: "/",
+        element: <LastModeRedirect />,
+      },
+      {
+        path: "practice",
+        element: <PracticeMode />,
+      },
+      {
+        path: "learning",
+        element: <LearningMode />,
+      },
+      {
+        path: "prep",
+        element: <PrepMode />,
+      },
+      {
+        path: "settings",
+        element: <SettingsPage />,
+      },
+      {
+        path: "leaderboard",
+        element: <LeaderboardPage />,
+      },
+    ],
   },
   {
     path: "*",

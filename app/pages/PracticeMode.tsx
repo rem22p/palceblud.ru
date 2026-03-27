@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { RotateCcw, SkipForward, MoreHorizontal, ChevronDown } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
-import { ModeHeader } from "../components/ModeHeader";
 import { RUSSIAN_WORDS } from "../lib/russianWords";
 import { ENGLISH_WORDS } from "../lib/englishWords";
 
@@ -201,8 +200,7 @@ export function PracticeMode() {
 
   return (
     <>
-      <ModeHeader isFinished={isFinished} isActive={isActive} />
-      <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
+      <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "20px" }}>
       {!isFinished ? (
         <>
           {/* Верхняя панель - скрыта во время печати */}

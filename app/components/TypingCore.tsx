@@ -720,12 +720,12 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           const isNotFocused = !isFocused && typed.length === 0;
           
           // Когда нет фокуса - все строки имеют пониженную прозрачность
-          const opacityStyle = isCurrentLine 
-            ? { opacity: isNotFocused ? 0.3 : 1 } 
-            : isPastLine 
-              ? { opacity: isNotFocused ? 0.2 : 0.3 } 
+          const opacityStyle = isCurrentLine
+            ? { opacity: isNotFocused ? 0.3 : 1 }
+            : isPastLine
+              ? { opacity: isNotFocused ? 0.2 : 0.3 }
               : { opacity: isNotFocused ? 0.2 : 0.5 };
-          
+
           // Когда нет фокуса - ВСЕ строки размываются
           const blurStyle = isNotFocused ? { filter: "blur(4px)", WebkitFilter: "blur(4px)" } : {};
 

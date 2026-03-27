@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
-import { ModeHeader } from "../components/ModeHeader";
 import { Lock, Keyboard as KeyboardIcon, CheckCircle, HelpCircle, X } from "lucide-react";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
 
@@ -343,7 +342,6 @@ export function PrepMode() {
 
   return (
     <>
-      <ModeHeader isFinished={isFinished} isActive={isActive} />
       <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", color: "#e0e0e0", fontFamily: "'JetBrains Mono', monospace", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "40px" }}>
       <style>{`
         .page-transition button[onclick*="onReset"] { 
