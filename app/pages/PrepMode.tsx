@@ -302,6 +302,15 @@ export function PrepMode() {
     return () => clearInterval(interval);
   }, [isActive, isPaused, isFinished, typed.length, lessonText]);
 
+  // Отправка сигнала хедеру при печати (для скрытия во время печати)
+  useEffect(() => {
+    if (typed.length > 0 && !isFinished) {
+      window.dispatchEvent(new CustomEvent('user-is-typing'));
+    } else {
+      window.dispatchEvent(new CustomEvent('user-is-typing-end'));
+    }
+  }, [typed, isFinished]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key.length > 1 && e.key !== " ") return;
@@ -395,7 +404,7 @@ export function PrepMode() {
         }
       `}</style>
 
-      {/* Статистика */}
+      {/* Статистика - всегда видима */}
       <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px", opacity: (!isFinished && typed.length === 0) ? 0.5 : 1, transition: "opacity 0.4s" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: liveCpm > 0 ? ACCENT_LIGHT : ACCENT_DIM, lineHeight: 1, letterSpacing: "-0.04em" }}>{liveCpm}</span>
@@ -409,7 +418,9 @@ export function PrepMode() {
         </div>
       </div>
 
+      {/* PrepRightPanel - всегда видим */}
       <PrepRightPanel unlockedCount={unlockedCount} nextKey={nextKey} activeKeyRef={activeKeyRef} />
+      {/* ProgressSteps - скрыт во время печати */}
       <ProgressSteps streak={streak} onNextKey={nextKey} onShowHelp={() => setIsHelpOpen(true)} currentWpm={wpm} style={{ opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s ease" }} />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} nextKey={nextKey} currentWpm={wpm} />
 

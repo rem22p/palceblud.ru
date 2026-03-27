@@ -91,13 +91,16 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
     const wpm = Math.min(Math.max(cpm, 0), 600);
     const rawWpm = Math.round((typed.length / 5) / elapsedMinutes);
 
+    // Считаем точность только по последним 50 символам (чтобы старые ошибки не влияли)
+    const recentLength = Math.min(typed.length, 50);
+    const startIndex = typed.length - recentLength;
     let correct = 0;
     let errors = 0;
-    for (let i = 0; i < typed.length; i++) {
+    for (let i = startIndex; i < typed.length; i++) {
       if (typed[i] === text[i]) correct++;
       else errors++;
     }
-    const accuracy = typed.length > 0 ? Math.round((correct / typed.length) * 100) : 100;
+    const accuracy = recentLength > 0 ? Math.round((correct / recentLength) * 100) : 100;
 
     return { wpm, rawWpm, accuracy, consistency: accuracy, errorCount: errors };
   }, [typed, timeLeft, timeLimit, mode, text]);

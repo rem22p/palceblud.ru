@@ -118,7 +118,7 @@ function ModeToggle({ mode, onChange, disabled }: { mode: "time" | "words"; onCh
 
 export function PracticeMode() {
   const [mode, setMode] = useState<"time" | "words">("time");
-  const [language, setLanguage] = useState<Language>(() => {
+  const [language] = useState<Language>(() => {
     const saved = localStorage.getItem("palceblud_language") as Language;
     return saved || "ru";
   });
@@ -127,37 +127,7 @@ export function PracticeMode() {
   const [showMenu, setShowMenu] = useState(false);
   const [text, setText] = useState(() => generateText(WORD_POOLS[language], 1000));
 
-  // Следим за изменением языка в localStorage
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const saved = localStorage.getItem("palceblud_language") as Language;
-      const newLang = saved || "ru";
-      if (newLang !== language) {
-        setLanguage(newLang);
-        const count = wordLimit === "infinity" ? 1000 : (typeof wordLimit === 'number' ? wordLimit : 25);
-        setText(generateText(WORD_POOLS[newLang], count));
-        reset();
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    // Также проверяем при монтировании и при изменении language в хедере
-    const interval = setInterval(() => {
-      const saved = localStorage.getItem("palceblud_language") as Language;
-      const newLang = saved || "ru";
-      if (newLang !== language) {
-        setLanguage(newLang);
-        const count = wordLimit === "infinity" ? 1000 : (typeof wordLimit === 'number' ? wordLimit : 25);
-        setText(generateText(WORD_POOLS[newLang], count));
-        reset();
-      }
-    }, 500);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, [language, wordLimit]);
-
-  const { typed, wpm, accuracy, rawWpm, consistency, errorCount, timeLeft, wordsLeft, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(text, { mode, timeLimit, wordLimit: wordLimit === "infinity" ? 999999 : wordLimit });
+  const { typed, wpm, rawWpm, accuracy, consistency, errorCount, timeLeft, wordsLeft, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(text, { mode, timeLimit, wordLimit: wordLimit === "infinity" ? 999999 : wordLimit });
 
   const handleTypeWithExpand = useCallback((val: string) => {
     handleType(val);
@@ -194,12 +164,56 @@ export function PracticeMode() {
     reset();
   };
 
-  const timerColor = mode === "time" && timeLeft <= 5 && isActive ? "#ff4444" : "rgba(224,224,224,0.85)";
+  // Отправка сигнала хедеру при печати (для скрытия во время печати)
+  useEffect(() => {
+    if (typed.length > 0 && !isFinished) {
+      window.dispatchEvent(new CustomEvent('user-is-typing'));
+    } else {
+      window.dispatchEvent(new CustomEvent('user-is-typing-end'));
+    }
+  }, [typed, isFinished]);
+
   const currentOptions = mode === "time" ? TIME_OPTIONS : WORD_OPTIONS;
   const currentValue = mode === "time" ? timeLimit : wordLimit;
 
+  const timerColor = mode === "time" && timeLeft <= 5 && isActive ? "#ff4444" : "rgba(224,224,224,0.85)";
+
   return (
     <>
+      {/* Статистика слева - всегда видима */}
+      <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
+        <FloatingStat
+          value={Math.round(rawWpm)}
+          label="wpm"
+          color="#ff6b35"
+          labelColor="rgba(255,107,53,0.35)"
+          size="xl"
+          muted={!isActive}
+        />
+      </div>
+      <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
+        <FloatingStat
+          value={`${accuracy}%`}
+          label="acc"
+          color="rgba(224,224,224,0.55)"
+          size="lg"
+          muted={!isActive}
+        />
+      </div>
+
+      {/* Таймер/слова СПРАВА - всегда видим */}
+      <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}>
+        <FloatingStat
+          value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)}
+          label={mode === "time" ? "сек" : "слов"}
+          color={timerColor}
+          size="xl"
+          align="right"
+          muted={!isActive}
+          scale={1.8}
+        />
+      </div>
+
       <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "20px" }}>
       {!isFinished ? (
         <>
@@ -223,40 +237,6 @@ export function PracticeMode() {
                 </div>
               </>
             )}
-          </div>
-
-          {/* Статистика слева */}
-          <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
-            <FloatingStat
-              value={Math.round(rawWpm)}
-              label="wpm"
-              color="#ff6b35"
-              labelColor="rgba(255,107,53,0.35)"
-              size="xl"
-              muted={!isActive}
-            />
-          </div>
-          <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
-            <FloatingStat
-              value={`${accuracy}%`}
-              label="acc"
-              color="rgba(224,224,224,0.55)"
-              size="lg"
-              muted={!isActive}
-            />
-          </div>
-
-          {/* Статистика СПРАВА */}
-          <div style={{ position: "fixed", top: "100px", right: "80px", zIndex: 10 }}>
-            <FloatingStat
-              value={mode === "time" ? (isActive ? timeLeft : timeLimit) : (wordLimit === "infinity" ? "∞" : wordsLeft)}
-              label={mode === "time" ? "сек" : "слов"}
-              color={timerColor}
-              size="xl"
-              align="right"
-              muted={!isActive}
-              scale={1.8}
-            />
           </div>
 
           {/* Текст */}
@@ -284,7 +264,7 @@ export function PracticeMode() {
             />
           </div>
 
-          {/* Кнопки внизу */}
+          {/* Кнопки внизу - скрыты во время печати */}
           <div style={{ position: "fixed", bottom: "40px", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: "20px", opacity: isActive ? 0 : 1, transition: "opacity 0.3s ease", pointerEvents: isActive ? "none" : "auto", zIndex: 10 }}>
             <button onClick={handleRestart} title="Перезапустить (Tab)" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><RotateCcw size={17} /></button>
             <button onClick={() => { setText(generateText(WORD_POOLS[language], typeof wordLimit === 'number' ? wordLimit : 25)); reset(); }} title="Следующий текст" style={{ background: "none", border: "none", color: "rgba(224,224,224,0.2)", cursor: "pointer", padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}><SkipForward size={17} /></button>
@@ -307,7 +287,7 @@ export function PracticeMode() {
           onRestart={handleRestart}
         />
       )}
-    </div>
+      </div>
     </>
   );
 }

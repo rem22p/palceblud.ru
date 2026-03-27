@@ -58,7 +58,7 @@ interface ModeHeaderProps {
   isActive?: boolean;
 }
 
-export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderProps) {
+export function ModeHeader({ isFinished = false, isActive = false, shouldHideHeader = false }: ModeHeaderProps & { shouldHideHeader?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
@@ -75,17 +75,8 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
   const [hasActivityToday, setHasActivityToday] = useState(false);
   const [lastMode, setLastMode] = useState<"learning" | "prep" | "practice">("practice");
   const indicatorRef = useRef<HTMLDivElement>(null);
-  const prevModeRef = useRef<"learning" | "prep" | "practice">("practice");
-  const isInitialRef = useRef(true);
 
-  // Получаем последний режим из localStorage или определяем из pathname
-  useEffect(() => {
-    const saved = localStorage.getItem("palceblud_last_mode") as "learning" | "prep" | "practice" | null;
-    if (saved && ["learning", "prep", "practice"].includes(saved)) {
-      setLastMode(saved);
-    }
-  }, []);
-
+  // Определяем текущий режим
   const currentMode = location.pathname === "/learning" ? "learning"
                       : location.pathname === "/prep" ? "prep"
                       : location.pathname === "/practice" ? "practice"
@@ -95,43 +86,6 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
 
   // Для настроек и рейтинга используем последний выбранный режим
   const displayMode = currentMode === "settings" || currentMode === "leaderboard" ? lastMode : currentMode;
-
-  // Анимация переключения через Web Animations API
-  useEffect(() => {
-    const indicator = indicatorRef.current;
-    if (!indicator) return;
-
-    const positions = {
-      learning: { left: "5px", color: "#60a5fa" },
-      prep: { left: "calc(33.33% + 2.5px)", color: "#0A5F38" },
-      practice: { left: "calc(66.66% + 2.5px)", color: "#ff6b35" }
-    };
-
-    const { left, color } = positions[displayMode];
-
-    if (isInitialRef.current) {
-      // Первая загрузка - без анимации
-      indicator.style.left = left;
-      indicator.style.backgroundColor = color;
-      isInitialRef.current = false;
-    } else if (prevModeRef.current !== displayMode) {
-      // Переключение - анимация через Web Animations API
-      const fromLeft = prevModeRef.current === "learning" ? "5px" 
-                    : prevModeRef.current === "prep" ? "calc(33.33% + 2.5px)" 
-                    : "calc(66.66% + 2.5px)";
-      
-      indicator.animate([
-        { left: fromLeft, backgroundColor: positions[prevModeRef.current].color },
-        { left, backgroundColor: color }
-      ], {
-        duration: 500,
-        easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-        fill: "forwards"
-      });
-    }
-
-    prevModeRef.current = displayMode;
-  }, [displayMode]);
 
   // Сохраняем режим при переключении
   useEffect(() => {
@@ -248,11 +202,11 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
 
   return (
     <>
-      <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 30, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", height: "60px", opacity: shouldHideControls ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: shouldHideControls ? "none" : "auto", backgroundColor: "transparent" }}>
+      <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 30, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", height: "60px", opacity: shouldHideHeader ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: shouldHideHeader ? "none" : "auto", backgroundColor: "transparent" }}>
 
         {/* ЛЕВАЯ ЧАСТЬ: Логотип */}
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer", zIndex: 31, opacity: shouldHideControls ? 0 : 1, pointerEvents: shouldHideControls ? "none" : "auto", transition: "opacity 0.3s" }} onClick={() => navigate("/")}>
+          <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer", zIndex: 31, opacity: shouldHideHeader ? 0 : 1, pointerEvents: shouldHideHeader ? "none" : "auto", transition: "opacity 0.3s" }} onClick={() => navigate("/")}>
             <div style={{ width: "28px", height: "28px", borderRadius: "7px", backgroundColor: accentColor, display: "flex", alignItems: "center", justifyContent: "center", transition: "background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)" }}>
               <Keyboard size={15} color="#111" strokeWidth={2.5} />
             </div>
@@ -261,7 +215,7 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
         </div>
 
         {/* ЦЕНТР: Настройки + Переключатель + Рейтинг */}
-        {!shouldHideControls && (
+        {!shouldHideHeader && (
           <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center" }}>
             {/* Отсек настроек слева */}
             <div style={{
@@ -308,13 +262,14 @@ export function ModeHeader({ isFinished = false, isActive = false }: ModeHeaderP
                 ref={indicatorRef}
                 style={{
                   position: "absolute",
-                  left: "5px",
+                  left: displayMode === "learning" ? "5px" : displayMode === "prep" ? "calc(33.33% + 2.5px)" : "calc(66.66% + 2.5px)",
                   top: "5px",
                   bottom: "5px",
                   width: "calc(33.33% - 5px)",
-                  backgroundColor: "#60a5fa",
+                  backgroundColor: displayMode === "learning" ? "#60a5fa" : displayMode === "prep" ? "#0A5F38" : "#ff6b35",
                   borderRadius: "99px",
-                  zIndex: 0
+                  zIndex: 0,
+                  transition: "left 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
                 }}
               />
               {/* Кнопка ОБУЧЕНИЕ */}

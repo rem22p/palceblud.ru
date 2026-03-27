@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   CheckCircle,
   Star,
@@ -9,17 +9,6 @@ import {
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
-
-// Функция для перемешивания слов в тексте
-function shuffleText(text: string): string {
-  const words = text.split(' ');
-  // Перемешиваем массив слов (алгоритм Фишера-Йетса)
-  for (let i = words.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [words[i], words[j]] = [words[j], words[i]];
-  }
-  return words.join(' ');
-}
 
 // ─── Lesson data ───────────────────────────────────────────────────────────
 interface Lesson {
@@ -292,7 +281,6 @@ export function LearningMode() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedLessons, setCompletedLessons] = useState<number[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [shuffleKey, setShuffleKey] = useState(0); // Для перемешивания при перезапуске
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const fontSize = useSettingsStore((state) => state.fontSize);
   const hasProcessedFinish = useRef(false);
@@ -302,12 +290,6 @@ export function LearningMode() {
   // Обработка нажатий клавиш для визуализации
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Tab' && !isFinished) {
-        e.preventDefault();
-        setShuffleKey(prev => prev + 1);
-        return;
-      }
-
       if (e.key.length === 1 || e.key === " ") {
         const key = e.key.toLowerCase();
         setActiveKeys(prev => new Set(prev).add(key));
@@ -326,11 +308,8 @@ export function LearningMode() {
     };
   }, []);
 
-  // Перемешиваем текст урока при смене урока (currentIndex) или перезапуске (shuffleKey)
-  const shuffledLessonText = useMemo(() => shuffleText(currentLesson.text), [currentIndex, shuffleKey]);
-
   // Используем wpm для левой статистики (CPM - символы в минуту)
-  const { typed, wpm, rawWpm, accuracy, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(shuffledLessonText, { mode: "words", wordLimit: 9999 });
+  const { typed, wpm, rawWpm, accuracy, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
 
   // Живая статистика CPM для динамического обновления
   const [liveCpm, setLiveCpm] = useState(0);
@@ -365,6 +344,8 @@ export function LearningMode() {
   useEffect(() => {
     if (typed.length > 0 && !isFinished) {
       window.dispatchEvent(new CustomEvent('user-is-typing'));
+    } else {
+      window.dispatchEvent(new CustomEvent('user-is-typing-end'));
     }
   }, [typed, isFinished]);
   
@@ -424,12 +405,12 @@ export function LearningMode() {
         </div>
       </div>
 
-      {/* Правая сторона: Карточка урока */}
+      {/* Правая сторона: Карточка урока - всегда видима */}
       <div style={{ position: "fixed", top: "80px", right: "clamp(20px, 5vw, 80px)", zIndex: 10 }}>
         <LessonCard lesson={currentLesson} activeKeys={activeKeys} />
       </div>
 
-      {/* Суть задания */}
+      {/* Суть задания - скрыта во время печати */}
       <div style={{ position: "fixed", top: "80px", left: "50%", transform: "translateX(-50%)", zIndex: 10, textAlign: "center", maxWidth: "600px", opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto", transition: "opacity 0.3s ease" }}>
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: "rgba(96,165,250,0.8)", letterSpacing: "0.05em", lineHeight: 1.5 }}>
           {currentLesson.tip}
@@ -443,7 +424,7 @@ export function LearningMode() {
         {!isFinished ? (
           <>
             <TypingDisplay
-              text={shuffledLessonText}
+              text={currentLesson.text}
               typed={typed}
               onType={handleType}
               onReset={reset}
@@ -465,7 +446,7 @@ export function LearningMode() {
         )}
       </div>
 
-      {/* Индикатор шагов */}
+      {/* Индикатор шагов - скрыт во время печати */}
       <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto", transition: "opacity 0.4s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.1em" }}>ДО СЛЕДУЮЩЕГО УРОКА</div>
