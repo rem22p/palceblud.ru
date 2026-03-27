@@ -336,7 +336,7 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
   const fontSize = propFontSize || `${settingsFontSize || 24}px`;
   const lineHeight = propLineHeight || `${settingsLineHeight || 48}px`;
   const width = propWidth || 1000;
-  const paddingRight = propPaddingRight !== undefined ? propPaddingRight : 80;
+  const paddingRight = propPaddingRight !== undefined ? propPaddingRight : 40;
   const fontFamily = settingsFontFamily || "JetBrains Mono";
   const fontFamilyStack = `${fontFamily}, 'JetBrains Mono', 'Cascadia Code', 'Consolas', 'Lucida Console', 'Courier New', monospace`;
   const widthNum = typeof width === 'string' ? parseInt(width, 10) : width;

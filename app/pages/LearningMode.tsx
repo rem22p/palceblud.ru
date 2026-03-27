@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useLocation } from "react-router";
 import {
   CheckCircle,
   Star,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
+import { AnimatedColor } from "../components/AnimatedColor";
 
 // Функция для перемешивания слов в тексте
 function shuffleText(text: string): string {
@@ -289,6 +291,7 @@ function LessonComplete({ wpm, accuracy, onRetry }: any) {
 }
 
 export function LearningMode() {
+  const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedLessons, setCompletedLessons] = useState<number[]>([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -329,6 +332,45 @@ export function LearningMode() {
 
   // Используем wpm для левой статистики (CPM - символы в минуту)
   const { typed, wpm, rawWpm, accuracy, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
+
+  // Живая статистика для обновления в реальном времени
+  const [liveCpm, setLiveCpm] = useState(0);
+  const [liveAcc, setLiveAcc] = useState(100);
+  const startTimeRef = useRef<number | null>(null);
+  
+  // Обновляем live-статистику во время печати
+  useEffect(() => {
+    if (!isActive || isPaused || isFinished || typed.length === 0) {
+      setLiveCpm(0);
+      setLiveAcc(100);
+      startTimeRef.current = null;
+      return;
+    }
+    
+    // Инициализируем startTime при начале печати
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+    }
+    
+    const interval = setInterval(() => {
+      const elapsedMin = (Date.now() - startTimeRef.current!) / 60000;
+      if (elapsedMin > 0.008) {
+        const cpm = Math.round(typed.length / elapsedMin);
+        
+        let correct = 0;
+        for (let i = 0; i < typed.length; i++) {
+          if (typed[i] === currentLesson.text[i]) correct++;
+        }
+        const acc = Math.round((correct / typed.length) * 100);
+        
+        // Плавное обновление - усредняем с предыдущим значением
+        setLiveCpm(prev => Math.round(prev * 0.6 + Math.min(cpm, 600) * 0.4));
+        setLiveAcc(prev => Math.round(prev * 0.6 + acc * 0.4));
+      }
+    }, 150);
+    
+    return () => clearInterval(interval);
+  }, [isActive, isPaused, isFinished, typed.length, currentLesson.text]);
 
   // Перемешиваем текст урока при смене урока (currentIndex) или перезапуске (shuffleKey)
   const shuffledLessonText = useMemo(() => shuffleText(currentLesson.text), [currentIndex, shuffleKey]);
@@ -384,14 +426,26 @@ export function LearningMode() {
       {/* ЛЕВАЯ СТАТИСТИКА (CPM) */}
       <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: wpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)", lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{Math.round(wpm)}</span>
+          <AnimatedColor
+            key={`cpm-${location.pathname}-${liveCpm}`}
+            value={liveCpm}
+            color={liveCpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)"}
+            duration={500}
+            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, lineHeight: 1, letterSpacing: "-0.04em" }}
+          />
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>CPM</span>
         </div>
       </div>
-      
+
       <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "3.2rem", fontWeight: 200, color: accuracy >= 95 ? "#34d399" : accuracy >= 85 ? "rgba(224,224,224,0.55)" : "rgba(248,113,113,0.7)", lineHeight: 1, letterSpacing: "-0.03em", transition: "color 0.3s" }}>{accuracy}%</span>
+          <AnimatedColor
+            key={`acc-${location.pathname}-${liveAcc}`}
+            value={`${liveAcc}%`}
+            color={liveAcc >= 95 ? "#34d399" : liveAcc >= 85 ? "rgba(224,224,224,0.55)" : "rgba(248,113,113,0.7)"}
+            duration={500}
+            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "3.2rem", fontWeight: 200, lineHeight: 1, letterSpacing: "-0.03em" }}
+          />
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>точн</span>
         </div>
       </div>
@@ -423,7 +477,8 @@ export function LearningMode() {
               isFinished={isFinished}
               fontSize={`${fontSize}px`}
               lineHeight={`${fontSize + 32}px`}
-
+              width="1000px"
+              paddingRight={40}
               wpm={wpm}
               accuracy={accuracy}
               isActive={isActive}

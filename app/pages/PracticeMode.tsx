@@ -274,12 +274,13 @@ export function PracticeMode() {
                 errorBg: "rgba(255,107,53,0.12)"
               }}
               isFinished={isFinished}
+              width="1000px"
+              paddingRight={40}
               wpm={wpm}
               accuracy={accuracy}
               isActive={isActive}
               isPaused={isPaused}
               togglePause={togglePause}
-              paddingRight={40}
             />
           </div>
 
