@@ -97,7 +97,7 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
       if (typed[i] === text[i]) correct++;
       else errors++;
     }
-    const accuracy = Math.round((correct / typed.length) * 100);
+    const accuracy = typed.length > 0 ? Math.round((correct / typed.length) * 100) : 100;
 
     return { wpm, rawWpm, accuracy, consistency: accuracy, errorCount: errors };
   }, [typed, timeLeft, timeLimit, mode, text]);
