@@ -198,12 +198,20 @@ export function useTyping(text: string, options: UseTypingOptions): TypingState 
   }, [isActive, isFinished, isPaused, typed.length, text]);
 
   useEffect(() => {
-    if (mode === "words" && completedWordsCount >= wordLimit && !isFinished && typed.length > 0) {
-      setIsActive(false);
-      setIsFinished(true);
-      if (intervalRef.current) clearInterval(intervalRef.current);
+    // Для режима words - завершаем когда набран весь текст
+    if (mode === "words" && !isFinished && typed.length > 0) {
+      // Завершаем когда набрано последнее слово (текст заканчивается пробелом после слова)
+      const isComplete = typed.trim().length >= text.trim().length || 
+                         (typed.endsWith(' ') && typed.trim().split(' ').length >= text.trim().split(' ').length);
+      console.log("TypingCore check:", { mode, typedLength: typed.length, textLength: text.length, isComplete, typedWords: typed.trim().split(' ').length, textWords: text.trim().split(' ').length });
+      if (isComplete) {
+        console.log("TypingCore: setting isFinished=true");
+        setIsActive(false);
+        setIsFinished(true);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      }
     }
-  }, [mode, wordLimit, completedWordsCount, isFinished, typed.length]);
+  }, [mode, isFinished, typed.length, text]);
 
   useEffect(() => { if (mode === "time") setTimeLeft(timeLimit); }, [timeLimit, mode]);
 

@@ -242,9 +242,9 @@ function LessonCard({ lesson, activeKeys }: { lesson: Lesson; activeKeys: Set<st
   );
 }
 
-function LessonComplete({ wpm, accuracy, onRetry }: any) {
-  const targetWpm = 0;
-  const targetAccuracy = 0;
+function LessonComplete({ wpm, accuracy, onRetry, onNext, isLastLesson }: any) {
+  const targetWpm = 130;
+  const targetAccuracy = 95;
   const passed = wpm >= targetWpm && accuracy >= targetAccuracy;
 
   return (
@@ -272,6 +272,9 @@ function LessonComplete({ wpm, accuracy, onRetry }: any) {
       </div>
       <div style={{ display: "flex", gap: "12px" }}>
         <button onClick={onRetry} style={{ background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "10px 20px", color: "rgba(224,224,224,0.35)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", transition: "all 0.2s" }}><RotateCcw size={12} />повторить</button>
+        {!isLastLesson && (
+          <button onClick={onNext} style={{ background: "none", border: "1px solid rgba(52,211,153,0.3)", borderRadius: "10px", padding: "10px 20px", color: "#34d399", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", transition: "all 0.2s" }}><Star size={12} />далее</button>
+        )}
       </div>
     </div>
   );
@@ -279,7 +282,18 @@ function LessonComplete({ wpm, accuracy, onRetry }: any) {
 
 export function LearningMode() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [completedLessons, setCompletedLessons] = useState<number[]>([]);
+  const [completedLessons, setCompletedLessons] = useState<number[]>(() => {
+    // Загружаем прогресс из localStorage при первой загрузке
+    const saved = localStorage.getItem("palceblud_completed_lessons");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const fontSize = useSettingsStore((state) => state.fontSize);
@@ -309,7 +323,7 @@ export function LearningMode() {
   }, []);
 
   // Используем wpm для левой статистики (CPM - символы в минуту)
-  const { typed, wpm, rawWpm, accuracy, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
+  const { typed, wpm, accuracy, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(currentLesson.text, { mode: "words", wordLimit: 9999 });
 
   // Живая статистика CPM для динамического обновления
   const [liveCpm, setLiveCpm] = useState(0);
@@ -351,37 +365,62 @@ export function LearningMode() {
   
   // --- ЛОГИКА ПЕРЕХОДА УРОКОВ ---
   useEffect(() => {
+    console.log("useEffect isFinished:", isFinished, "wpm:", wpm, "accuracy:", accuracy);
+
     if (isFinished && !hasProcessedFinish.current) {
       hasProcessedFinish.current = true;
 
-      // Условия: 0 CPM и 0% точности (временно)
-      const targetCpm = 0;
-      const targetAccuracy = 0;
+      // Условия: 130 CPM и 95% точности
+      const targetCpm = 130;
+      const targetAccuracy = 95;
       const currentCpm = wpm;
       const isGoodAccuracy = accuracy >= targetAccuracy;
       const isFastEnough = currentCpm >= targetCpm;
 
+      console.log("Проверка условий:", { currentCpm, targetCpm, isFastEnough, accuracy, targetAccuracy, isGoodAccuracy });
+
       if (isGoodAccuracy && isFastEnough) {
-        // УСПЕХ - помечаем урок как пройденный
-        setCompletedLessons((prev) => [...prev, currentIndex]);
-      }
-      
-      // Сбрасываем флаг
-      setTimeout(() => {
+        // УСПЕХ - помечаем урок как пройденный и показываем результаты
+        console.log("Урок пройден! currentIndex:", currentIndex);
+        setCompletedLessons((prev) => {
+          const updated = [...prev, currentIndex];
+          console.log("completedLessons updated:", updated);
+          // Сохраняем прогресс в localStorage
+          localStorage.setItem("palceblud_completed_lessons", JSON.stringify(updated));
+          return updated;
+        });
+        // Оставляем isFinished=true чтобы показать результаты
+      } else {
+        // НЕ УСПЕХ - сразу перезапускаем урок без показа результатов
+        console.log("Урок НЕ пройден. Перезапуск...");
+        // Сбрасываем флаг чтобы useEffect не срабатывал снова
         hasProcessedFinish.current = false;
+        // Перезапускаем урок
         reset();
-      }, 0);
+      }
     }
 
     if (!isFinished) {
       hasProcessedFinish.current = false;
     }
-  }, [isFinished, rawWpm, accuracy, currentIndex, reset]);
+  }, [isFinished, wpm, accuracy, currentIndex, reset]);
 
   const handleSelectLesson = (i: number) => {
     setCurrentIndex(i);
     reset();
   };
+
+  const handleNextLesson = () => {
+    if (currentIndex < LESSONS.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      reset();
+    }
+  };
+
+  // Сохраняем прогресс при любом изменении completedLessons
+  useEffect(() => {
+    localStorage.setItem("palceblud_completed_lessons", JSON.stringify(completedLessons));
+  }, [completedLessons]);
 
   const lessonsWithCompletion = LESSONS.map((l, i) => ({ ...l, completed: completedLessons.includes(i) }));
 
@@ -420,7 +459,7 @@ export function LearningMode() {
       {/* СОВЕТЫ УДАЛЕНЫ! Блок с currentLesson.tip удален. */}
       
       {/* Основной контент */}
-      <div style={{ width: "1000px", margin: "0 auto", padding: "80px 0 40px 0", zIndex: 5 }}>
+      <div style={{ width: "1000px", margin: "0 auto", padding: "80px 0 40px 0", zIndex: 5, display: "flex", flexDirection: "column", alignItems: "center" }}>
         {!isFinished ? (
           <>
             <TypingDisplay
@@ -442,7 +481,7 @@ export function LearningMode() {
             />
           </>
         ) : (
-          <LessonComplete lesson={currentLesson} wpm={wpm} accuracy={accuracy} onRetry={reset} isLastLesson={currentIndex === LESSONS.length - 1} />
+          <LessonComplete lesson={currentLesson} wpm={wpm} accuracy={accuracy} onRetry={reset} onNext={handleNextLesson} isLastLesson={currentIndex === LESSONS.length - 1} />
         )}
       </div>
 
@@ -453,6 +492,7 @@ export function LearningMode() {
           <div onClick={() => setIsHelpOpen(true)} style={{ marginLeft: "6px", cursor: "pointer", transition: "transform 0.2s", display: "flex", alignItems: "center", color: "rgba(96,165,250,0.6)" }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
         </div>
         <StepIndicator lessons={lessonsWithCompletion} currentIndex={currentIndex} onSelect={handleSelectLesson} completedLessons={completedLessons} />
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 130 CPM</div>
       </div>
       {isFinished ? (
         <div style={{ position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.58rem", color: "rgba(224,224,224,0.1)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>tab — заново</div>
@@ -469,15 +509,15 @@ export function LearningMode() {
               <h2 style={{ fontSize: "1.1rem", color: "#e0e0e0", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}><HelpCircle size={20} color="rgba(96,165,250,0.6)" />Условия раздела</h2>
               <button onClick={() => setIsHelpOpen(false)} style={{ background: "none", border: "none", color: "rgba(224,224,224,0.5)", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={18} /></button>
             </div>
-            <p style={{ fontSize: "0.85rem", color: "#aaa", lineHeight: 1.6, marginBottom: "16px" }}>Чтобы перейти к следующему уроку, необходимо пройти текущий урок со скоростью <strong>≥ 150 CPM</strong> (символов в мин.) и точностью <strong>90%</strong>.</p>
+            <p style={{ fontSize: "0.85rem", color: "#aaa", lineHeight: 1.6, marginBottom: "16px" }}>Чтобы перейти к следующему уроку, необходимо пройти текущий урок со скоростью <strong>≥ 130 CPM</strong> (символов в мин.) и точностью <strong>95%</strong>.</p>
             <div style={{ fontSize: "0.75rem", color: "#888", textTransform: "uppercase", marginBottom: "12px", letterSpacing: "0.1em" }}>Требования к уроку:</div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <span style={{ fontSize: "0.9rem", color: "#e0e0e0" }}>Скорость (CPM)</span>
-              <span style={{ fontSize: "0.9rem", color: "rgba(96,165,250,0.6)", fontWeight: "bold" }}>≥ 150</span>
+              <span style={{ fontSize: "0.9rem", color: "rgba(96,165,250,0.6)", fontWeight: "bold" }}>≥ 130</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "8px" }}>
               <span style={{ fontSize: "0.9rem", color: "#e0e0e0" }}>Точность</span>
-              <span style={{ fontSize: "0.9rem", color: "rgba(96,165,250,0.6)", fontWeight: "bold" }}>≥ 90%</span>
+              <span style={{ fontSize: "0.9rem", color: "rgba(96,165,250,0.6)", fontWeight: "bold" }}>≥ 95%</span>
             </div>
           </div>
         </>
