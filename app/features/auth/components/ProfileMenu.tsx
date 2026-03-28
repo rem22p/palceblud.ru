@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router';
 import { User, Settings, LogOut, Trophy, Crown, Mail } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { useSettingsStore } from '../../settings/store/settingsStore';
 
 export const ProfileMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +11,7 @@ export const ProfileMenu: React.FC = () => {
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const accentColor = useSettingsStore((state) => state.accentColor);
 
   useEffect(() => {
     setMounted(true);
@@ -34,8 +36,7 @@ export const ProfileMenu: React.FC = () => {
 
   if (!user) return null;
 
-  const GOLD_COLOR = "#D4AF37";
-  const avatarUrl = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=${GOLD_COLOR.replace('#', '')}&color=1a1a1a`;
+  const avatarUrl = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=${accentColor.replace('#', '')}&color=111111`;
 
   return (
     <div className="relative" ref={menuRef}>
@@ -57,9 +58,9 @@ export const ProfileMenu: React.FC = () => {
             width: '32px',
             height: '32px',
             borderRadius: '50%',
-            border: `2px solid ${GOLD_COLOR}`,
+            border: `2px solid ${accentColor}`,
             transition: 'border-color 0.2s',
-            boxShadow: `0 0 12px ${GOLD_COLOR}40`
+            boxShadow: `0 0 12px ${accentColor}40`
           }}
         />
       </button>
@@ -109,8 +110,8 @@ export const ProfileMenu: React.FC = () => {
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
-                  border: `2px solid ${GOLD_COLOR}`,
-                  boxShadow: `0 0 16px ${GOLD_COLOR}50`
+                  border: `2px solid ${accentColor}`,
+                  boxShadow: `0 0 16px ${accentColor}50`
                 }}
               />
               <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -147,7 +148,7 @@ export const ProfileMenu: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <Crown size={14} color={GOLD_COLOR} />
+                <Crown size={14} color={accentColor} />
               </div>
             </div>
 
@@ -184,7 +185,7 @@ export const ProfileMenu: React.FC = () => {
                   justifyContent: 'center',
                   border: `1px solid rgba(212, 175, 55, 0.2)`
                 }}>
-                  <User size={16} color={GOLD_COLOR} />
+                  <User size={16} color={accentColor} />
                 </div>
                 <span style={{
                   fontSize: '0.75rem',
@@ -227,7 +228,7 @@ export const ProfileMenu: React.FC = () => {
                   justifyContent: 'center',
                   border: `1px solid rgba(212, 175, 55, 0.2)`
                 }}>
-                  <Trophy size={16} color={GOLD_COLOR} />
+                  <Trophy size={16} color={accentColor} />
                 </div>
                 <span style={{
                   fontSize: '0.75rem',
@@ -270,7 +271,7 @@ export const ProfileMenu: React.FC = () => {
                   justifyContent: 'center',
                   border: `1px solid rgba(212, 175, 55, 0.2)`
                 }}>
-                  <Settings size={16} color={GOLD_COLOR} />
+                  <Settings size={16} color={accentColor} />
                 </div>
                 <span style={{
                   fontSize: '0.75rem',

@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useSettingsStore } from '../../settings/store/settingsStore';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -6,8 +7,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(({ label, error, className = '', ...props }, ref) => {
-  const GOLD_COLOR = "#D4AF37";
-  
+  const accentColor = useSettingsStore((state) => state.accentColor);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
       <label style={{
@@ -36,8 +37,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({ label, error, c
         }}
         className="focus:border-[#D4AF37]"
         onFocus={(e) => {
-          e.target.style.borderColor = GOLD_COLOR;
-          e.target.style.boxShadow = `0 0 0 2px ${GOLD_COLOR}20`;
+          e.target.style.borderColor = accentColor;
+          e.target.style.boxShadow = `0 0 0 2px ${accentColor}20`;
         }}
         onBlur={(e) => {
           e.target.style.borderColor = error ? '#ef4444' : 'rgba(255,255,255,0.1)';

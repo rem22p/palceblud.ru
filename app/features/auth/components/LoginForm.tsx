@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthStore } from '../store/authStore';
+import { useSettingsStore } from '../../settings/store/settingsStore';
 import { Input } from './Input';
 import { Button } from './Button';
 
@@ -15,8 +16,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginForm: React.FC<{ onSwitch: () => void }> = ({ onSwitch }) => {
   const { login, isLoading } = useAuthStore();
-  const GOLD_COLOR = "#D4AF37";
-  
+  const accentColor = useSettingsStore((state) => state.accentColor);
+
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
@@ -38,7 +39,7 @@ export const LoginForm: React.FC<{ onSwitch: () => void }> = ({ onSwitch }) => {
         error={errors.email?.message}
         {...register('email')}
       />
-      
+
       <Input
         label="Пароль"
         type="password"
@@ -67,21 +68,21 @@ export const LoginForm: React.FC<{ onSwitch: () => void }> = ({ onSwitch }) => {
               height: "16px",
               borderRadius: "4px",
               backgroundColor: "#1e2028",
-              border: `1px solid rgba(212, 175, 55, 0.3)`,
-              accentColor: GOLD_COLOR,
+              border: `1px solid ${accentColor}`,
+              accentColor: accentColor,
               cursor: "pointer"
             }}
             {...register('rememberMe')}
           />
           Запомнить
         </label>
-        
+
         <button
           type="button"
           style={{
             background: "none",
             border: "none",
-            color: GOLD_COLOR,
+            color: accentColor,
             cursor: "pointer",
             fontSize: "0.8rem",
             padding: 0,
@@ -110,7 +111,7 @@ export const LoginForm: React.FC<{ onSwitch: () => void }> = ({ onSwitch }) => {
           style={{
             background: "none",
             border: "none",
-            color: GOLD_COLOR,
+            color: accentColor,
             cursor: "pointer",
             fontSize: "0.8rem",
             fontWeight: 600,

@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthStore } from '../store/authStore';
+import { useSettingsStore } from '../../settings/store/settingsStore';
 import { Input } from './Input';
 import { Button } from './Button';
 
@@ -22,7 +23,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const RegisterForm: React.FC<{ onSwitch: () => void }> = ({ onSwitch }) => {
   const { register: registerUser, isLoading } = useAuthStore();
-  const GOLD_COLOR = "#D4AF37";
+  const accentColor = useSettingsStore((state) => state.accentColor);
   
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -91,7 +92,7 @@ export const RegisterForm: React.FC<{ onSwitch: () => void }> = ({ onSwitch }) =
           style={{
             background: "none",
             border: "none",
-            color: GOLD_COLOR,
+            color: accentColor,
             cursor: "pointer",
             fontSize: "0.8rem",
             fontWeight: 600,

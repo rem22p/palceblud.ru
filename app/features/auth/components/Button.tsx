@@ -1,23 +1,25 @@
+import { useSettingsStore } from '../../settings/store/settingsStore';
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline';
   isLoading?: boolean;
 }
 
-export const Button: React.FC<ButtonProps> = ({ 
-  children, 
-  variant = 'primary', 
+export const Button: React.FC<ButtonProps> = ({
+  children,
+  variant = 'primary',
   isLoading = false,
   className = '',
   disabled,
-  ...props 
+  ...props
 }) => {
-  const GOLD_COLOR = "#D4AF37";
-  
+  const accentColor = useSettingsStore((state) => state.accentColor);
+
   const variants = {
     primary: {
-      background: GOLD_COLOR,
+      background: accentColor,
       color: "#1a1a1a",
-      hoverBackground: "#c4a030"
+      hoverBackground: `${accentColor}CC`
     },
     secondary: {
       background: "#3a3a3a",
@@ -27,9 +29,9 @@ export const Button: React.FC<ButtonProps> = ({
     outline: {
       background: "transparent",
       color: "rgba(224,224,224,0.6)",
-      border: `1px solid rgba(212, 175, 55, 0.3)`,
-      hoverBackground: "rgba(212, 175, 55, 0.1)",
-      hoverColor: GOLD_COLOR
+      border: `1px solid ${accentColor}4D`,
+      hoverBackground: `${accentColor}1F`,
+      hoverColor: accentColor
     }
   } as const;
 

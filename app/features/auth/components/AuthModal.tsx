@@ -2,6 +2,7 @@ import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { SocialLogin } from './SocialLogin';
 import { User, LogIn } from 'lucide-react';
+import { useSettingsStore } from '../../settings/store/settingsStore';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,7 +13,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose
 }) => {
-  const GOLD_COLOR = "#D4AF37";
+  const accentColor = useSettingsStore((state) => state.accentColor);
 
   if (!isOpen) return null;
 
@@ -53,19 +54,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           alignItems: "center",
           padding: "20px 24px",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
-          background: "linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, transparent 100%)"
+          background: `linear-gradient(135deg, ${accentColor}14 0%, transparent 100%)`
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{
               width: "40px",
               height: "40px",
               borderRadius: "10px",
-              backgroundColor: "rgba(212, 175, 55, 0.15)",
+              backgroundColor: `${accentColor}26`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}>
-              <User size={20} color={GOLD_COLOR} />
+              <User size={20} color={accentColor} />
             </div>
             <div>
               <h2 style={{
@@ -131,12 +132,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 width: "40px",
                 height: "40px",
                 borderRadius: "10px",
-                backgroundColor: "rgba(212, 175, 55, 0.15)",
+                backgroundColor: `${accentColor}26`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
               }}>
-                <LogIn size={20} color={GOLD_COLOR} />
+                <LogIn size={20} color={accentColor} />
               </div>
               <h3 style={{
                 fontSize: "1.1rem",
@@ -169,12 +170,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 width: "40px",
                 height: "40px",
                 borderRadius: "10px",
-                backgroundColor: "rgba(212, 175, 55, 0.15)",
+                backgroundColor: `${accentColor}26`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
               }}>
-                <User size={20} color={GOLD_COLOR} />
+                <User size={20} color={accentColor} />
               </div>
               <h3 style={{
                 fontSize: "1.1rem",
