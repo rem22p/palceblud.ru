@@ -668,7 +668,10 @@ export function SettingsPage() {
                 {(["line", "block", "underline"] as CursorStyle[]).map((style) => (
                   <button
                     key={style}
-                    onClick={() => setCursorStyle(style)}
+                    onClick={() => {
+                      console.log("Установка стиля курсора:", style);
+                      setCursorStyle(style);
+                    }}
                     style={{
                       flex: 1,
                       padding: "12px",

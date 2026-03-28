@@ -556,21 +556,11 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
     });
     
     const currentWordChars = sortedChars.filter(c => c.wordIdx === cursorWordIndex);
-    
-    let baseLineY: number | null = null;
-    for (const charSpan of allChars) {
-      const charMatch = charSpan.id.match(/char-(\d+)-(\d+)/);
-      if (charMatch) {
-        const charRect = charSpan.getBoundingClientRect();
-        baseLineY = charRect.top - containerRect.top + 2;
-        break;
-      }
-    }
-    
-    if (baseLineY === null) {
-      baseLineY = lineRect.top - containerRect.top + 2;
-    }
-    
+
+    // Берём Y позицию из lineRect (базовая линия строки), а не из символов
+    // Это гарантирует, что курсор всегда на одной высоте, даже если текст приподнят из-за ошибки
+    const baseLineY = lineRect.top - containerRect.top + 10;
+
     let targetX: number;
     
     if (currentWordChars.length > 0 && currentWordChars[cursorCharPos]) {
@@ -671,13 +661,14 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
           animation: cursor-blink 1s step-end infinite;
         }
         .cursor-block {
-          width: ${fontSizeNum * 0.6}px;
-          height: ${fontSizeNum * 1.1}px;
-          background-color: ${accentColor}40;
+          width: ${fontSizeNum * 0.7}px;
+          height: ${fontSizeNum * 1.15}px;
+          background-color: transparent;
           border: 2px solid ${accentColor};
           border-radius: 4px;
           transform-origin: center;
           will-change: transform, opacity;
+          box-shadow: 0 0 8px ${accentColor}40;
         }
         .cursor-block.blink {
           animation: cursor-blink 1s step-end infinite;
@@ -712,9 +703,9 @@ export function TypingDisplay({ text, typed, onType, onReset, colors, isFinished
             <div className="cursor-block" />
           )}
           {settingsCursorStyle === "underline" && (
-            <div 
+            <div
               className="cursor-underline"
-              style={{ marginTop: fontSizeNum * 0.95 }}
+              style={{ marginTop: fontSizeNum * 1.1 }}
             />
           )}
           {settingsCursorStyle === "line" && (
