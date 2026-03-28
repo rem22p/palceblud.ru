@@ -123,3 +123,9 @@ html, body, #root {
 .mode-toggle-text.inactive {
   color: rgba(224, 224, 224, 0.3);
 }
+
+/* Blur фона при открытом модальном окне */
+#root.modal-open {
+  filter: blur(6px) brightness(0.7);
+  transition: filter 0.3s ease;
+}

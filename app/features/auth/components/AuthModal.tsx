@@ -3,6 +3,8 @@ import { RegisterForm } from './RegisterForm';
 import { SocialLogin } from './SocialLogin';
 import { User, LogIn } from 'lucide-react';
 import { useSettingsStore } from '../../settings/store/settingsStore';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,28 +17,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const accentColor = useSettingsStore((state) => state.accentColor);
 
+  // Добавляем класс для blur фона при открытом модальном окне
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (root) {
+      if (isOpen) {
+        root.classList.add('modal-open');
+      } else {
+        root.classList.remove('modal-open');
+      }
+    }
+    return () => {
+      if (root) {
+        root.classList.remove('modal-open');
+      }
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       <div
+        className="auth-modal-overlay"
         onClick={onClose}
         style={{
           position: "fixed",
           inset: 0,
-          backgroundColor: "rgba(0,0,0,0.7)",
+          backgroundColor: "rgba(0,0,0,0.8)",
           backdropFilter: "blur(6px)",
-          zIndex: 90,
+          zIndex: 9999,
           cursor: "pointer"
         }}
       />
       <div
+        className="auth-modal"
         style={{
           position: "fixed",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          zIndex: 100,
+          zIndex: 10000,
           backgroundColor: "#2b2d31",
           borderRadius: "16px",
           overflow: "hidden",
@@ -192,6 +213,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
       </div>
       <style>{`@keyframes slideUp { from { transform: translate(-50%, -40%); opacity: 0; } to { transform: translate(-50%, -50%); opacity: 1; } }`}</style>
-    </>
+    </>,
+    document.body
   );
 };
