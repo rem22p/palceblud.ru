@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
-import { Lock, Keyboard as KeyboardIcon, CheckCircle, HelpCircle, X } from "lucide-react";
+import { Lock, Keyboard as KeyboardIcon, CheckCircle, HelpCircle, X, RotateCcw } from "lucide-react";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
 
 // --- КОНФИГУРАЦИЯ ---
@@ -164,7 +164,7 @@ function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef, style }: { unloc
   );
 }
 
-function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: _currentWpm, style }: any) {
+function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: _currentWpm, onResetProgress, style }: any) {
   return (
     <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, ...style }}>
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -188,6 +188,36 @@ function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: 
         })}
       </div>
       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(52, 211, 153, 0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 130 CPM</div>
+      <button
+        onClick={onResetProgress}
+        style={{
+          marginTop: "8px",
+          background: "none",
+          border: "1px solid rgba(239, 68, 68, 0.3)",
+          borderRadius: "6px",
+          padding: "6px 12px",
+          color: "#ef4444",
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: "0.6rem",
+          letterSpacing: "0.05em",
+          cursor: "pointer",
+          transition: "all 0.2s",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px"
+        }}
+        onMouseEnter={(e: any) => {
+          e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+          e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
+        }}
+        onMouseLeave={(e: any) => {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
+        }}
+      >
+        <RotateCcw size={11} />
+        СБРОСИТЬ ПРОГРЕСС
+      </button>
     </div>
   );
 }
@@ -232,8 +262,10 @@ export function PrepMode() {
     const saved = localStorage.getItem(PREP_PROGRESS_KEY);
     if (saved) {
       const data = JSON.parse(saved);
+      console.log("PrepMode: загружаем unlockedCount из localStorage:", data.unlockedCount);
       return data.unlockedCount ?? 5;
     }
+    console.log("PrepMode: localStorage пуст, используем 5");
     return 5;
   });
 
@@ -258,6 +290,22 @@ export function PrepMode() {
   const currentKeys = useMemo(() => KEY_PROGRESSION.slice(0, unlockedCount), [unlockedCount]);
   const nextKey = KEY_PROGRESSION[unlockedCount];
   const lessonText = useMemo(() => generateRealLessonText(currentKeys, WORDS_PER_LESSON), [currentKeys, streak, retryCount]);
+
+  // Сброс прогресса подготовки
+  const handleResetProgress = () => {
+    if (window.confirm("Вы уверены, что хотите сбросить весь прогресс в подготовке?")) {
+      console.log("Сброс прогресса...");
+      localStorage.removeItem("palceblud_prep_unlocked");
+      localStorage.removeItem("palceblud_prep_streak");
+      localStorage.removeItem("palceblud_prep_progress");
+      const newData = { unlockedCount: 5, streak: 0 };
+      localStorage.setItem("palceblud_prep_progress", JSON.stringify(newData));
+      console.log("Сохраняем новый прогресс:", newData);
+      setUnlockedCount(5);
+      setStreak(0);
+      setRetryCount(0);
+    }
+  };
 
   // Получаем данные из хука.
   // ВАЖНО: wpm в нашем хуке уже рассчитан как CPM (Chars Per Minute).
@@ -421,7 +469,7 @@ export function PrepMode() {
       {/* PrepRightPanel - всегда видим */}
       <PrepRightPanel unlockedCount={unlockedCount} nextKey={nextKey} activeKeyRef={activeKeyRef} />
       {/* ProgressSteps - скрыт во время печати */}
-      <ProgressSteps streak={streak} onNextKey={nextKey} onShowHelp={() => setIsHelpOpen(true)} currentWpm={wpm} style={{ opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s ease" }} />
+      <ProgressSteps streak={streak} onNextKey={nextKey} onShowHelp={() => setIsHelpOpen(true)} currentWpm={wpm} onResetProgress={handleResetProgress} style={{ opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s ease" }} />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} nextKey={nextKey} currentWpm={wpm} />
 
       <div style={{ width: "1000px", margin: "0 auto", padding: "0", opacity: 1, transition: "opacity 0.3s ease" }}>

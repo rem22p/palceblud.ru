@@ -298,6 +298,12 @@ export function LearningMode() {
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const fontSize = useSettingsStore((state) => state.fontSize);
   const hasProcessedFinish = useRef(false);
+  
+  // Для отладки: раскомментируйте для сброса прогресса
+  // useEffect(() => {
+  //   localStorage.removeItem("palceblud_completed_lessons");
+  //   setCompletedLessons([]);
+  // }, []);
 
   const currentLesson = LESSONS[currentIndex];
 
@@ -379,31 +385,22 @@ export function LearningMode() {
 
       console.log("Проверка условий:", { currentCpm, targetCpm, isFastEnough, accuracy, targetAccuracy, isGoodAccuracy });
 
-      if (isGoodAccuracy && isFastEnough) {
-        // УСПЕХ - помечаем урок как пройденный и показываем результаты
-        console.log("Урок пройден! currentIndex:", currentIndex);
-        setCompletedLessons((prev) => {
-          const updated = [...prev, currentIndex];
-          console.log("completedLessons updated:", updated);
-          // Сохраняем прогресс в localStorage
-          localStorage.setItem("palceblud_completed_lessons", JSON.stringify(updated));
-          return updated;
-        });
-        // Оставляем isFinished=true чтобы показать результаты
-      } else {
-        // НЕ УСПЕХ - сразу перезапускаем урок без показа результатов
-        console.log("Урок НЕ пройден. Перезапуск...");
-        // Сбрасываем флаг чтобы useEffect не срабатывал снова
-        hasProcessedFinish.current = false;
-        // Перезапускаем урок
-        reset();
-      }
+      // Всегда засчитываем урок (без требований по CPM и точности)
+      console.log("Урок пройден! currentIndex:", currentIndex);
+      setCompletedLessons((prev) => {
+        const updated = [...prev, currentIndex];
+        console.log("completedLessons updated:", updated);
+        // Сохраняем прогресс в localStorage
+        localStorage.setItem("palceblud_completed_lessons", JSON.stringify(updated));
+        return updated;
+      });
+      // Оставляем isFinished=true чтобы показать результаты
     }
 
     if (!isFinished) {
       hasProcessedFinish.current = false;
     }
-  }, [isFinished, wpm, accuracy, currentIndex, reset]);
+  }, [isFinished, wpm, accuracy, currentIndex]);
 
   const handleSelectLesson = (i: number) => {
     setCurrentIndex(i);

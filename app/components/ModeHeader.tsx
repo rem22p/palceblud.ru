@@ -162,25 +162,34 @@ export function ModeHeader({ isFinished = false, isActive = false, shouldHideHea
 
   useEffect(() => {
     const handleActivity = () => {
-      if (!hasActivityToday) {
-        const today = new Date().toDateString();
-        const dataStr = localStorage.getItem(STREAK_KEY);
-        let count = 1;
+      const today = new Date().toDateString();
+      const dataStr = localStorage.getItem(STREAK_KEY);
+      let count = 1;
+      let activityToday = false;
 
-        if (dataStr) {
-          const data = JSON.parse(dataStr);
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-
-          if (data.date === yesterday.toDateString()) {
-            count = data.count + 1;
-          } else if (data.date !== today) {
-            count = 1;
-          } else {
-            count = data.count;
-          }
+      if (dataStr) {
+        const data = JSON.parse(dataStr);
+        
+        if (data.date === today) {
+          // Уже есть активность сегодня
+          return;
         }
+        
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
 
+        if (data.date === yesterday.toDateString()) {
+          count = data.count + 1;
+          activityToday = true;
+        } else if (data.date !== today) {
+          count = 1;
+          activityToday = true;
+        }
+      } else {
+        activityToday = true;
+      }
+
+      if (activityToday) {
         localStorage.setItem(STREAK_KEY, JSON.stringify({ date: today, count }));
         setStreakCount(count);
         setHasActivityToday(true);
@@ -189,7 +198,7 @@ export function ModeHeader({ isFinished = false, isActive = false, shouldHideHea
 
     window.addEventListener('user-is-typing', handleActivity);
     return () => window.removeEventListener('user-is-typing', handleActivity);
-  }, [hasActivityToday]);
+  }, []);
 
   const closeAllMenus = () => {
     setLangOpen(false);
