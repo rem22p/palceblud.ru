@@ -44,7 +44,11 @@ function LangDropdown({ isOpen, onClose, currentLang, onLangChange }: any) {
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
     <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 50, backgroundColor: "#1e2028", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "6px", minWidth: "140px", boxShadow: "0 24px 48px rgba(0,0,0,0.4)" }}>
       {languages.map((lang: any) => (
-        <button key={lang.code} onClick={() => { localStorage.setItem("palceblud_language", lang.code); onLangChange(lang.code); onClose(); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "8px 14px", borderRadius: "6px", background: "none", border: "none", cursor: "pointer" }}>
+        <button key={lang.code} onClick={() => { 
+          localStorage.setItem("palceblud_language", lang.code); 
+          onLangChange(lang.code); 
+          onClose(); 
+        }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "8px 14px", borderRadius: "6px", background: "none", border: "none", cursor: "pointer" }}>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: currentLang === lang.code ? "#fff" : "rgba(224,224,224,0.5)", fontWeight: currentLang === lang.code ? 600 : 400 }}>{lang.label}</span>
           {currentLang === lang.code && <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: GOLD_COLOR }} />}
         </button>
@@ -68,6 +72,11 @@ export function ModeHeader({ isFinished = false, isActive = false, shouldHideHea
     const saved = localStorage.getItem("palceblud_language");
     return saved || "ru";
   });
+
+  // Отправляем событие при изменении языка
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('language-change', { detail: currentLang }));
+  }, [currentLang]);
 
   const [currentTip, setCurrentTip] = useState(TIPS[0]);
   const [tipKey, setTipKey] = useState(0);
@@ -278,15 +287,15 @@ export function ModeHeader({ isFinished = false, isActive = false, shouldHideHea
                   backgroundColor: displayMode === "learning" ? "#60a5fa" : displayMode === "prep" ? "#0A5F38" : "#ff6b35",
                   borderRadius: "99px",
                   zIndex: 0,
-                  transition: "left 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
+                  transition: "left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                 }}
               />
               {/* Кнопка ОБУЧЕНИЕ */}
-              <button onClick={() => navigate("/learning")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "learning" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "learning" ? 700 : 400, transition: "color 0.5s ease", whiteSpace: "nowrap" }}>обучение</button>
+              <button onClick={() => navigate("/learning")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "learning" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "learning" ? 700 : 400, transition: "color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)", whiteSpace: "nowrap" }}>обучение</button>
               {/* Кнопка ПОДГОТОВКА */}
-              <button onClick={() => navigate("/prep")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "prep" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "prep" ? 700 : 400, transition: "color 0.5s ease", whiteSpace: "nowrap" }}>подготовка</button>
+              <button onClick={() => navigate("/prep")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "prep" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "prep" ? 700 : 400, transition: "color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)", whiteSpace: "nowrap" }}>подготовка</button>
               {/* Кнопка ПРАКТИКА */}
-              <button onClick={() => navigate("/practice")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "practice" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "practice" ? 700 : 400, transition: "color 0.5s ease", whiteSpace: "nowrap" }}>практика</button>
+              <button onClick={() => navigate("/practice")} style={{ position: "relative", zIndex: 1, flex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.80rem", letterSpacing: "0.05em", padding: "8px 12px", borderRadius: "99px", border: "none", cursor: "pointer", backgroundColor: "transparent", color: displayMode === "practice" ? "#111" : "rgba(224,224,224,0.35)", fontWeight: displayMode === "practice" ? 700 : 400, transition: "color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)", whiteSpace: "nowrap" }}>практика</button>
             </div>
 
             {/* Отсек рейтинга справа */}

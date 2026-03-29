@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTyping, TypingDisplay } from "../components/TypingCore";
-import { Lock, Keyboard as KeyboardIcon, CheckCircle, HelpCircle, X } from "lucide-react";
+import { Lock, Keyboard as KeyboardIcon, CheckCircle, HelpCircle, X, RotateCcw } from "lucide-react";
 import { useSettingsStore } from "../features/settings/store/settingsStore";
 
 // --- КОНФИГУРАЦИЯ ---
@@ -12,11 +12,11 @@ const STAGE_COMPLETED = "#34d399";
 const STAGE_CURRENT = "#065f46";
 const STAGE_LINE = "#34d399";
 
-const PANEL_BG = "rgba(10, 95, 56, 0.15)"; 
-const PANEL_BORDER = "rgba(74, 222, 128, 0.3)"; 
-const TEXT_MAIN = "#e0e0e0"; 
-const TEXT_LABEL = "rgba(224, 224, 224, 0.8)"; 
-const KEY_INACTIVE_BG = "rgba(255,255,255,0.08)"; 
+const PANEL_BG = "rgba(10, 95, 56, 0.15)";
+const PANEL_BORDER = "rgba(74, 222, 128, 0.3)";
+const TEXT_MAIN = "#e0e0e0";
+const TEXT_LABEL = "rgba(224, 224, 224, 0.8)";
+const KEY_INACTIVE_BG = "rgba(255,255,255,0.08)";
 const KEY_INACTIVE_TEXT = "#555";
 
 const KEY_PROGRESSION = [
@@ -136,10 +136,23 @@ function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef, style }: { unloc
               const indexInProgress = KEY_PROGRESSION.indexOf(upperKey);
               const isPressed = activeKeyRef.current === key;
               let bgColor = KEY_INACTIVE_BG, textColor = KEY_INACTIVE_TEXT, borderColor = "transparent", showLock = true, opacity = 0.6, transform = "scale(1)", boxShadow = "none";
-              if (indexInProgress !== -1) {
-                if (indexInProgress < unlockedCount) { bgColor = ACCENT_COLOR; textColor = "#fff"; borderColor = "transparent"; showLock = false; opacity = 1; }
-                else { showLock = true; opacity = 0.6; }
+              
+              // Проверяем доступна ли буква
+              if (indexInProgress !== -1 && indexInProgress < unlockedCount) {
+                // Открытая буква
+                bgColor = ACCENT_COLOR;
+                textColor = "#fff";
+                showLock = false;
+                opacity = 1;
+              } else if (indexInProgress !== -1) {
+                // Закрытая буква (будет открыта в будущем)
+                showLock = true;
+                opacity = 0.6;
+              } else {
+                // Буква не в прогрессии (не показываем)
+                return null;
               }
+              
               if (isPressed) { bgColor = "#4ade80"; textColor = "#022c22"; borderColor = "#4ade80"; opacity = 1; transform = "scale(1.2)"; boxShadow = "0 0 15px #4ade80"; showLock = false; }
               return (
                 <div key={key} style={{ width: "16px", height: "18px", backgroundColor: bgColor, border: `1px solid ${borderColor}`, borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", opacity, transform, boxShadow, transition: "all 0.15s ease-out" }}>
@@ -164,7 +177,7 @@ function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef, style }: { unloc
   );
 }
 
-function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: _currentWpm, style }: any) {
+function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: _currentWpm, onResetProgress, style }: any) {
   return (
     <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, ...style }}>
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -188,6 +201,36 @@ function ProgressSteps({ streak, onShowHelp, onNextKey: _onNextKey, currentWpm: 
         })}
       </div>
       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(52, 211, 153, 0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 130 CPM</div>
+      <button
+        onClick={onResetProgress}
+        style={{
+          marginTop: "8px",
+          background: "none",
+          border: "1px solid rgba(239, 68, 68, 0.3)",
+          borderRadius: "6px",
+          padding: "6px 12px",
+          color: "#ef4444",
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: "0.6rem",
+          letterSpacing: "0.05em",
+          cursor: "pointer",
+          transition: "all 0.2s",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px"
+        }}
+        onMouseEnter={(e: any) => {
+          e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+          e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
+        }}
+        onMouseLeave={(e: any) => {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
+        }}
+      >
+        <RotateCcw size={11} />
+        СБРОСИТЬ ПРОГРЕСС
+      </button>
     </div>
   );
 }
@@ -255,6 +298,16 @@ export function PrepMode() {
   const hasProcessedFinish = useRef<boolean>(false);
   const [retryCount, setRetryCount] = useState(0);
 
+  // Сброс прогресса подготовки
+  const handleResetProgress = () => {
+    if (window.confirm("Вы уверены, что хотите сбросить весь прогресс в подготовке?")) {
+      localStorage.removeItem(PREP_PROGRESS_KEY);
+      setUnlockedCount(5);
+      setStreak(0);
+      setRetryCount(0);
+    }
+  };
+
   const currentKeys = useMemo(() => KEY_PROGRESSION.slice(0, unlockedCount), [unlockedCount]);
   const nextKey = KEY_PROGRESSION[unlockedCount];
   const lessonText = useMemo(() => generateRealLessonText(currentKeys, WORDS_PER_LESSON), [currentKeys, streak, retryCount]);
@@ -267,7 +320,16 @@ export function PrepMode() {
   const [liveCpm, setLiveCpm] = useState(0);
   const [liveAcc, setLiveAcc] = useState(100);
   const startTimeRef = useRef<number | null>(null);
-  
+
+  // Отправка сигнала хедеру при печати (для скрытия во время печати)
+  useEffect(() => {
+    if (typed.length > 0 && !isFinished) {
+      window.dispatchEvent(new CustomEvent('user-is-typing'));
+    } else {
+      window.dispatchEvent(new CustomEvent('user-is-typing-end'));
+    }
+  }, [typed, isFinished]);
+
   // Обновляем live-статистику во время печати
   useEffect(() => {
     if (!isActive || isPaused || isFinished || typed.length === 0) {
@@ -410,7 +472,8 @@ export function PrepMode() {
       </div>
 
       <PrepRightPanel unlockedCount={unlockedCount} nextKey={nextKey} activeKeyRef={activeKeyRef} />
-      <ProgressSteps streak={streak} onNextKey={nextKey} onShowHelp={() => setIsHelpOpen(true)} currentWpm={wpm} style={{ opacity: isActive && !isFinished ? 0 : 1, transition: "opacity 0.3s ease" }} />
+      {/* ProgressSteps - скрыт во время печати */}
+      <ProgressSteps streak={streak} onNextKey={nextKey} onShowHelp={() => setIsHelpOpen(true)} currentWpm={wpm} onResetProgress={handleResetProgress} style={{ opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto", transition: "opacity 0.3s ease" }} />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} nextKey={nextKey} currentWpm={wpm} />
 
       <div style={{ width: "1000px", margin: "0 auto", padding: "0", opacity: 1, transition: "opacity 0.3s ease" }}>

@@ -49,8 +49,8 @@ function FloatingStat({ value, label, color, labelColor, size = "xl", align = "l
       transformOrigin: align === "right" ? "top right" : "top left",
       width: "fit-content"
     }}>
-      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, fontWeight: 200, color, lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{value}</span>
-      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: labelColor || "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label === "words" ? "слов" : label}</span>
+      <span className="stat-value" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, fontWeight: 200, color, lineHeight: 1, letterSpacing: "-0.04em" }}>{value}</span>
+      <span className="stat-label" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: labelColor || "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label === "words" ? "слов" : label}</span>
     </div>
   );
 }
@@ -118,7 +118,7 @@ function ModeToggle({ mode, onChange, disabled }: { mode: "time" | "words"; onCh
 
 export function PracticeMode() {
   const [mode, setMode] = useState<"time" | "words">("time");
-  const [language] = useState<Language>(() => {
+  const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem("palceblud_language") as Language;
     return saved || "ru";
   });
@@ -126,6 +126,18 @@ export function PracticeMode() {
   const [wordLimit, setWordLimit] = useState<number | "infinity">("infinity");
   const [showMenu, setShowMenu] = useState(false);
   const [text, setText] = useState(() => generateText(WORD_POOLS[language], 1000));
+
+  // Обновляем язык при изменении через кастомное событие
+  useEffect(() => {
+    const handleLangChange = (e: CustomEvent<Language>) => {
+      const newLang = e.detail;
+      setLanguage(newLang);
+      setText(generateText(WORD_POOLS[newLang], typeof wordLimit === 'number' ? wordLimit : 1000));
+      reset();
+    };
+    window.addEventListener('language-change', handleLangChange as EventListener);
+    return () => window.removeEventListener('language-change', handleLangChange as EventListener);
+  }, [wordLimit]);
 
   const { typed, wpm, rawWpm, accuracy, consistency, errorCount, timeLeft, wordsLeft, isActive, isFinished, isPaused, togglePause, handleType, reset } = useTyping(text, { mode, timeLimit, wordLimit: wordLimit === "infinity" ? 999999 : wordLimit });
 

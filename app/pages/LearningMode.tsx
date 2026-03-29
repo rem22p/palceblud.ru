@@ -423,21 +423,21 @@ export function LearningMode() {
 
   return (
     <>
-      <div className="page-transition" style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflowX: "hidden", overflowY: "auto" }}>
+      <div style={{ minHeight: "100vh", backgroundColor: "#2b2d31", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflowX: "hidden", overflowY: "auto" }}>
       <style>{`::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #555; }`}</style>
 
       {/* ЛЕВАЯ СТАТИСТИКА (СИМВОЛОВ В МИНУТУ - CPM) */}
       <div style={{ position: "fixed", top: "100px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: liveCpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)", lineHeight: 1, letterSpacing: "-0.04em", transition: "color 0.3s" }}>{liveCpm}</span>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>CPM</span>
+          <span className="stat-value" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "5rem", fontWeight: 200, color: liveCpm > 0 ? "#60a5fa" : "rgba(96,165,250,0.3)", lineHeight: 1, letterSpacing: "-0.04em" }}>{liveCpm}</span>
+          <span className="stat-label" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.35)", letterSpacing: "0.2em", textTransform: "uppercase" }}>CPM</span>
         </div>
       </div>
 
       <div style={{ position: "fixed", top: "215px", left: "80px", zIndex: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "3.2rem", fontWeight: 200, color: accuracy >= 95 ? "#34d399" : accuracy >= 85 ? "rgba(224,224,224,0.55)" : "rgba(248,113,113,0.7)", lineHeight: 1, letterSpacing: "-0.03em", transition: "color 0.3s" }}>{accuracy}%</span>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>точн</span>
+          <span className="stat-value" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "3.2rem", fontWeight: 200, color: accuracy >= 95 ? "#34d399" : accuracy >= 85 ? "rgba(224,224,224,0.55)" : "rgba(248,113,113,0.7)", lineHeight: 1, letterSpacing: "-0.03em" }}>{accuracy}%</span>
+          <span className="stat-label" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>точн</span>
         </div>
       </div>
 
@@ -447,14 +447,14 @@ export function LearningMode() {
       </div>
 
       {/* Суть задания - скрыта во время печати */}
-      <div style={{ position: "fixed", top: "80px", left: "50%", transform: "translateX(-50%)", zIndex: 10, textAlign: "center", maxWidth: "600px", opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto", transition: "opacity 0.3s ease" }}>
+      <div style={{ position: "fixed", top: "80px", left: "50%", transform: "translateX(-50%)", zIndex: 10, textAlign: "center", maxWidth: "600px", opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto" }}>
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: "rgba(96,165,250,0.8)", letterSpacing: "0.05em", lineHeight: 1.5 }}>
           {currentLesson.tip}
         </div>
       </div>
 
       {/* СОВЕТЫ УДАЛЕНЫ! Блок с currentLesson.tip удален. */}
-      
+
       {/* Основной контент */}
       <div style={{ width: "1000px", margin: "0 auto", padding: "80px 0 40px 0", zIndex: 5, display: "flex", flexDirection: "column", alignItems: "center" }}>
         {!isFinished ? (
@@ -483,10 +483,10 @@ export function LearningMode() {
       </div>
 
       {/* Индикатор шагов - скрыт во время печати */}
-      <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto", transition: "opacity 0.4s ease" }}>
+      <div style={{ position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", zIndex: 20, opacity: isActive && !isFinished ? 0 : 1, pointerEvents: isActive && !isFinished ? "none" : "auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.1em" }}>ДО СЛЕДУЮЩЕГО УРОКА</div>
-          <div onClick={() => setIsHelpOpen(true)} style={{ marginLeft: "6px", cursor: "pointer", transition: "transform 0.2s", display: "flex", alignItems: "center", color: "rgba(96,165,250,0.6)" }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
+          <div onClick={() => setIsHelpOpen(true)} style={{ marginLeft: "6px", cursor: "pointer", display: "flex", alignItems: "center", color: "rgba(96,165,250,0.6)" }} onMouseEnter={(e: any) => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={(e: any) => e.currentTarget.style.transform = "scale(1)"}><HelpCircle size={18} /></div>
         </div>
         <StepIndicator lessons={lessonsWithCompletion} currentIndex={currentIndex} onSelect={handleSelectLesson} completedLessons={completedLessons} />
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.6)", letterSpacing: "0.05em", textAlign: "center" }}>ЦЕЛЬ: 130 CPM</div>
