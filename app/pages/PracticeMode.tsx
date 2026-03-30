@@ -44,13 +44,12 @@ function FloatingStat({ value, label, color, labelColor, size = "xl", align = "l
       alignItems: align === "right" ? "flex-end" : "flex-start",
       gap: "2px",
       opacity: muted ? 0.5 : 1,
-      transition: "opacity 0.4s ease",
       transform: `scale(${scale})`,
       transformOrigin: align === "right" ? "top right" : "top left",
       width: "fit-content"
     }}>
-      <span className="stat-value" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, fontWeight: 200, color, lineHeight: 1, letterSpacing: "-0.04em" }}>{value}</span>
-      <span className="stat-label" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: labelColor || "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label === "words" ? "слов" : label}</span>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize, fontWeight: 200, color, lineHeight: 1, letterSpacing: "-0.04em" }}>{value}</span>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: labelColor || "rgba(224,224,224,0.25)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label === "wpm" ? "слов/мин" : label === "acc" ? "точн" : label === "sec" ? "сек" : label === "words" ? "слов" : label}</span>
     </div>
   );
 }
@@ -102,7 +101,7 @@ function ResultOverlay({ wpm, accuracy, rawWpm, consistency, errorCount, onResta
 
 function ModeToggle({ mode, onChange, disabled }: { mode: "time" | "words"; onChange: (m: "time" | "words") => void; disabled?: boolean }) {
   return (
-    <div style={{ position: "relative", display: "flex", width: "160px", height: "38px", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1, userSelect: "none", flexShrink: 0 }}>
+    <div className="PracticeControls" style={{ position: "relative", display: "flex", width: "160px", height: "38px", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1, userSelect: "none", flexShrink: 0 }}>
       <div style={{ position: "absolute", top: "4px", left: mode === "time" ? "4px" : "calc(50% + 0px)", width: "calc(50% - 4px)", height: "30px", backgroundColor: "rgb(255, 107, 53)", borderRadius: "99px", transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)", zIndex: 0 }} />
       <div onClick={() => !disabled && onChange("time")} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1, cursor: "pointer", pointerEvents: disabled ? "none" : "auto" }}>
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", fontWeight: 600, color: mode === "time" ? "#171717" : "rgba(255, 255, 255, 0.4)", transition: "color 0.3s ease" }}>время</span>
@@ -230,7 +229,7 @@ export function PracticeMode() {
       {!isFinished ? (
         <>
           {/* Верхняя панель - скрыта во время печати */}
-          <div style={{ position: "fixed", top: "11px", right: "150px", display: "flex", alignItems: "center", gap: "8px", zIndex: 50, opacity: isActive ? 0 : 1, pointerEvents: isActive ? "none" : "auto", transition: "opacity 0.3s ease" }}>
+          <div className="PracticeControls" style={{ position: "fixed", top: "11px", right: "150px", display: "flex", alignItems: "center", gap: "8px", zIndex: 50, opacity: isActive ? 0 : 1, pointerEvents: isActive ? "none" : "auto", transition: "opacity 0.3s ease" }}>
             <ModeToggle mode={mode} onChange={handleModeChange} disabled={isActive} />
 
             <div style={{ display: "flex", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "99px", padding: "4px 12px", cursor: isActive ? "not-allowed" : "pointer", opacity: isActive ? 0.5 : 1, gap: "8px", height: "38px", minWidth: "90px", justifyContent: "space-between", flexShrink: 0 }} onClick={() => !isActive && setShowMenu(!showMenu)}>

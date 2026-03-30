@@ -159,7 +159,7 @@ function LessonCard({ lesson, activeKeys }: { lesson: Lesson; activeKeys: Set<st
   const isAllKeys = lesson.keys[0] === "вся клавиатура" || lesson.id === 4 || lesson.id === 6;
 
   return (
-    <div style={{ backgroundColor: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.12)", borderRadius: "14px", padding: "12px 16px", width: "220px" }}>
+    <div className="LessonCard" style={{ backgroundColor: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.12)", borderRadius: "14px", padding: "12px 16px", width: "220px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
         <BookOpen size={12} color="rgba(96,165,250,0.7)" />
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "rgba(96,165,250,0.5)", letterSpacing: "0.12em", textTransform: "uppercase" }}>урок {lesson.id}</span>

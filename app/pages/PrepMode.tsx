@@ -103,7 +103,7 @@ function generateRealLessonText(availableKeys: string[], wordCount: number): str
 // --- ПРАВАЯ ПАНЕЛЬ ---
 function PrepRightPanel({ unlockedCount, nextKey, activeKeyRef, style }: { unlockedCount: number, nextKey: string | undefined, activeKeyRef: React.MutableRefObject<string | null>, style?: React.CSSProperties }) {
   return (
-    <div style={{
+    <div className="PrepRightPanel" style={{
       position: "fixed", top: "80px", right: "clamp(20px, 5vw, 80px)", zIndex: 10,
       backgroundColor: PANEL_BG, border: `1px solid ${PANEL_BORDER}`, borderRadius: "14px",
       padding: "12px 16px", width: "220px", display: "flex", flexDirection: "column", gap: "10px",
@@ -393,6 +393,8 @@ export function PrepMode() {
       const currentCpm = wpm; // Это уже символы в минуту
       const isGoodAccuracy = accuracy >= targetAccuracy;
       const isFastEnough = currentCpm >= targetCpm;
+
+      console.log("PrepMode finish:", { wpm: currentCpm, accuracy, targetCpm, targetAccuracy, isGoodAccuracy, isFastEnough, streak });
 
       if (isGoodAccuracy && isFastEnough) {
         // УСПЕХ
