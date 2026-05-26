@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import { env } from "./env";
 import { authRoutes } from "./modules/auth/routes";
+import { sessionRoutes } from "./modules/sessions/routes";
 
 const app = Fastify({
   logger: true,
@@ -17,6 +18,7 @@ await app.register(websocket);
 
 // Routes
 await app.register(authRoutes);
+await app.register(sessionRoutes);
 
 // Health check
 app.get("/api/health", () => ({ status: "ok", timestamp: new Date().toISOString() }));

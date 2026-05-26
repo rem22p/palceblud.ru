@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import { Layout } from "./Layout";
+import { PracticeMode } from "@/features/practice/PracticeMode";
 
 export function App() {
   return (
@@ -7,7 +8,7 @@ export function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
-          <Route path="practice" element={<PlaceholderPage title="Практика" />} />
+          <Route path="practice" element={<PracticeMode />} />
           <Route path="lessons" element={<PlaceholderPage title="Обучение" />} />
           <Route path="multiplayer" element={<PlaceholderPage title="Мультиплеер" />} />
           <Route path="leaderboard" element={<PlaceholderPage title="Таблица лидеров" />} />
