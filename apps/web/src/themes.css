@@ -1,0 +1,120 @@
+/* ─── Theme System ─── */
+
+:root {
+  /* Base */
+  --bg: #06060a;
+  --bg-elevated: #0e0e18;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.05);
+  --glass-blur: 64px;
+  --glass-border: rgba(255, 255, 255, 0.04);
+
+  /* Text */
+  --text: rgba(255, 255, 255, 0.85);
+  --text-muted: rgba(255, 255, 255, 0.35);
+  --text-dim: rgba(255, 255, 255, 0.15);
+
+  /* Accent */
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-bg: rgba(99, 102, 241, 0.1);
+  --accent-text: #000;
+
+  /* Semantic */
+  --success: #34d399;
+  --error: #f87171;
+  --warning: #fbbf24;
+
+  /* Typography */
+  --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* Spacing */
+  --header-h: 56px;
+}
+
+/* ─── Theme Presets ─── */
+
+[data-theme="ocean"] {
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-bg: rgba(56, 189, 248, 0.1);
+}
+
+[data-theme="forest"] {
+  --accent: #34d399;
+  --accent-hover: #6ee7b7;
+  --accent-bg: rgba(52, 211, 153, 0.1);
+}
+
+[data-theme="rose"] {
+  --accent: #f472b6;
+  --accent-hover: #f9a8d4;
+  --accent-bg: rgba(244, 114, 182, 0.1);
+}
+
+[data-theme="purple"] {
+  --accent: #a78bfa;
+  --accent-hover: #c4b5fd;
+  --accent-bg: rgba(167, 139, 250, 0.1);
+}
+
+[data-theme="amber"] {
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --accent-bg: rgba(245, 158, 11, 0.1);
+  --accent-text: #000;
+}
+
+/* ─── Liquid Glass Utility ─── */
+
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.glass-hover:hover {
+  background: var(--bg-card-hover);
+}
+
+/* ─── Base Reset ─── */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ─── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+}

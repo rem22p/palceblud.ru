@@ -9,129 +9,164 @@ const WORD_COUNT = 40;
 export function PracticeMode() {
   const [language, setLanguage] = useState<"en" | "ru">("en");
   const [duration, setDuration] = useState(30);
-  const [key, setKey] = useState(0); // remount trigger
+  const [key, setKey] = useState(0);
 
   const words = language === "en" ? ENGLISH_WORDS : RUSSIAN_WORDS;
   const text = useMemo(() => generateText(words, WORD_COUNT), [words, key]);
 
-  const { state, reset } = useTyping({
-    text,
-    duration,
-  });
+  const { state, reset } = useTyping({ text, duration });
 
   const { typed, currentIndex, errors, wpm, rawWpm, accuracy, timeLeft, isRunning, isFinished } =
     state;
 
-  // Track which indices have errors
   const errorIndices = useMemo(() => {
     const arr: number[] = [];
-    let errCount = 0;
     for (let i = 0; i < typed.length; i++) {
-      if (typed[i] !== text[i]) {
-        arr.push(i);
-        errCount++;
-      }
+      if (typed[i] !== text[i]) arr.push(i);
     }
     return arr;
   }, [typed, text]);
 
   const handleRestart = () => {
     reset();
-    setKey((k) => k + 1); // regenerate text
+    setKey((k) => k + 1);
   };
 
   return (
     <div className="flex flex-col items-center gap-6 max-w-3xl mx-auto">
-      {/* Controls */}
+      {/* Controls — liquid glass bar */}
       {!isRunning && !isFinished && (
-        <div className="flex flex-col items-center gap-4">
-          {/* Language */}
-          <div className="flex gap-2">
+        <div className="flex flex-col items-center gap-5">
+          {/* Language toggle */}
+          <div className="glass rounded-xl p-1 flex gap-0.5">
             {(["en", "ru"] as const).map((lang) => (
               <button
                 key={lang}
                 onClick={() => setLanguage(lang)}
-                className={`px-4 py-1.5 rounded-md text-sm transition-colors
-                  ${language === lang ? "bg-accent text-black font-semibold" : "bg-white/5 text-text-muted hover:bg-white/10"}`}
+                className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  background: language === lang ? "var(--accent)" : "transparent",
+                  color: language === lang ? "var(--accent-text)" : "var(--text-muted)",
+                }}
               >
                 {lang === "en" ? "English" : "Русский"}
               </button>
             ))}
           </div>
 
-          {/* Timer */}
-          <div className="flex gap-2">
+          {/* Timer select */}
+          <div className="glass rounded-xl p-1 flex gap-0.5">
             {TIMER_OPTIONS.map((t) => (
               <button
                 key={t}
                 onClick={() => setDuration(t)}
-                className={`px-3 py-1 rounded-md text-xs transition-colors
-                  ${duration === t ? "bg-accent text-black font-semibold" : "bg-white/5 text-text-muted hover:bg-white/10"}`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  background: duration === t ? "var(--accent)" : "transparent",
+                  color: duration === t ? "var(--accent-text)" : "var(--text-muted)",
+                }}
               >
                 {t}s
               </button>
             ))}
           </div>
 
-          <p className="text-text-muted text-sm mt-4">Начните печатать...</p>
+          <p className="text-sm animate-pulse" style={{ color: "var(--text-dim)" }}>
+            начните печатать...
+          </p>
         </div>
       )}
 
-      {/* Timer + Stats bar */}
+      {/* Stats bar — liquid glass */}
       {(isRunning || isFinished) && (
-        <div className="flex items-center gap-6 text-sm">
+        <div
+          className="glass rounded-xl px-6 py-3 flex items-center justify-center gap-8 text-sm"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
           <div className="flex items-center gap-2">
-            <span className="text-text-muted">⏱</span>
-            <span className={`font-bold ${timeLeft <= 5 ? "text-red-400 animate-pulse" : "text-accent"}`}>
+            <span style={{ color: "var(--text-dim)" }}>⏱</span>
+            <span
+              className={`font-bold transition-colors duration-200 ${
+                timeLeft <= 5 ? "animate-pulse" : ""
+              }`}
+              style={{ color: timeLeft <= 5 ? "var(--error)" : "var(--accent)" }}
+            >
               {timeLeft}s
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-text-muted">WPM</span>
-            <span className="text-accent font-bold">{wpm}</span>
+            <span style={{ color: "var(--text-dim)" }}>WPM</span>
+            <span className="font-bold" style={{ color: "var(--accent)" }}>
+              {wpm}
+            </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-text-muted">Точность</span>
-            <span className="text-green-400 font-bold">{accuracy}%</span>
+            <span style={{ color: "var(--text-dim)" }}>точность</span>
+            <span className="font-bold" style={{ color: "var(--success)" }}>
+              {accuracy}%
+            </span>
           </div>
         </div>
       )}
 
-      {/* Typing area */}
-      <div className="w-full bg-white/[0.02] border border-white/5 rounded-xl p-6">
+      {/* Typing area — liquid glass card */}
+      <div className="glass rounded-2xl p-8 w-full transition-all duration-200">
         <TypingDisplay text={text} currentIndex={currentIndex} errors={errorIndices} />
       </div>
 
-      {/* Hidden input to capture keystrokes — actually we use window keydown */}
-      {/* Results overlay */}
+      {/* Results overlay — liquid glass + heavy blur */}
       {isFinished && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-surface border border-white/10 rounded-2xl p-8 max-w-sm w-full text-center">
-            <h2 className="text-2xl font-bold mb-6">Результат</h2>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className="glass rounded-2xl p-8 max-w-sm w-full text-center transition-all duration-300"
+            style={{
+              borderColor: "rgba(255,255,255,0.06)",
+              boxShadow: "0 32px 64px rgba(0,0,0,0.4)",
+            }}
+          >
+            <h2
+              className="text-2xl font-bold mb-6"
+              style={{ fontFamily: "var(--font-mono)" }}
+            >
+              Результат
+            </h2>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-white/[0.03] rounded-lg p-3">
-                <div className="text-text-muted text-xs mb-1">WPM</div>
-                <div className="text-accent text-3xl font-bold">{wpm}</div>
-              </div>
-              <div className="bg-white/[0.03] rounded-lg p-3">
-                <div className="text-text-muted text-xs mb-1">Точность</div>
-                <div className="text-green-400 text-3xl font-bold">{accuracy}%</div>
-              </div>
-              <div className="bg-white/[0.03] rounded-lg p-3">
-                <div className="text-text-muted text-xs mb-1">Raw</div>
-                <div className="text-white text-xl font-bold">{rawWpm}</div>
-              </div>
-              <div className="bg-white/[0.03] rounded-lg p-3">
-                <div className="text-text-muted text-xs mb-1">Ошибок</div>
-                <div className="text-red-400 text-xl font-bold">{errors}</div>
-              </div>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {[
+                { label: "WPM", value: wpm, color: "var(--accent)" },
+                { label: "Точность", value: `${accuracy}%`, color: "var(--success)" },
+                { label: "Raw", value: rawWpm, color: "var(--text)" },
+                { label: "Ошибок", value: errors, color: "var(--error)" },
+              ].map(({ label, value, color }) => (
+                <div
+                  key={label}
+                  className="glass rounded-xl p-3"
+                  style={{ borderColor: "rgba(255,255,255,0.03)" }}
+                >
+                  <div className="text-xs mb-1" style={{ color: "var(--text-dim)" }}>
+                    {label}
+                  </div>
+                  <div className="text-2xl font-bold" style={{ color, fontFamily: "var(--font-mono)" }}>
+                    {value}
+                  </div>
+                </div>
+              ))}
             </div>
 
             <button
               onClick={handleRestart}
-              className="w-full px-6 py-3 bg-accent text-black font-semibold rounded-lg
-                         hover:bg-accent-hover transition-colors"
+              className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200
+                         hover:scale-[1.01] active:scale-[0.99]"
+              style={{
+                background: "var(--accent)",
+                color: "var(--accent-text)",
+                fontFamily: "var(--font-sans)",
+              }}
             >
               Ещё раз
             </button>

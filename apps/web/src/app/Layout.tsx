@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router";
-import { Keyboard, Trophy, User, Swords, GraduationCap } from "lucide-react";
+import { Keyboard, Trophy, Swords, GraduationCap, User } from "lucide-react";
 
 export function Layout() {
   const location = useLocation();
@@ -13,10 +13,18 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/5">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="text-accent font-bold text-lg tracking-tight">
+      {/* Liquid glass header */}
+      <header className="sticky top-0 z-50 glass border-b border-white/[0.04]">
+        <div
+          className="max-w-5xl mx-auto px-5 flex items-center justify-between"
+          style={{ height: "var(--header-h)" }}
+        >
+          {/* Logo */}
+          <Link
+            to="/"
+            className="text-base font-semibold tracking-tight transition-colors duration-200"
+            style={{ fontFamily: "var(--font-sans)", color: "var(--accent)" }}
+          >
             пальцеблуд
           </Link>
 
@@ -28,32 +36,43 @@ export function Layout() {
                 <Link
                   key={to}
                   to={to}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors
-                    ${active ? "text-accent bg-accent/10" : "text-text-muted hover:text-text hover:bg-white/5"}`}
+                  className={`flex items-center gap-1.5 px-3 h-8 rounded-lg text-sm transition-all duration-200
+                    ${active
+                      ? "bg-white/[0.06]"
+                      : "text-text-muted hover:text-text hover:bg-white/[0.03]"
+                    }`}
+                  style={{
+                    color: active ? "var(--accent)" : undefined,
+                    fontFamily: "var(--font-sans)",
+                  }}
                 >
-                  <Icon size={16} />
+                  <Icon size={15} strokeWidth={1.5} />
                   <span className="hidden sm:inline">{label}</span>
                 </Link>
               );
             })}
           </nav>
 
+          {/* Profile */}
           <Link
             to="/profile"
-            className="p-1.5 rounded-md text-text-muted hover:text-text hover:bg-white/5 transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-white/[0.04] transition-all duration-200"
           >
-            <User size={18} />
+            <User size={17} strokeWidth={1.5} />
           </Link>
         </div>
       </header>
 
       {/* Main */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-5 py-12">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-4 text-center text-xs text-text-muted">
+      <footer
+        className="py-6 text-center text-xs transition-colors duration-200"
+        style={{ color: "var(--text-dim)" }}
+      >
         пальцеблуд &copy; {new Date().getFullYear()} &mdash; клавиатурный тренажёр
       </footer>
     </div>
