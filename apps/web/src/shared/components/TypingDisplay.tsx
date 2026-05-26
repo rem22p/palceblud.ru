@@ -22,7 +22,8 @@ export function TypingDisplay({ text, currentIndex, errors }: TypingDisplayProps
       className="font-mono text-2xl leading-relaxed tracking-wide text-center select-none"
       style={{
         fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-        wordBreak: "break-all",
+        whiteSpace: "pre-wrap",
+        overflowWrap: "break-word",
       }}
     >
       {chars.map((char, i) => {
@@ -46,7 +47,7 @@ export function TypingDisplay({ text, currentIndex, errors }: TypingDisplayProps
                 style={{ animationDuration: "1.1s" }}
               />
             )}
-            {char === " " ? "\u00A0" : char}
+            {char === " " ? " " : char}
           </span>
         );
       })}
