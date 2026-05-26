@@ -1,0 +1,17 @@
+@keyframes caretBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes caretBlockBlink {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0; }
+}
+
+.typing-caret-underline {
+  animation: caretBlink 1.1s ease-in-out infinite;
+}
+
+.typing-caret-block {
+  animation: caretBlockBlink 1.1s ease-in-out infinite;
+}
