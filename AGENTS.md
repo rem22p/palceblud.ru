@@ -17,7 +17,14 @@
 - Shared: TypeScript types + Zod validators
 - Infra: Docker Compose (Postgres + Redis)
 
-## Repository
+## Development Methodology
+
+5. **TDD** — write failing test → make it pass → refactor. New logic ships with tests. Test modules before connecting to rest of code.
+6. **YAGNI** — build what's needed for current task, no speculative abstractions.
+7. **Use mature libraries** for solved non-domain problems (JWT via jose, password hashing via bcrypt, SQL via Drizzle). Don't hand-roll.
+8. **OWASP / security by default** — validate all inputs, parameterize SQL, auth on privileged routes.
+9. **Input validation** — validate type, presence, bounds. Max length for strings. Fail early with 4xx.
+10. **Modular decomposition** — one responsibility per file. Layer integrity: handler→store→DB.
 
 - Remote: `git@github.com:rem22p/palceblud.ru.git`
 - User pushes; agent cannot push (SSH passphrase)
