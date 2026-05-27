@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useTyping, generateText } from "@/shared/hooks/useTyping";
 import { TypingDisplay } from "@/shared/components/TypingDisplay";
 import { NumberTicker } from "@/components/ui/number-ticker";
@@ -26,6 +26,36 @@ export function PracticeMode() {
   }, [typed, text]);
 
   const handleRestart = () => { reset(); setKey((k) => k + 1); };
+
+  // Auto-save result when practice finishes
+  const savedRef = useRef(false);
+  useEffect(() => {
+    if (!isFinished || savedRef.current) return;
+    savedRef.current = true;
+
+    fetch("http://localhost:8000/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        mode: "practice",
+        duration,
+        wpm,
+        accuracy,
+        rawWpm,
+        consistency: 100,
+        correctKeystrokes: currentIndex - errors,
+        totalKeystrokes: currentIndex,
+        language,
+        textSnippet: text.slice(0, 200),
+      }),
+    }).catch(() => {});
+  }, [isFinished]);
+
+  // Reset savedRef on new game
+  useEffect(() => {
+    savedRef.current = false;
+  }, [key]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>

@@ -1,12 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "./authStore";
 import { AuthButtons } from "./AuthButtons";
+
+interface SessionEntry {
+  id: string;
+  wpm: number;
+  accuracy: number;
+  duration: number;
+  language: string;
+  createdAt: string;
+}
 
 export function ProfilePage() {
   const { user, isAuthenticated, isLoading, logout } = useAuthStore();
   const [username, setUsername] = useState(user?.username ?? "");
   const [avatarUrl, setAvatarUrl] = useState(user?.image ?? "");
   const [saved, setSaved] = useState(false);
+  const [sessions, setSessions] = useState<SessionEntry[]>([]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetch("http://localhost:8000/api/sessions?limit=20", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => setSessions(d.items ?? []))
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -200,6 +218,40 @@ export function ProfilePage() {
       >
         {saved ? "сохранено" : "сохранить"}
       </button>
+
+      {/* Sessions history */}
+      {sessions.length > 0 && (
+        <div style={{ marginTop: "var(--space-lg)" }}>
+          <p className="label" style={{ marginBottom: "var(--space-sm)" }}>
+            история сессий
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1px", background: "var(--text-dim)" }}>
+            {sessions.slice(0, 10).map((s) => (
+              <div
+                key={s.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "0.5rem 0.75rem",
+                  background: "var(--bg)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--font-size-body)",
+                }}
+              >
+                <div style={{ display: "flex", gap: "var(--space-md)" }}>
+                  <span style={{ color: "var(--accent)", fontWeight: 600 }}>{s.wpm} WPM</span>
+                  <span style={{ color: "var(--success)" }}>{s.accuracy}%</span>
+                  <span style={{ color: "var(--text-muted)" }}>{s.language.toUpperCase()}</span>
+                </div>
+                <span style={{ color: "var(--text-muted)", fontSize: "var(--font-size-label)" }}>
+                  {new Date(s.createdAt).toLocaleDateString("ru", { day: "2-digit", month: "short" })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
