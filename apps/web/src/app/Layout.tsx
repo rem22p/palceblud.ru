@@ -87,7 +87,7 @@ export function Layout() {
             letterSpacing: "0.04em",
           }}
         >
-          PROFILE
+          Профиль
         </Link>
       </nav>
 
