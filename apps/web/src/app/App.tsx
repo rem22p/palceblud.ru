@@ -21,74 +21,124 @@ export function App() {
 
 function HomePage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] gap-10">
-      {/* Logo */}
+    <div className="flex flex-col items-center justify-center min-h-[85vh] gap-12 relative z-10">
+      {/* ─── Hero ─── */}
       <div className="text-center">
+        {/* Kinetic logo — letters tight, dramatic scale */}
         <h1
-          className="text-7xl font-extrabold tracking-tight leading-none mb-4"
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="select-none"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "clamp(4rem, 12vw, 9rem)",
+            fontWeight: 800,
+            lineHeight: 0.95,
+            letterSpacing: "-0.04em",
+            marginBottom: "0.15em",
+          }}
         >
-          <span style={{ color: "var(--accent)" }}>пальце</span>
-          <span style={{ color: "var(--text)" }}>блуд</span>
+          <span
+            className="inline-block transition-all"
+            style={{
+              color: "var(--accent)",
+              filter: "drop-shadow(0 0 48px var(--accent-glow))",
+              animation: "floatText 6s ease-in-out infinite",
+            }}
+          >
+            пальце
+          </span>
+          <span
+            className="inline-block"
+            style={{
+              color: "var(--text)",
+              animation: "floatText 6s ease-in-out 0.3s infinite",
+            }}
+          >
+            блуд
+          </span>
         </h1>
-        <p className="text-lg" style={{ color: "var(--text-muted)" }}>
+
+        {/* Subtitle — tight, understated */}
+        <p
+          className="tracking-widest uppercase"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.7rem",
+            color: "var(--text-muted)",
+            letterSpacing: "0.35em",
+          }}
+        >
           клавиатурный тренажёр
         </p>
       </div>
 
-      {/* CTA buttons — liquid glass cards */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* ─── CTA ─── */}
+      <div className="flex gap-3">
         <a
           href="/practice"
-          className="px-8 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 
-                     hover:scale-[1.02] active:scale-[0.98]"
+          className="glass-accent px-10 py-4 rounded-xl font-semibold text-base
+                     transition-all hover:scale-[1.03] active:scale-[0.98]"
           style={{
-            background: "var(--accent)",
-            color: "var(--accent-text)",
             fontFamily: "var(--font-sans)",
+            color: "var(--accent)",
+            border: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          Начать практику
+          Практика
         </a>
         <a
           href="/lessons"
-          className="glass glass-hover px-8 py-3.5 rounded-xl font-medium text-sm
-                     transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          className="glass px-10 py-4 rounded-xl font-medium text-base
+                     transition-all hover:scale-[1.03] active:scale-[0.98]"
           style={{
-            color: "var(--text-muted)",
             fontFamily: "var(--font-sans)",
+            color: "var(--text-secondary)",
           }}
         >
-          Пройти обучение
+          Обучение
         </a>
       </div>
 
-      {/* Feature cards — liquid glass */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl">
+      {/* ─── Stats row — live feel ─── */}
+      <div className="flex gap-6 text-center">
         {[
-          { title: "WPM", desc: "Скорость печати" },
-          { title: "100%", desc: "Точность набора" },
-          { title: "∞", desc: "Бесконечная практика" },
-        ].map(({ title, desc }) => (
-          <div
-            key={title}
-            className="glass rounded-xl p-4 text-center transition-all duration-200 hover:bg-white/[0.05]"
-          >
+          ["60", "слов/мин"],
+          ["99%", "точность"],
+          ["∞", "практика"],
+        ].map(([value, label]) => (
+          <div key={label} className="flex flex-col items-center gap-1">
             <div
-              className="text-2xl font-bold mb-1"
-              style={{ fontFamily: "var(--font-mono)", color: "var(--accent)" }}
+              className="font-bold"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "1.6rem",
+                color: "var(--accent)",
+              }}
             >
-              {title}
+              {value}
             </div>
-            <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-              {desc}
+            <div
+              className="uppercase tracking-wider"
+              style={{
+                fontSize: "0.6rem",
+                color: "var(--text-dim)",
+                letterSpacing: "0.2em",
+              }}
+            >
+              {label}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Bottom hint */}
-      <p className="text-xs animate-pulse" style={{ color: "var(--text-dim)" }}>
+      {/* ─── Hint ─── */}
+      <p
+        className="animate-pulse"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.7rem",
+          color: "var(--text-dim)",
+        }}
+      >
         нажмите любую клавишу чтобы начать
       </p>
     </div>
