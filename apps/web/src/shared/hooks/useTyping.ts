@@ -73,8 +73,8 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
     const remaining = duration != null ? Math.max(0, Math.ceil(duration - elapsedSec)) : 99999;
 
     setState((prev) => {
-      const correct = prev.currentIndex;
-      const total = correct + prev.errors;
+      const correct = prev.currentIndex - prev.errors;
+      const total = prev.currentIndex;
 
       const wpm = calcWpm(correct, elapsedMs);
       const rawWpm = calcWpm(total, elapsedMs);
