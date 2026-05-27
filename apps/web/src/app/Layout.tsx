@@ -1,10 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router";
-import { useAuthStore } from "@/features/auth/authStore";
-import { AuthButtons } from "@/features/auth/AuthButtons";
 
 export function Layout() {
   const location = useLocation();
-  const { isAuthenticated, user } = useAuthStore();
 
   const links = [
     { to: "/practice", label: "Практика", num: "01" },
@@ -78,32 +75,20 @@ export function Layout() {
           );
         })}
 
-        {/* Auth */}
-        {isAuthenticated ? (
-          <Link
-            to="/profile"
-            style={{
-              fontSize: "var(--font-size-body)",
-              color: location.pathname === "/profile" ? "var(--accent)" : "var(--text-secondary)",
-              textDecoration: "none",
-              padding: "0.3rem 0.75rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.4rem",
-            }}
-          >
-            {user?.image && (
-              <img
-                src={user.image}
-                alt=""
-                style={{ width: 18, height: 18, borderRadius: "50%", objectFit: "cover" }}
-              />
-            )}
-            {user?.username || user?.name?.split(" ")[0] || "PROFILE"}
-          </Link>
-        ) : (
-          <AuthButtons />
-        )}
+        {/* Profile link — simple, always visible */}
+        <Link
+          to="/profile"
+          style={{
+            fontSize: "var(--font-size-body)",
+            color: location.pathname === "/profile" ? "var(--accent)" : "var(--text-secondary)",
+            textDecoration: "none",
+            padding: "0.3rem 0.75rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+          }}
+        >
+          PROFILE
+        </Link>
       </nav>
 
       {/* Content */}
