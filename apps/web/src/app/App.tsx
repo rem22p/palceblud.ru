@@ -1,8 +1,17 @@
 import { BrowserRouter, Routes, Route } from "react-router";
+import { useEffect } from "react";
 import { Layout } from "./Layout";
 import { PracticeMode } from "@/features/practice/PracticeMode";
+import { ProfilePage } from "@/features/auth/ProfilePage";
+import { useAuthStore } from "@/features/auth/authStore";
 
 export function App() {
+  const fetchUser = useAuthStore((s) => s.fetchUser);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -12,7 +21,7 @@ export function App() {
           <Route path="lessons" element={<PlaceholderPage title="Обучение" num="02" />} />
           <Route path="battle" element={<PlaceholderPage title="Битва" num="03" />} />
           <Route path="rank" element={<PlaceholderPage title="Рейтинг" num="04" />} />
-          <Route path="profile" element={<PlaceholderPage title="Профиль" num="05" />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
