@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Layout } from "./Layout";
 import { PracticeMode } from "@/features/practice/PracticeMode";
 import { ProfilePage } from "@/features/auth/ProfilePage";
+import { LessonsPage } from "@/features/lessons/LessonsPage";
 import { useAuthStore } from "@/features/auth/authStore";
 
 export function App() {
@@ -18,7 +19,7 @@ export function App() {
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="practice" element={<PracticeMode />} />
-          <Route path="lessons" element={<PlaceholderPage title="Обучение" num="02" />} />
+          <Route path="lessons" element={<LessonsPage />} />
           <Route path="battle" element={<PlaceholderPage title="Битва" num="03" />} />
           <Route path="rank" element={<PlaceholderPage title="Рейтинг" num="04" />} />
           <Route path="profile" element={<ProfilePage />} />
