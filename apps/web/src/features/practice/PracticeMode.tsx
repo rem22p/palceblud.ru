@@ -33,7 +33,7 @@ export function PracticeMode() {
     if (!isFinished || savedRef.current) return;
     savedRef.current = true;
 
-    fetch("http://localhost:8000/api/sessions", {
+    fetch("/api/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

@@ -20,7 +20,7 @@ interface AuthState {
   fetchUser: () => Promise<void>;
 }
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = "";
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,

@@ -20,7 +20,7 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetch("http://localhost:8000/api/sessions?limit=20", { credentials: "include" })
+    fetch("/api/sessions?limit=20", { credentials: "include" })
       .then((r) => r.json())
       .then((d) => setSessions(d.items ?? []))
       .catch(() => {});
@@ -55,7 +55,7 @@ export function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      await fetch(`http://localhost:8000/api/auth/profile`, {
+      await fetch(`/api/auth/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

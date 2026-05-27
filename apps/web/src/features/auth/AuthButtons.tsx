@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { getOAuthUrl, useAuthStore } from "./authStore";
 
-const API = "http://localhost:8000";
+const API = "";
 
 export function AuthButtons() {
   const [showEmail, setShowEmail] = useState(false);
