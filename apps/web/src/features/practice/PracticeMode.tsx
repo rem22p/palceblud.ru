@@ -92,7 +92,10 @@ export function PracticeMode() {
     <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
       {/* Controls */}
       {!isRunning && !isFinished && (
-        <div style={{ paddingTop: "var(--space-lg)" }}>
+        <div style={{
+          position: "fixed", top: "var(--space-md)", left: "var(--space-md)", zIndex: 100,
+          display: "flex", flexDirection: "column", gap: "0.5rem",
+        }}>
           {/* Mode selector pill */}
           <div className="glass" style={{ display: "inline-flex", gap: "0.25rem", padding: "0.4rem", marginBottom: "var(--space-md)" }}>
             {MODE_BUTTONS.map(([m, label]) => (
