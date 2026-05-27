@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import { Layout } from "./Layout";
 import { PracticeMode } from "@/features/practice/PracticeMode";
+import { KineticText } from "@/shared/components/KineticText";
 
 export function App() {
   return (
@@ -9,10 +10,10 @@ export function App() {
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="practice" element={<PracticeMode />} />
-          <Route path="lessons" element={<PlaceholderPage title="Обучение" />} />
-          <Route path="multiplayer" element={<PlaceholderPage title="Мультиплеер" />} />
-          <Route path="leaderboard" element={<PlaceholderPage title="Таблица лидеров" />} />
-          <Route path="profile" element={<PlaceholderPage title="Профиль" />} />
+          <Route path="lessons" element={<PlaceholderPage title="LESSONS" />} />
+          <Route path="multiplayer" element={<PlaceholderPage title="BATTLE" />} />
+          <Route path="leaderboard" element={<PlaceholderPage title="RANK" />} />
+          <Route path="profile" element={<PlaceholderPage title="PROFILE" />} />
         </Route>
       </Routes>
     </BrowserRouter>
@@ -21,141 +22,130 @@ export function App() {
 
 function HomePage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] gap-12 relative z-10">
-      {/* ─── Hero ─── */}
-      <div className="text-center">
-        {/* Kinetic logo — letters tight, dramatic scale */}
-        <h1
-          className="select-none"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "clamp(4rem, 12vw, 9rem)",
-            fontWeight: 800,
-            lineHeight: 0.95,
-            letterSpacing: "-0.04em",
-            marginBottom: "0.15em",
-          }}
-        >
-          <span
-            className="inline-block transition-all"
-            style={{
-              color: "var(--accent)",
-              filter: "drop-shadow(0 0 48px var(--accent-glow))",
-              animation: "floatText 6s ease-in-out infinite",
-            }}
-          >
-            пальце
-          </span>
-          <span
-            className="inline-block"
-            style={{
-              color: "var(--text)",
-              animation: "floatText 6s ease-in-out 0.3s infinite",
-            }}
-          >
-            блуд
-          </span>
-        </h1>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "80vh",
+        gap: "3rem",
+      }}
+    >
+      {/* Kinetic logo */}
+      <KineticText
+        text="ПАЛЬЦЕБЛУД"
+        tag="h1"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--font-size-hero)",
+          fontWeight: 700,
+          lineHeight: 1,
+          letterSpacing: "-0.04em",
+          color: "var(--text)",
+        }}
+      />
 
-        {/* Subtitle — tight, understated */}
-        <p
-          className="tracking-widest uppercase"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.7rem",
-            color: "var(--text-muted)",
-            letterSpacing: "0.35em",
-          }}
-        >
-          клавиатурный тренажёр
-        </p>
-      </div>
+      {/* Subtitle */}
+      <p
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--font-size-xs)",
+          color: "var(--text-secondary)",
+          textTransform: "uppercase",
+          letterSpacing: "0.2em",
+        }}
+      >
+        Keyboard Trainer
+      </p>
 
-      {/* ─── CTA ─── */}
-      <div className="flex gap-3">
-        <a
-          href="/practice"
-          className="glass-accent px-10 py-4 rounded-xl font-semibold text-base
-                     transition-all hover:scale-[1.03] active:scale-[0.98]"
-          style={{
-            fontFamily: "var(--font-sans)",
-            color: "var(--accent)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
-          Практика
-        </a>
-        <a
-          href="/lessons"
-          className="glass px-10 py-4 rounded-xl font-medium text-base
-                     transition-all hover:scale-[1.03] active:scale-[0.98]"
-          style={{
-            fontFamily: "var(--font-sans)",
-            color: "var(--text-secondary)",
-          }}
-        >
-          Обучение
-        </a>
-      </div>
+      {/* CTA */}
+      <a
+        href="/practice"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--font-size-xs)",
+          color: "var(--accent)",
+          textDecoration: "none",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          border: "1px solid var(--accent)",
+          padding: "0.6rem 2rem",
+          transition: "background var(--duration) var(--ease-out), color var(--duration) var(--ease-out)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "var(--accent)";
+          e.currentTarget.style.color = "var(--bg)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "transparent";
+          e.currentTarget.style.color = "var(--accent)";
+        }}
+      >
+        START
+      </a>
 
-      {/* ─── Stats row — live feel ─── */}
-      <div className="flex gap-6 text-center">
+      {/* Stats row */}
+      <div
+        style={{
+          display: "flex",
+          gap: "3rem",
+          fontFamily: "var(--font-mono)",
+        }}
+      >
         {[
-          ["60", "слов/мин"],
-          ["99%", "точность"],
-          ["∞", "практика"],
-        ].map(([value, label]) => (
-          <div key={label} className="flex flex-col items-center gap-1">
-            <div
-              className="font-bold"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "1.6rem",
-                color: "var(--accent)",
-              }}
-            >
+          { value: "060", label: "WPM" },
+          { value: "99%", label: "ACC" },
+          { value: "∞", label: "FREE" },
+        ].map(({ value, label }) => (
+          <div
+            key={label}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.25rem" }}
+          >
+            <span style={{ fontSize: "var(--font-size-2xl)", fontWeight: 600, color: "var(--text)" }}>
               {value}
-            </div>
-            <div
-              className="uppercase tracking-wider"
+            </span>
+            <span
               style={{
-                fontSize: "0.6rem",
-                color: "var(--text-dim)",
-                letterSpacing: "0.2em",
+                fontSize: "var(--font-size-xs)",
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
               }}
             >
               {label}
-            </div>
+            </span>
           </div>
         ))}
       </div>
-
-      {/* ─── Hint ─── */}
-      <p
-        className="animate-pulse"
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.7rem",
-          color: "var(--text-dim)",
-        }}
-      >
-        нажмите любую клавишу чтобы начать
-      </p>
     </div>
   );
 }
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <div className="text-center">
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "70vh",
+      }}
+    >
+      <div style={{ textAlign: "center" }}>
         <h1
-          className="text-3xl font-bold mb-4"
-          style={{ fontFamily: "var(--font-mono)" }}
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--font-size-2xl)",
+            fontWeight: 600,
+            marginBottom: "1rem",
+          }}
         >
           {title}
         </h1>
-        <p style={{ color: "var(--text-muted)" }}>Скоро будет...</p>
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-size-xs)", color: "var(--text-muted)" }}>
+          COMING SOON
+        </p>
       </div>
     </div>
   );

@@ -33,126 +33,106 @@ export function PracticeMode() {
     setKey((k) => k + 1);
   };
 
+  const s = {
+    font: "var(--font-mono)",
+    xs: "var(--font-size-xs)",
+    sm: "var(--font-size-sm)",
+    lg: "var(--font-size-lg)",
+    accent: "var(--accent)" as const,
+    text: "var(--text)" as const,
+    muted: "var(--text-muted)" as const,
+    secondary: "var(--text-secondary)" as const,
+    dim: "var(--text-dim)" as const,
+    bg: "var(--bg)" as const,
+    bgHover: "var(--bg-hover)" as const,
+    success: "var(--success)" as const,
+    error: "var(--error)" as const,
+    border: "1px solid var(--text-dim)" as const,
+    transition: "all var(--duration) var(--ease-out)" as const,
+  };
+
+  const btn = (active: boolean, isAccent = false): React.CSSProperties => ({
+    fontFamily: s.font,
+    fontSize: s.xs,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.06em",
+    padding: "0.4rem 1rem",
+    border: active ? `1px solid ${isAccent ? s.accent : s.text}` : `1px solid ${s.dim}`,
+    background: active ? (isAccent ? s.accent : "transparent") : "transparent",
+    color: active ? (isAccent ? s.bg : s.text) : s.muted,
+    cursor: "pointer",
+    transition: s.transition,
+  });
+
   return (
-    <div className="flex flex-col items-center gap-6 max-w-3xl mx-auto relative z-10">
-      {/* Controls — glass pill bar */}
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem" }}>
+      {/* Controls */}
       {!isRunning && !isFinished && (
-        <div className="flex flex-col items-center gap-4">
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
           {/* Language */}
-          <div className="glass rounded-2xl p-1 flex gap-0.5">
+          <div style={{ display: "flex", gap: s.xs }}>
             {(["en", "ru"] as const).map((lang) => (
-              <button
-                key={lang}
-                onClick={() => setLanguage(lang)}
-                className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  background: language === lang ? "var(--accent)" : "transparent",
-                  color: language === lang ? "var(--accent-text)" : "var(--text-muted)",
-                }}
-              >
-                {lang === "en" ? "English" : "Русский"}
+              <button key={lang} onClick={() => setLanguage(lang)} style={btn(language === lang)}>
+                {lang === "en" ? "EN" : "RU"}
               </button>
             ))}
           </div>
 
           {/* Timer */}
-          <div className="glass rounded-2xl p-1 flex gap-0.5">
+          <div style={{ display: "flex", gap: s.xs }}>
             {TIMER_OPTIONS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setDuration(t)}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  background: duration === t ? "var(--accent)" : "transparent",
-                  color: duration === t ? "var(--accent-text)" : "var(--text-muted)",
-                }}
-              >
-                {t}s
+              <button key={t} onClick={() => setDuration(t)} style={btn(duration === t)}>
+                {t}S
               </button>
             ))}
           </div>
 
-          <p
-            className="text-sm animate-pulse mt-1"
-            style={{ fontFamily: "var(--font-mono)", color: "var(--text-dim)" }}
-          >
-            начните печатать...
+          <p style={{ fontFamily: s.font, fontSize: s.xs, color: s.dim, marginTop: "0.5rem" }}>
+            PRESS ANY KEY TO START
           </p>
         </div>
       )}
 
-      {/* Stats bar — animated counters */}
+      {/* Stats bar */}
       {(isRunning || isFinished) && (
         <div
-          className="glass rounded-2xl px-6 py-3 flex items-center justify-center gap-10 text-sm"
-          style={{ fontFamily: "var(--font-mono)" }}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "2.5rem",
+            fontFamily: s.font,
+            padding: "0.75rem 0",
+            borderBottom: s.border,
+            width: "100%",
+          }}
         >
-          <div className="flex items-center gap-2">
-            <span style={{ color: "var(--text-dim)", fontSize: "0.7rem" }}>время</span>
-            <span
-              className="font-bold tabular-nums"
-              style={{
-                color: timeLeft <= 5 ? "var(--error)" : "var(--accent)",
-                fontSize: "1.1rem",
-              }}
-            >
-              <AnimatedCounter
-                value={timeLeft}
-                suffix="s"
-                duration={200}
-                style={{
-                  color: "inherit",
-                  fontFamily: "inherit",
-                  fontSize: "inherit",
-                  fontWeight: "inherit",
-                }}
-              />
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span style={{ color: "var(--text-dim)", fontSize: "0.7rem" }}>wpm</span>
-            <span className="font-bold tabular-nums" style={{ color: "var(--accent)", fontSize: "1.1rem" }}>
-              <AnimatedCounter
-                value={wpm}
-                duration={250}
-                style={{
-                  color: "inherit",
-                  fontFamily: "inherit",
-                  fontSize: "inherit",
-                  fontWeight: "inherit",
-                }}
-              />
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span style={{ color: "var(--text-dim)", fontSize: "0.7rem" }}>точность</span>
-            <span className="font-bold tabular-nums" style={{ color: "var(--success)", fontSize: "1.1rem" }}>
-              <AnimatedCounter
-                value={accuracy}
-                suffix="%"
-                duration={300}
-                style={{
-                  color: "inherit",
-                  fontFamily: "inherit",
-                  fontSize: "inherit",
-                  fontWeight: "inherit",
-                }}
-              />
-            </span>
-          </div>
+          {[
+            { label: "TIME", value: timeLeft, suffix: "S", color: timeLeft <= 5 ? s.error : s.accent },
+            { label: "WPM", value: wpm, suffix: "", color: s.accent },
+            { label: "ACC", value: accuracy, suffix: "%", color: s.success },
+          ].map(({ label, value, suffix, color }) => (
+            <div key={label} style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
+              <span style={{ fontSize: s.xs, color: s.muted }}>{label}</span>
+              <span style={{ fontSize: s.lg, fontWeight: 600, color }}>
+                <AnimatedCounter
+                  value={value}
+                  suffix={suffix}
+                  duration={200}
+                  style={{ fontFamily: "inherit", fontSize: "inherit", fontWeight: "inherit", color: "inherit" }}
+                />
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Typing area — glass card with inner glow */}
+      {/* Typing area */}
       <div
-        className="glass rounded-2xl p-8 w-full transition-all duration-300"
         style={{
-          borderColor: isRunning ? "rgba(255,255,255,0.06)" : undefined,
-          boxShadow: isRunning
-            ? "0 0 48px var(--accent-glow), 0 4px 24px rgba(0,0,0,0.3)"
-            : undefined,
+          width: "100%",
+          padding: "2rem 0",
+          border: isRunning ? `1px solid ${s.accent}` : `1px solid ${s.dim}`,
+          transition: "border-color 200ms var(--ease-out)",
         }}
       >
         <TypingDisplay text={text} currentIndex={currentIndex} errors={errorIndices} />
@@ -161,65 +141,83 @@ export function PracticeMode() {
       {/* Results overlay */}
       {isFinished && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{
-            background: "rgba(0,0,0,0.55)",
-            backdropFilter: "blur(12px)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(16,16,16,0.85)",
           }}
         >
           <div
-            className="glass rounded-3xl p-10 max-w-sm w-full text-center"
             style={{
-              borderColor: "rgba(255,255,255,0.06)",
-              boxShadow: "0 48px 96px rgba(0,0,0,0.5), 0 0 64px var(--accent-glow)",
+              background: s.bg,
+              border: `1px solid ${s.accent}`,
+              padding: "2.5rem",
+              minWidth: "300px",
+              textAlign: "center",
+              fontFamily: s.font,
             }}
           >
             <h2
-              className="text-3xl font-bold mb-8 tracking-tight"
-              style={{ fontFamily: "var(--font-mono)" }}
+              style={{
+                fontSize: s.lg,
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
+                marginBottom: "2rem",
+              }}
             >
-              результат
+              RESULT
             </h2>
 
-            <div className="grid grid-cols-2 gap-3 mb-8">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "1rem",
+                marginBottom: "2rem",
+              }}
+            >
               {[
-                { label: "WPM", value: wpm, color: "var(--accent)" },
-                { label: "точность", value: `${accuracy}%`, color: "var(--success)" },
-                { label: "raw", value: rawWpm, color: "var(--text-secondary)" },
-                { label: "ошибок", value: errors, color: "var(--error)" },
+                { label: "WPM", value: wpm, color: s.accent },
+                { label: "ACC", value: `${accuracy}%`, color: s.success },
+                { label: "RAW", value: rawWpm, color: s.secondary },
+                { label: "ERR", value: errors, color: s.error },
               ].map(({ label, value, color }) => (
-                <div
-                  key={label}
-                  className="glass rounded-2xl p-4"
-                  style={{ borderColor: "rgba(255,255,255,0.03)" }}
-                >
-                  <div
-                    className="text-xs mb-1.5 uppercase tracking-wider"
-                    style={{ color: "var(--text-dim)" }}
-                  >
-                    {label}
-                  </div>
-                  <div
-                    className="text-3xl font-bold tabular-nums"
-                    style={{ color, fontFamily: "var(--font-mono)" }}
-                  >
-                    {value}
-                  </div>
+                <div key={label}>
+                  <div style={{ fontSize: s.xs, color: s.muted, marginBottom: "0.25rem" }}>{label}</div>
+                  <div style={{ fontSize: s.lg, fontWeight: 600, color }}>{value}</div>
                 </div>
               ))}
             </div>
 
             <button
               onClick={handleRestart}
-              className="w-full py-3.5 rounded-2xl font-semibold text-base transition-all duration-200
-                         hover:scale-[1.02] active:scale-[0.98]"
               style={{
-                background: "var(--accent)",
-                color: "var(--accent-text)",
-                fontFamily: "var(--font-sans)",
+                fontFamily: s.font,
+                fontSize: s.xs,
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
+                padding: "0.6rem 2rem",
+                border: `1px solid ${s.accent}`,
+                background: "transparent",
+                color: s.accent,
+                cursor: "pointer",
+                transition: s.transition,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = s.accent;
+                e.currentTarget.style.color = s.bg;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = s.accent;
               }}
             >
-              ещё раз
+              RETRY
             </button>
           </div>
         </div>

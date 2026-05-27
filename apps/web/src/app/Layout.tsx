@@ -1,79 +1,103 @@
 import { Outlet, Link, useLocation } from "react-router";
-import { Keyboard, Trophy, Swords, GraduationCap, User } from "lucide-react";
 
 export function Layout() {
   const location = useLocation();
 
-  const navItems = [
-    { to: "/practice", icon: Keyboard, label: "Практика" },
-    { to: "/lessons", icon: GraduationCap, label: "Обучение" },
-    { to: "/multiplayer", icon: Swords, label: "Битва" },
-    { to: "/leaderboard", icon: Trophy, label: "Рейтинг" },
+  const links = [
+    { to: "/practice", label: "PRACTICE" },
+    { to: "/lessons", label: "LESSONS" },
+    { to: "/multiplayer", label: "BATTLE" },
+    { to: "/leaderboard", label: "RANK" },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Liquid glass header */}
-      <header className="sticky top-0 z-50 glass border-b border-white/[0.04]">
-        <div
-          className="max-w-5xl mx-auto px-5 flex items-center justify-between"
-          style={{ height: "var(--header-h)" }}
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      {/* Top bar — 099 brutalist */}
+      <header
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: "var(--header-h)",
+          padding: "0 1rem",
+          background: "var(--bg)",
+          borderBottom: "1px solid var(--text-dim)",
+        }}
+      >
+        {/* Logo */}
+        <Link
+          to="/"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--font-size-sm)",
+            fontWeight: 600,
+            color: "var(--accent)",
+            textDecoration: "none",
+            letterSpacing: "-0.02em",
+          }}
         >
-          {/* Logo */}
-          <Link
-            to="/"
-            className="text-base font-semibold tracking-tight transition-colors duration-200"
-            style={{ fontFamily: "var(--font-sans)", color: "var(--accent)" }}
-          >
-            пальцеблуд
-          </Link>
+          ПАЛЬЦЕБЛУД
+        </Link>
 
-          {/* Nav */}
-          <nav className="flex gap-1">
-            {navItems.map(({ to, icon: Icon, label }) => {
-              const active = location.pathname === to;
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={`flex items-center gap-1.5 px-3 h-8 rounded-lg text-sm transition-all duration-200
-                    ${active
-                      ? "bg-white/[0.06]"
-                      : "text-text-muted hover:text-text hover:bg-white/[0.03]"
-                    }`}
-                  style={{
-                    color: active ? "var(--accent)" : undefined,
-                    fontFamily: "var(--font-sans)",
-                  }}
-                >
-                  <Icon size={15} strokeWidth={1.5} />
-                  <span className="hidden sm:inline">{label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Nav */}
+        <nav style={{ display: "flex", gap: "1.25rem" }}>
+          {links.map(({ to, label }) => {
+            const active = location.pathname === to;
+            return (
+              <Link
+                key={to}
+                to={to}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--font-size-xs)",
+                  color: active ? "var(--accent)" : "var(--text-secondary)",
+                  textDecoration: "none",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                  padding: "0.25rem 0",
+                  borderBottom: active ? "1px solid var(--accent)" : "1px solid transparent",
+                  transition: "color var(--duration) var(--ease-out), border-color var(--duration) var(--ease-out)",
+                }}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
 
-          {/* Profile */}
-          <Link
-            to="/profile"
-            className="p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-white/[0.04] transition-all duration-200"
-          >
-            <User size={17} strokeWidth={1.5} />
-          </Link>
-        </div>
+        {/* Profile */}
+        <Link
+          to="/profile"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--font-size-xs)",
+            color: "var(--text-secondary)",
+            textDecoration: "none",
+          }}
+        >
+          PROFILE
+        </Link>
       </header>
 
       {/* Main */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-5 py-12">
+      <main style={{ flex: 1, maxWidth: "960px", width: "100%", margin: "0 auto", padding: "2rem 1rem" }}>
         <Outlet />
       </main>
 
       {/* Footer */}
       <footer
-        className="py-6 text-center text-xs transition-colors duration-200"
-        style={{ color: "var(--text-dim)" }}
+        style={{
+          textAlign: "center",
+          padding: "1.5rem",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--font-size-xs)",
+          color: "var(--text-dim)",
+        }}
       >
-        пальцеблуд &copy; {new Date().getFullYear()} &mdash; клавиатурный тренажёр
+        PALCEBLUD &copy; {new Date().getFullYear()}
       </footer>
     </div>
   );
