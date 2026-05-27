@@ -16,7 +16,7 @@ export interface TypingState {
 
 interface TypingConfig {
   text: string;
-  duration: number;
+  duration?: number;
   onFinish?: (state: TypingState) => void;
 }
 
@@ -29,7 +29,7 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
     rawWpm: 0,
     accuracy: 100,
     consistency: 100,
-    timeLeft: duration,
+    timeLeft: duration ?? 99999,
     isRunning: false,
     isFinished: false,
   });
@@ -70,7 +70,7 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
     const now = Date.now();
     const elapsedMs = now - startTimeRef.current;
     const elapsedSec = elapsedMs / 1000;
-    const remaining = Math.max(0, Math.ceil(duration - elapsedSec));
+    const remaining = duration != null ? Math.max(0, Math.ceil(duration - elapsedSec)) : 99999;
 
     setState((prev) => {
       const correct = prev.currentIndex;
@@ -127,13 +127,14 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
     // Ignore modifier-only keys (except Backspace)
     if (e.key.length > 1 && e.key !== "Backspace") return;
 
-    // Start timer on first valid keystroke
+    // Start timer on first valid keystroke (skip if timer disabled)
     if (!isRunningRef.current && e.key.length === 1) {
-      // Start timer via state update + ref
-      setState((prev) => ({ ...prev, isRunning: true }));
       isRunningRef.current = true;
-      startTimeRef.current = Date.now();
-      timerRef.current = setInterval(tick, 100);
+      setState((prev) => ({ ...prev, isRunning: true }));
+      if (duration != null) {
+        startTimeRef.current = Date.now();
+        timerRef.current = setInterval(tick, 100);
+      }
     }
 
     e.preventDefault();
@@ -182,7 +183,7 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
       rawWpm: 0,
       accuracy: 100,
       consistency: 100,
-      timeLeft: duration,
+      timeLeft: duration ?? 99999,
       isRunning: false,
       isFinished: false,
     });
