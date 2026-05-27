@@ -35,7 +35,6 @@ function HomePage() {
       {/* Kinetic logo */}
       <KineticText
         text="ПАЛЬЦЕБЛУД"
-        tag="h1"
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: "var(--font-size-hero)",

@@ -117,7 +117,6 @@ export function PracticeMode() {
                 <AnimatedCounter
                   value={value}
                   suffix={suffix}
-                  duration={200}
                   style={{ fontFamily: "inherit", fontSize: "inherit", fontWeight: "inherit", color: "inherit" }}
                 />
               </span>

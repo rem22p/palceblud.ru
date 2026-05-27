@@ -2,4 +2,6 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
+  dtrace-provider: set this to true or false
   esbuild: true
+  odbc: set this to true or false

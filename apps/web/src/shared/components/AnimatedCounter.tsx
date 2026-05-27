@@ -1,57 +1,34 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { motion, useSpring, useTransform } from "framer-motion";
 
 interface AnimatedCounterProps {
   value: number;
   suffix?: string;
-  duration?: number; // ms
   className?: string;
   style?: React.CSSProperties;
 }
 
 /**
- * Animates a number counting up from 0 to value.
- * Uses requestAnimationFrame for smooth 60fps animation.
+ * Magic UI-level animated counter with spring physics.
+ * Numbers glide smoothly to target value.
  */
 export function AnimatedCounter({
   value,
   suffix = "",
-  duration = 400,
   className,
   style,
 }: AnimatedCounterProps) {
-  const [display, setDisplay] = useState(0);
-  const prevValue = useRef(0);
-  const frameRef = useRef<number>(0);
+  const spring = useSpring(0, { stiffness: 100, damping: 20, mass: 0.3 });
+  const display = useTransform(spring, (v) => Math.round(v));
 
   useEffect(() => {
-    const start = prevValue.current;
-    const end = value;
-    const startTime = performance.now();
-
-    const animate = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(start + (end - start) * eased);
-
-      setDisplay(current);
-
-      if (progress < 1) {
-        frameRef.current = requestAnimationFrame(animate);
-      }
-    };
-
-    frameRef.current = requestAnimationFrame(animate);
-    prevValue.current = value;
-
-    return () => cancelAnimationFrame(frameRef.current);
-  }, [value, duration]);
+    spring.set(value);
+  }, [value, spring]);
 
   return (
-    <span className={className} style={style}>
-      {display}
+    <motion.span className={className} style={style}>
+      <motion.span>{display}</motion.span>
       {suffix}
-    </span>
+    </motion.span>
   );
 }
