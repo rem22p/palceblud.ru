@@ -3,8 +3,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import { env } from "./env";
-import { authRoutes } from "./modules/auth/routes";
-import { sessionRoutes } from "./modules/sessions/routes";
+import { authPlugin } from "./auth/plugin";
 
 const app = Fastify({
   logger: true,
@@ -17,9 +16,8 @@ await app.register(cors, {
 });
 await app.register(websocket);
 
-// Routes
-await app.register(authRoutes);
-await app.register(sessionRoutes);
+// Auth — better-auth handles /api/auth/*
+await app.register(authPlugin);
 
 // Health check
 app.get("/api/health", () => ({ status: "ok", timestamp: new Date().toISOString() }));
