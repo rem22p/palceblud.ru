@@ -1,13 +1,13 @@
 /* ─── Tech Avant-Garde — GitVerse + Terminal + Editorial ─── */
 
 :root {
-  /* Canvas */
-  --bg: #000000;
-  --bg-elevated: rgba(255, 255, 255, 0.03);
+  /* Canvas — Noctua warm dark */
+  --bg: #14100c;
+  --bg-elevated: rgba(237, 228, 216, 0.03);
 
-  /* GitVerse Glass */
-  --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-border: rgba(255, 255, 255, 0.06);
+  /* GitVerse Glass — warm tint */
+  --glass-bg: rgba(237, 228, 216, 0.03);
+  --glass-border: rgba(237, 228, 216, 0.06);
   --glass-blur: 80px;
   --radius: 20px;
 
@@ -22,17 +22,17 @@
   --font-size-hero: clamp(7rem, 18vw, 16rem);
   --font-size-mega: clamp(10rem, 24vw, 20rem);
 
-  /* Terminal colors */
-  --text: #e8e8ed;
-  --text-secondary: rgba(232, 232, 237, 0.6);
-  --text-muted: rgba(232, 232, 237, 0.25);
-  --text-dim: rgba(232, 232, 237, 0.08);
+  /* Terminal colors — Noctua cream */
+  --text: #ede4d8;
+  --text-secondary: rgba(237, 228, 216, 0.65);
+  --text-muted: rgba(237, 228, 216, 0.28);
+  --text-dim: rgba(237, 228, 216, 0.10);
 
-  /* Accent — electric cyan (GitVerse style) */
-  --accent: #00a3ff;
-  --accent-glow: rgba(0, 163, 255, 0.15);
-  --success: #00ff88;
-  --error: #ff4466;
+  /* Accent — Noctua copper */
+  --accent: #ca9a6b;
+  --accent-glow: rgba(202, 154, 107, 0.15);
+  --success: #7eb87e;
+  --error: #d4786e;
 
   /* Spacing — editorial */
   --space-xs: 0.5rem;
@@ -49,10 +49,10 @@
 
 /* ─── Presets ─── */
 
-[data-theme="green"]  { --accent: #00ff88; --accent-glow: rgba(0, 255, 136, 0.15); }
-[data-theme="purple"] { --accent: #aa55ff; --accent-glow: rgba(170, 85, 255, 0.15); }
-[data-theme="rose"]   { --accent: #ff4488; --accent-glow: rgba(255, 68, 136, 0.15); }
-[data-theme="amber"]  { --accent: #ff8800; --accent-glow: rgba(255, 136, 0, 0.15); }
+[data-theme="green"]  { --accent: #7eb87e; --accent-glow: rgba(126, 184, 126, 0.15); }
+[data-theme="slate"]  { --accent: #8899aa; --accent-glow: rgba(136, 153, 170, 0.15); }
+[data-theme="rose"]   { --accent: #cc8888; --accent-glow: rgba(204, 136, 136, 0.15); }
+[data-theme="gold"]   { --accent: #ca9a6b; --accent-glow: rgba(202, 154, 107, 0.15); }
 
 /* ─── Reset ─── */
 
