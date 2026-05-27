@@ -157,11 +157,9 @@ export function PracticeMode() {
           ].map(({ label, value, color, suffix }) => (
             <div key={label} style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
               <span className="label" style={{ marginRight: "0.25rem" }}>{label}</span>
-              <NumberTicker
-                value={value}
-                className="text-lg"
-                style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 700, color, fontSize: "var(--font-size-large)" }}
-              />
+              <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 700, color, fontSize: "var(--font-size-large)" }}>
+                <NumberTicker value={value} className="!text-inherit" />
+              </span>
               {suffix && (
                 <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "var(--font-size-lead)", color }}>
                   {suffix}
