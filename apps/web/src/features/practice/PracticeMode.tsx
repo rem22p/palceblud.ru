@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTyping, generateText } from "@/shared/hooks/useTyping";
 import { TypingDisplay } from "@/shared/components/TypingDisplay";
-import { AnimatedCounter } from "@/shared/components/AnimatedCounter";
+import { NumberTicker } from "@/components/ui/number-ticker";
 import { ENGLISH_WORDS, RUSSIAN_WORDS } from "@/shared/data/words";
 
 const TIMER_OPTIONS = [15, 30, 60, 120];
@@ -14,11 +14,8 @@ export function PracticeMode() {
 
   const words = language === "en" ? ENGLISH_WORDS : RUSSIAN_WORDS;
   const text = useMemo(() => generateText(words, WORD_COUNT), [words, key]);
-
   const { state, reset } = useTyping({ text, duration });
-
-  const { typed, currentIndex, errors, wpm, rawWpm, accuracy, timeLeft, isRunning, isFinished } =
-    state;
+  const { typed, currentIndex, errors, wpm, rawWpm, accuracy, timeLeft, isRunning, isFinished } = state;
 
   const errorIndices = useMemo(() => {
     const arr: number[] = [];
@@ -28,116 +25,134 @@ export function PracticeMode() {
     return arr;
   }, [typed, text]);
 
-  const handleRestart = () => {
-    reset();
-    setKey((k) => k + 1);
-  };
-
-  const s = {
-    font: "var(--font-mono)",
-    xs: "var(--font-size-xs)",
-    sm: "var(--font-size-sm)",
-    lg: "var(--font-size-lg)",
-    accent: "var(--accent)" as const,
-    text: "var(--text)" as const,
-    muted: "var(--text-muted)" as const,
-    secondary: "var(--text-secondary)" as const,
-    dim: "var(--text-dim)" as const,
-    bg: "var(--bg)" as const,
-    bgHover: "var(--bg-hover)" as const,
-    success: "var(--success)" as const,
-    error: "var(--error)" as const,
-    border: "1px solid var(--text-dim)" as const,
-    transition: "all var(--duration) var(--ease-out)" as const,
-  };
-
-  const btn = (active: boolean, isAccent = false): React.CSSProperties => ({
-    fontFamily: s.font,
-    fontSize: s.xs,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.06em",
-    padding: "0.4rem 1rem",
-    border: active ? `1px solid ${isAccent ? s.accent : s.text}` : `1px solid ${s.dim}`,
-    background: active ? (isAccent ? s.accent : "transparent") : "transparent",
-    color: active ? (isAccent ? s.bg : s.text) : s.muted,
-    cursor: "pointer",
-    transition: s.transition,
-  });
+  const handleRestart = () => { reset(); setKey((k) => k + 1); };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem" }}>
-      {/* Controls */}
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, position: "relative" }}>
+      {/* Controls — glass pill, top-left */}
       {!isRunning && !isFinished && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
-          {/* Language */}
-          <div style={{ display: "flex", gap: s.xs }}>
+        <div style={{ paddingTop: "var(--space-lg)" }}>
+          {/* Glass control bar */}
+          <div
+            className="glass"
+            style={{
+              display: "inline-flex",
+              gap: "0.25rem",
+              padding: "0.4rem",
+              marginBottom: "var(--space-md)",
+            }}
+          >
             {(["en", "ru"] as const).map((lang) => (
-              <button key={lang} onClick={() => setLanguage(lang)} style={btn(language === lang)}>
+              <button
+                key={lang}
+                onClick={() => setLanguage(lang)}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--font-size-body)",
+                  fontWeight: 600,
+                  color: language === lang ? "var(--accent)" : "var(--text-secondary)",
+                  background: language === lang ? "rgba(255,255,255,0.06)" : "transparent",
+                  border: "none",
+                  borderRadius: "12px",
+                  padding: "0.35rem 0.85rem",
+                  cursor: "pointer",
+                  textTransform: "uppercase",
+                  transition: "all var(--duration-fast) var(--ease-out)",
+                }}
+              >
                 {lang === "en" ? "EN" : "RU"}
               </button>
             ))}
           </div>
 
-          {/* Timer */}
-          <div style={{ display: "flex", gap: s.xs }}>
+          {/* Timer glass pill */}
+          <div
+            className="glass"
+            style={{
+              display: "inline-flex",
+              gap: "0.25rem",
+              padding: "0.4rem",
+              marginBottom: "var(--space-md)",
+            }}
+          >
             {TIMER_OPTIONS.map((t) => (
-              <button key={t} onClick={() => setDuration(t)} style={btn(duration === t)}>
-                {t}S
+              <button
+                key={t}
+                onClick={() => setDuration(t)}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--font-size-body)",
+                  fontWeight: duration === t ? 600 : 400,
+                  color: duration === t ? "var(--accent)" : "var(--text-secondary)",
+                  background: duration === t ? "rgba(255,255,255,0.06)" : "transparent",
+                  border: "none",
+                  borderRadius: "12px",
+                  padding: "0.35rem 0.85rem",
+                  cursor: "pointer",
+                  transition: "all var(--duration-fast) var(--ease-out)",
+                }}
+              >
+                {t}s
               </button>
             ))}
           </div>
 
-          <p style={{ fontFamily: s.font, fontSize: s.xs, color: s.dim, marginTop: "0.5rem" }}>
-            PRESS ANY KEY TO START
-          </p>
+          <p className="label">нажмите любую клавишу</p>
         </div>
       )}
 
-      {/* Stats bar */}
+      {/* Stats — glass bar */}
       {(isRunning || isFinished) && (
         <div
+          className="glass"
           style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "2.5rem",
-            fontFamily: s.font,
-            padding: "0.75rem 0",
-            borderBottom: s.border,
-            width: "100%",
+            display: "inline-flex",
+            gap: "var(--space-md)",
+            padding: "0.75rem 1.5rem",
+            marginTop: "var(--space-md)",
           }}
         >
           {[
-            { label: "TIME", value: timeLeft, suffix: "S", color: timeLeft <= 5 ? s.error : s.accent },
-            { label: "WPM", value: wpm, suffix: "", color: s.accent },
-            { label: "ACC", value: accuracy, suffix: "%", color: s.success },
-          ].map(({ label, value, suffix, color }) => (
+            { label: "TIME", value: timeLeft, suffix: "s", color: timeLeft <= 5 ? "var(--error)" : "var(--accent)" },
+            { label: "WPM", value: wpm, color: "var(--accent)" },
+            { label: "ACC", value: accuracy, suffix: "%", color: "var(--success)" },
+          ].map(({ label, value, color, suffix }) => (
             <div key={label} style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
-              <span style={{ fontSize: s.xs, color: s.muted }}>{label}</span>
-              <span style={{ fontSize: s.lg, fontWeight: 600, color }}>
-                <AnimatedCounter
-                  value={value}
-                  suffix={suffix}
-                  style={{ fontFamily: "inherit", fontSize: "inherit", fontWeight: "inherit", color: "inherit" }}
-                />
-              </span>
+              <span className="label" style={{ marginRight: "0.25rem" }}>{label}</span>
+              <NumberTicker
+                value={value}
+                className="text-lg"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontStyle: "italic",
+                  fontWeight: 700,
+                  color,
+                  fontSize: "var(--font-size-large)",
+                }}
+              />
+              {suffix && (
+                <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "var(--font-size-lead)", color }}>
+                  {suffix}
+                </span>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Typing area */}
+      {/* Typing area — terminal, full bleed */}
       <div
         style={{
-          width: "100%",
-          padding: "2rem 0",
-          border: isRunning ? `1px solid ${s.accent}` : `1px solid ${s.dim}`,
-          transition: "border-color 200ms var(--ease-out)",
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          padding: "var(--space-lg) 0",
         }}
       >
         <TypingDisplay text={text} currentIndex={currentIndex} errors={errorIndices} />
       </div>
 
-      {/* Results overlay */}
+      {/* Results — glass overlay + editorial */}
       {isFinished && (
         <div
           style={{
@@ -147,77 +162,71 @@ export function PracticeMode() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(16,16,16,0.85)",
+            padding: "var(--space-md)",
           }}
         >
           <div
+            className="glass"
             style={{
-              background: s.bg,
-              border: `1px solid ${s.accent}`,
-              padding: "2.5rem",
-              minWidth: "300px",
-              textAlign: "center",
-              fontFamily: s.font,
+              maxWidth: "520px",
+              width: "100%",
+              padding: "var(--space-lg)",
             }}
           >
+            <p className="label" style={{ marginBottom: "var(--space-sm)" }}>
+              результат
+            </p>
+
             <h2
+              className="display"
               style={{
-                fontSize: s.lg,
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                marginBottom: "2rem",
+                fontSize: "var(--font-size-hero)",
+                color: "var(--accent)",
+                lineHeight: 0.8,
+                marginBottom: "var(--space-md)",
               }}
             >
-              RESULT
+              {wpm}
             </h2>
 
             <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: "1rem",
-                marginBottom: "2rem",
+                gap: "var(--space-md)",
+                marginBottom: "var(--space-lg)",
               }}
             >
               {[
-                { label: "WPM", value: wpm, color: s.accent },
-                { label: "ACC", value: `${accuracy}%`, color: s.success },
-                { label: "RAW", value: rawWpm, color: s.secondary },
-                { label: "ERR", value: errors, color: s.error },
-              ].map(({ label, value, color }) => (
+                { label: "точность", value: `${accuracy}%` },
+                { label: "raw", value: rawWpm },
+                { label: "ошибок", value: errors },
+                { label: "язык", value: language === "en" ? "EN" : "RU" },
+              ].map(({ label, value }) => (
                 <div key={label}>
-                  <div style={{ fontSize: s.xs, color: s.muted, marginBottom: "0.25rem" }}>{label}</div>
-                  <div style={{ fontSize: s.lg, fontWeight: 600, color }}>{value}</div>
+                  <div className="label">{label}</div>
+                  <div className="mono" style={{ fontSize: "var(--font-size-lead)", marginTop: "0.25rem" }}>
+                    {value}
+                  </div>
                 </div>
               ))}
             </div>
 
-            <button
+            <a
               onClick={handleRestart}
+              className="mono"
               style={{
-                fontFamily: s.font,
-                fontSize: s.xs,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                padding: "0.6rem 2rem",
-                border: `1px solid ${s.accent}`,
-                background: "transparent",
-                color: s.accent,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                fontSize: "var(--font-size-lead)",
+                color: "var(--accent)",
                 cursor: "pointer",
-                transition: s.transition,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = s.accent;
-                e.currentTarget.style.color = s.bg;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = s.accent;
               }}
             >
-              RETRY
-            </button>
+              ещё раз
+              <span className="cursor" />
+            </a>
           </div>
         </div>
       )}

@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import { Layout } from "./Layout";
 import { PracticeMode } from "@/features/practice/PracticeMode";
-import { KineticText } from "@/shared/components/KineticText";
 
 export function App() {
   return (
@@ -10,10 +9,10 @@ export function App() {
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="practice" element={<PracticeMode />} />
-          <Route path="lessons" element={<PlaceholderPage title="LESSONS" />} />
-          <Route path="multiplayer" element={<PlaceholderPage title="BATTLE" />} />
-          <Route path="leaderboard" element={<PlaceholderPage title="RANK" />} />
-          <Route path="profile" element={<PlaceholderPage title="PROFILE" />} />
+          <Route path="lessons" element={<PlaceholderPage title="Обучение" num="02" />} />
+          <Route path="battle" element={<PlaceholderPage title="Битва" num="03" />} />
+          <Route path="rank" element={<PlaceholderPage title="Рейтинг" num="04" />} />
+          <Route path="profile" element={<PlaceholderPage title="Профиль" num="05" />} />
         </Route>
       </Routes>
     </BrowserRouter>
@@ -26,125 +25,122 @@ function HomePage() {
       style={{
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
         justifyContent: "center",
-        minHeight: "80vh",
-        gap: "3rem",
+        flex: 1,
+        position: "relative",
+        paddingTop: "var(--space-xl)",
       }}
     >
-      {/* Kinetic logo */}
-      <KineticText
-        text="ПАЛЬЦЕБЛУД"
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "var(--font-size-hero)",
-          fontWeight: 700,
-          lineHeight: 1,
-          letterSpacing: "-0.04em",
-          color: "var(--text)",
-        }}
-      />
-
-      {/* Subtitle */}
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "var(--font-size-xs)",
-          color: "var(--text-secondary)",
-          textTransform: "uppercase",
-          letterSpacing: "0.2em",
-        }}
-      >
-        Keyboard Trainer
-      </p>
-
-      {/* CTA */}
-      <a
-        href="/practice"
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "var(--font-size-xs)",
-          color: "var(--accent)",
-          textDecoration: "none",
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-          border: "1px solid var(--accent)",
-          padding: "0.6rem 2rem",
-          transition: "background var(--duration) var(--ease-out), color var(--duration) var(--ease-out)",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "var(--accent)";
-          e.currentTarget.style.color = "var(--bg)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "var(--accent)";
-        }}
-      >
-        START
-      </a>
-
-      {/* Stats row */}
+      {/* ─── Architectural mega-letter ─── */}
       <div
+        aria-hidden
         style={{
-          display: "flex",
-          gap: "3rem",
-          fontFamily: "var(--font-mono)",
+          position: "absolute",
+          top: "-8vh",
+          right: "-3vw",
+          fontFamily: "var(--font-display)",
+          fontSize: "var(--font-size-mega)",
+          fontWeight: 900,
+          color: "var(--text-dim)",
+          lineHeight: 0.7,
+          userSelect: "none",
+          pointerEvents: "none",
+          zIndex: 0,
         }}
       >
-        {[
-          { value: "060", label: "WPM" },
-          { value: "99%", label: "ACC" },
-          { value: "∞", label: "FREE" },
-        ].map(({ value, label }) => (
-          <div
-            key={label}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.25rem" }}
-          >
-            <span style={{ fontSize: "var(--font-size-2xl)", fontWeight: 600, color: "var(--text)" }}>
-              {value}
-            </span>
-            <span
+        П
+      </div>
+
+      {/* ─── Content ─── */}
+      <div style={{ position: "relative", zIndex: 1, paddingLeft: "5%" }}>
+        {/* Label */}
+        <p className="label" style={{ marginBottom: "var(--space-sm)" }}>
+          клавиатурный тренажёр
+        </p>
+
+        {/* Title */}
+        <h1
+          className="display"
+          style={{
+            fontSize: "var(--font-size-hero)",
+            color: "var(--text)",
+            marginBottom: "var(--space-md)",
+          }}
+        >
+          пальцеблуд
+        </h1>
+
+        {/* CTA */}
+        <a
+          href="/practice"
+          className="mono"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            fontSize: "var(--font-size-lead)",
+            color: "var(--accent)",
+            textDecoration: "none",
+            marginBottom: "var(--space-xl)",
+            transition: "opacity var(--duration-fast) var(--ease-out)",
+          }}
+        >
+          начать практику
+          <span className="cursor" />
+        </a>
+
+        {/* GitVerse-style glass stat cards */}
+        <div
+          style={{
+            display: "flex",
+            gap: "var(--space-md)",
+            flexWrap: "wrap",
+          }}
+        >
+          {[
+            { value: "∞", label: "бесплатно", sub: "навсегда" },
+            { value: "RU", label: "русский", sub: "+ english" },
+            { value: "WPM", label: "скорость", sub: "метрика" },
+          ].map(({ value, label, sub }) => (
+            <div
+              key={label}
+              className="glass"
               style={{
-                fontSize: "var(--font-size-xs)",
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
+                padding: "1.25rem 1.5rem",
+                minWidth: "160px",
               }}
             >
-              {label}
-            </span>
-          </div>
-        ))}
+              <div
+                className="display"
+                style={{
+                  fontSize: "var(--font-size-display)",
+                  color: "var(--accent)",
+                  lineHeight: 1,
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {value}
+              </div>
+              <div className="label" style={{ marginBottom: "0.15rem" }}>{label}</div>
+              <div className="mono" style={{ fontSize: "var(--font-size-label)", color: "var(--text-muted)" }}>
+                {sub}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-function PlaceholderPage({ title }: { title: string }) {
+function PlaceholderPage({ title, num }: { title: string; num: string }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "70vh",
-      }}
-    >
-      <div style={{ textAlign: "center" }}>
-        <h1
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--font-size-2xl)",
-            fontWeight: 600,
-            marginBottom: "1rem",
-          }}
-        >
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1 }}>
+      <div>
+        <span className="label">{num}</span>
+        <h1 className="display" style={{ fontSize: "var(--font-size-display)", marginTop: "var(--space-sm)" }}>
           {title}
         </h1>
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-size-xs)", color: "var(--text-muted)" }}>
-          COMING SOON
-        </p>
       </div>
     </div>
   );

@@ -4,4 +4,5 @@ packages:
 allowBuilds:
   dtrace-provider: set this to true or false
   esbuild: true
+  msw: true
   odbc: set this to true or false

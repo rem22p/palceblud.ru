@@ -4,100 +4,94 @@ export function Layout() {
   const location = useLocation();
 
   const links = [
-    { to: "/practice", label: "PRACTICE" },
-    { to: "/lessons", label: "LESSONS" },
-    { to: "/multiplayer", label: "BATTLE" },
-    { to: "/leaderboard", label: "RANK" },
+    { to: "/practice", label: "Практика", num: "01" },
+    { to: "/lessons", label: "Обучение", num: "02" },
+    { to: "/battle", label: "Битва", num: "03" },
+    { to: "/rank", label: "Рейтинг", num: "04" },
   ];
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Top bar — 099 brutalist */}
-      <header
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        padding: "var(--space-md)",
+        position: "relative",
+      }}
+    >
+      {/* Navigation — glass pill, top-right */}
+      <nav
+        className="glass"
         style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
+          position: "fixed",
+          top: "var(--space-md)",
+          right: "var(--space-md)",
+          zIndex: 100,
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: "var(--header-h)",
-          padding: "0 1rem",
-          background: "var(--bg)",
-          borderBottom: "1px solid var(--text-dim)",
+          gap: "0.25rem",
+          padding: "0.4rem",
+          fontFamily: "var(--font-mono)",
         }}
       >
-        {/* Logo */}
+        {/* Logo inside glass */}
         <Link
           to="/"
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--font-size-sm)",
+            fontSize: "var(--font-size-body)",
             fontWeight: 600,
             color: "var(--accent)",
             textDecoration: "none",
+            padding: "0.3rem 0.75rem",
             letterSpacing: "-0.02em",
           }}
         >
-          ПАЛЬЦЕБЛУД
+          пальцеблуд
         </Link>
 
-        {/* Nav */}
-        <nav style={{ display: "flex", gap: "1.25rem" }}>
-          {links.map(({ to, label }) => {
-            const active = location.pathname === to;
-            return (
-              <Link
-                key={to}
-                to={to}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--font-size-xs)",
-                  color: active ? "var(--accent)" : "var(--text-secondary)",
-                  textDecoration: "none",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                  padding: "0.25rem 0",
-                  borderBottom: active ? "1px solid var(--accent)" : "1px solid transparent",
-                  transition: "color var(--duration) var(--ease-out), border-color var(--duration) var(--ease-out)",
-                }}
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Separator */}
+        <span style={{ width: 1, background: "var(--glass-border)", margin: "0.25rem 0.25rem" }} />
 
-        {/* Profile */}
-        <Link
-          to="/profile"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--font-size-xs)",
-            color: "var(--text-secondary)",
-            textDecoration: "none",
-          }}
-        >
-          PROFILE
-        </Link>
-      </header>
+        {/* Links */}
+        {links.map(({ to, label, num }) => {
+          const active = location.pathname === to;
+          return (
+            <Link
+              key={to}
+              to={to}
+              style={{
+                fontSize: "var(--font-size-body)",
+                color: active ? "var(--accent)" : "var(--text-secondary)",
+                textDecoration: "none",
+                padding: "0.3rem 0.75rem",
+                borderRadius: "12px",
+                background: active ? "rgba(255,255,255,0.06)" : "transparent",
+                transition: "all var(--duration-fast) var(--ease-out)",
+              }}
+            >
+              <span style={{ color: "var(--text-muted)", marginRight: "0.35rem" }}>{num}</span>
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
 
-      {/* Main */}
-      <main style={{ flex: 1, maxWidth: "960px", width: "100%", margin: "0 auto", padding: "2rem 1rem" }}>
+      {/* Content */}
+      <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Outlet />
       </main>
 
-      {/* Footer */}
+      {/* Footer — bottom left, minimal */}
       <footer
         style={{
-          textAlign: "center",
-          padding: "1.5rem",
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--font-size-xs)",
+          fontSize: "var(--font-size-label)",
           color: "var(--text-dim)",
+          marginTop: "auto",
+          paddingTop: "var(--space-lg)",
         }}
       >
-        PALCEBLUD &copy; {new Date().getFullYear()}
+        пальцеблуд &copy; {new Date().getFullYear()}
       </footer>
     </div>
   );

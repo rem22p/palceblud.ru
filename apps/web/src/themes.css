@@ -1,52 +1,58 @@
-/* ─── 099-style Brutalist Theme System ─── */
+/* ─── Tech Avant-Garde — GitVerse + Terminal + Editorial ─── */
 
 :root {
-  /* Background */
-  --bg: #101010;
-  --bg-elevated: #181818;
-  --bg-hover: #1c1c1c;
+  /* Canvas */
+  --bg: #000000;
+  --bg-elevated: rgba(255, 255, 255, 0.03);
 
-  /* Text */
-  --text: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --text-muted: rgba(255, 255, 255, 0.3);
-  --text-dim: rgba(255, 255, 255, 0.12);
-
-  /* Accent — soft lavender */
-  --accent: #9e9eff;
-  --accent-hover: #b5b5ff;
-  --accent-dim: rgba(158, 158, 255, 0.15);
-
-  /* Semantic */
-  --success: #4dff91;
-  --error: #ff4d6a;
+  /* GitVerse Glass */
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-blur: 80px;
+  --radius: 20px;
 
   /* Typography */
-  --font-mono: "JetBrains Mono", "Soehne Mono", "Fira Code", "Consolas", monospace;
-  --font-size-xs: 0.6875rem;   /* 11px */
-  --font-size-sm: 0.75rem;     /* 12px */
-  --font-size-base: 0.8125rem; /* 13px */
-  --font-size-lg: 1rem;        /* 16px */
-  --font-size-xl: 1.25rem;     /* 20px */
-  --font-size-2xl: 2rem;       /* 32px */
-  --font-size-hero: clamp(4rem, 10vw, 7rem);
+  --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  --font-display: "Playfair Display", "Georgia", serif;
+  --font-size-label: 0.625rem;   /* 10px */
+  --font-size-body: 0.75rem;     /* 12px */
+  --font-size-lead: 1rem;        /* 16px */
+  --font-size-large: 1.5rem;     /* 24px */
+  --font-size-display: 4rem;     /* 64px */
+  --font-size-hero: clamp(7rem, 18vw, 16rem);
+  --font-size-mega: clamp(10rem, 24vw, 20rem);
 
-  /* Layout */
-  --header-h: 3rem; /* 48px */
-  --gap: 0.5rem;
+  /* Terminal colors */
+  --text: #e8e8ed;
+  --text-secondary: rgba(232, 232, 237, 0.6);
+  --text-muted: rgba(232, 232, 237, 0.25);
+  --text-dim: rgba(232, 232, 237, 0.08);
 
-  /* Transitions */
+  /* Accent — electric cyan (GitVerse style) */
+  --accent: #00a3ff;
+  --accent-glow: rgba(0, 163, 255, 0.15);
+  --success: #00ff88;
+  --error: #ff4466;
+
+  /* Spacing — editorial */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: 4rem;
+  --space-xl: 8rem;
+
+  /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration: 150ms;
+  --duration-fast: 150ms;
+  --duration: 300ms;
 }
 
-/* ─── Theme Presets ─── */
+/* ─── Presets ─── */
 
-[data-theme="ocean"]   { --accent: #7ec8e3; --accent-hover: #a0d8ed; --accent-dim: rgba(126, 200, 227, 0.15); }
-[data-theme="emerald"] { --accent: #4dff91; --accent-hover: #80ffb0; --accent-dim: rgba(77, 255, 145, 0.15); }
-[data-theme="rose"]    { --accent: #ff7eb3; --accent-hover: #ffa0c8; --accent-dim: rgba(255, 126, 179, 0.15); }
-[data-theme="violet"]  { --accent: #b98eff; --accent-hover: #cdb3ff; --accent-dim: rgba(185, 142, 255, 0.15); }
-[data-theme="amber"]   { --accent: #ffb347; --accent-hover: #ffc773; --accent-dim: rgba(255, 179, 71, 0.15); }
+[data-theme="green"]  { --accent: #00ff88; --accent-glow: rgba(0, 255, 136, 0.15); }
+[data-theme="purple"] { --accent: #aa55ff; --accent-glow: rgba(170, 85, 255, 0.15); }
+[data-theme="rose"]   { --accent: #ff4488; --accent-glow: rgba(255, 68, 136, 0.15); }
+[data-theme="amber"]  { --accent: #ff8800; --accent-glow: rgba(255, 136, 0, 0.15); }
 
 /* ─── Reset ─── */
 
@@ -56,30 +62,44 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  line-height: 1.5;
+  font-size: var(--font-size-body);
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.01em;
+  overflow-x: hidden;
 }
 
-/* ─── Scrollbar ─── */
+/* ─── GitVerse Glass Card ─── */
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+}
+
+/* ─── Typography utilities ─── */
+
+.display { font-family: var(--font-display); font-weight: 700; line-height: 0.9; letter-spacing: -0.02em; }
+.mono    { font-family: var(--font-mono); }
+.label   { font-family: var(--font-mono); font-size: var(--font-size-label); text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); }
+.accent  { color: var(--accent); }
+
+/* ─── Terminal-style cursor ─── */
+
+.cursor::after {
+  content: "_";
+  color: var(--accent);
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
 
 /* ─── Selection ─── */
 
-::selection { background: var(--accent-dim); color: var(--text); }
+::selection { background: var(--accent); color: var(--bg); }
 
-/* ─── Focus ─── */
+/* ─── Scrollbar ─── */
 
-:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
-
-/* ─── Utilities ─── */
-
-.accent { color: var(--accent); }
-.muted { color: var(--text-muted); }
-.mono { font-family: var(--font-mono); }
-.uppercase { text-transform: uppercase; letter-spacing: 0.08em; }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 2px; }
