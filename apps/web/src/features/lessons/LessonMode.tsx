@@ -15,8 +15,7 @@ interface LessonResult {
   passed: boolean;
 }
 
-export function LessonMode() {
-  const [lang, setLang] = useState<"en" | "ru">("en");
+export function LessonMode({ lang }: { lang: "en" | "ru" }) {
   const [lessonIdx, setLessonIdx] = useState(0);
   const [stepIdx, setStepIdx] = useState(0);
   const [results, setResults] = useState<Record<string, LessonResult>>({});
@@ -72,28 +71,11 @@ export function LessonMode() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-      {/* Header */}
+      {/* Header — fixed top-left */}
       <div style={{
-        display: "flex", justifyContent: "center", gap: "var(--space-md)", paddingTop: "var(--space-md)", flexWrap: "wrap",
+        position: "fixed", top: "var(--space-md)", left: "var(--space-md)", zIndex: 100,
+        display: "flex", flexDirection: "column", gap: "0.5rem",
       }}>
-        {/* Language selector */}
-        {!isRunning && !isFinished && (
-          <div className="glass" style={{ display: "inline-flex", gap: "0.25rem", padding: "0.4rem" }}>
-            {(["en", "ru"] as const).map((l) => (
-              <button key={l} onClick={() => { setLang(l); setLessonIdx(0); setStepIdx(0); }}
-                style={{
-                  fontFamily: "var(--font-mono)", fontSize: "var(--font-size-body)",
-                  fontWeight: lang === l ? 600 : 400,
-                  color: lang === l ? "var(--accent)" : "var(--text-secondary)",
-                  background: lang === l ? "rgba(255,255,255,0.06)" : "transparent",
-                  border: "none", borderRadius: "12px", padding: "0.35rem 0.85rem",
-                  cursor: "pointer", textTransform: "uppercase",
-                }}
-              >{l === "en" ? "EN" : "RU"}</button>
-            ))}
-          </div>
-        )}
-
         {/* Stats during typing */}
         {(isRunning || isFinished) && (
           <div className="glass" style={{ display: "inline-flex", gap: "var(--space-md)", padding: "0.75rem 1.5rem" }}>
