@@ -101,10 +101,9 @@ export function KeyDrillMode() {
     <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
       {/* Header */}
       <div style={{
-        position: "fixed", top: "var(--space-md)", left: "var(--space-md)", zIndex: 100,
-        display: "flex", flexDirection: "column", gap: "0.5rem",
+        display: "flex", justifyContent: "center", paddingTop: "var(--space-md)",
       }}>
-        <div className="glass" style={{ display: "inline-flex", gap: "0.25rem", padding: "0.4rem", alignSelf: "flex-start" }}>
+        <div className="glass" style={{ display: "inline-flex", gap: "0.25rem", padding: "0.4rem" }}>
           <span className="label">keys:</span>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-size-body)", color: "var(--accent)" }}>
             {unlockedKeys.length}/{FULL_ALPHABET_EN.length}

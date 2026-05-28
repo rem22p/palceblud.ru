@@ -7,15 +7,11 @@ export function LessonsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-      {/* Tab switcher */}
-      <div style={{
-        position: "fixed", top: "var(--space-md)", left: "var(--space-md)", zIndex: 101,
-      }}>
+      {/* Tab switcher — inside content flow, not fixed */}
+      <div style={{ paddingTop: "var(--space-lg)", display: "flex", justifyContent: "center" }}>
         <div className="glass" style={{ display: "inline-flex", gap: "0.25rem", padding: "0.4rem" }}>
           {(["drill", "lessons"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
+            <button key={t} onClick={() => setTab(t)}
               style={{
                 fontFamily: "var(--font-mono)", fontSize: "var(--font-size-body)",
                 fontWeight: tab === t ? 600 : 400,
@@ -25,13 +21,10 @@ export function LessonsPage() {
                 cursor: "pointer", textTransform: "uppercase",
                 transition: "all var(--duration-fast) var(--ease-out)",
               }}
-            >
-              {t === "drill" ? "наработка" : "уроки"}
-            </button>
+            >{t === "drill" ? "наработка" : "уроки"}</button>
           ))}
         </div>
       </div>
-
       {tab === "drill" ? <KeyDrillMode /> : <LessonMode />}
     </div>
   );

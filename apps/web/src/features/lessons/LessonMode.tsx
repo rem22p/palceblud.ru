@@ -74,12 +74,11 @@ export function LessonMode() {
     <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
       {/* Header */}
       <div style={{
-        position: "fixed", top: "var(--space-md)", left: "var(--space-md)", zIndex: 100,
-        display: "flex", flexDirection: "column", gap: "0.5rem",
+        display: "flex", justifyContent: "center", gap: "var(--space-md)", paddingTop: "var(--space-md)", flexWrap: "wrap",
       }}>
-        {/* Language + lesson selector */}
+        {/* Language selector */}
         {!isRunning && !isFinished && (
-          <div className="glass" style={{ display: "inline-flex", gap: "0.25rem", padding: "0.4rem", alignSelf: "flex-start" }}>
+          <div className="glass" style={{ display: "inline-flex", gap: "0.25rem", padding: "0.4rem" }}>
             {(["en", "ru"] as const).map((l) => (
               <button key={l} onClick={() => { setLang(l); setLessonIdx(0); setStepIdx(0); }}
                 style={{
@@ -119,11 +118,8 @@ export function LessonMode() {
 
       {/* Lesson info */}
       {!isRunning && !isFinished && (
-        <div style={{
-          position: "fixed", top: "var(--space-md)", right: "calc(320px + var(--space-md))", zIndex: 100,
-          maxWidth: "400px",
-        }}>
-          <div className="glass" style={{ padding: "var(--space-md)" }}>
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-md)" }}>
+          <div className="glass" style={{ padding: "var(--space-md)", maxWidth: "500px" }}>
             <p className="label" style={{ marginBottom: "0.25rem" }}>
               урок {lessonIdx + 1}/{lessons.length}
             </p>
