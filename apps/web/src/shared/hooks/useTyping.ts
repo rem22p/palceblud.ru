@@ -16,7 +16,7 @@ export interface TypingState {
 
 interface TypingConfig {
   text: string;
-  duration?: number;
+  duration?: number; // seconds; undefined = no timer
   onFinish?: (state: TypingState) => void;
 }
 
@@ -34,7 +34,7 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
     isFinished: false,
   });
 
-  // Refs to avoid stale closures in event handlers
+  // Refs
   const isFinishedRef = useRef(false);
   const isRunningRef = useRef(false);
   const textRef = useRef(text);
@@ -42,97 +42,49 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onFinishRef = useRef(onFinish);
 
-  // Keep refs in sync
-  useEffect(() => {
-    isFinishedRef.current = state.isFinished;
-    isRunningRef.current = state.isRunning;
-  }, [state.isFinished, state.isRunning]);
+  // Sync refs
+  useEffect(() => { isFinishedRef.current = state.isFinished; }, [state.isFinished]);
+  useEffect(() => { isRunningRef.current = state.isRunning; }, [state.isRunning]);
+  useEffect(() => { textRef.current = text; }, [text]);
+  useEffect(() => { onFinishRef.current = onFinish; });
 
-  useEffect(() => {
-    textRef.current = text;
-  }, [text]);
-
-  useEffect(() => {
-    onFinishRef.current = onFinish;
-  });
-
-  // Build current state snapshot from refs + state
-  const buildState = useCallback(
-    (partial: Partial<TypingState>): TypingState => ({
-      ...state,
-      ...partial,
-    }),
-    [state],
-  );
-
-  // Timer tick — reads refs, updates state
+  // ─── Timer tick (timer modes only) ───
   const tick = useCallback(() => {
-    const now = Date.now();
-    const elapsedMs = now - startTimeRef.current;
-    const elapsedSec = elapsedMs / 1000;
-    const remaining = duration != null ? Math.max(0, Math.ceil(duration - elapsedSec)) : 99999;
+    if (duration == null) return;
+    const elapsedSec = (Date.now() - startTimeRef.current) / 1000;
+    const remaining = Math.max(0, Math.ceil(duration - elapsedSec));
 
     setState((prev) => {
-      const correct = prev.currentIndex - prev.errors;
-      const total = prev.currentIndex;
-
-      const wpm = calcWpm(correct, elapsedMs);
-      const rawWpm = calcWpm(total, elapsedMs);
-      const accuracy = calcAccuracy(correct, total);
-
       if (remaining <= 0) {
-        // Finished
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-        }
-        const final: TypingState = {
-          ...prev,
-          wpm,
-          rawWpm,
-          accuracy,
-          timeLeft: 0,
-          isRunning: false,
-          isFinished: true,
-        };
-        // Fire onFinish asynchronously to avoid setState-in-setState
+        if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+        const final: TypingState = { ...prev, timeLeft: 0, isRunning: false, isFinished: true };
         setTimeout(() => onFinishRef.current?.(final), 0);
         return final;
       }
-
-      return { ...prev, wpm, rawWpm, accuracy, timeLeft: remaining };
+      return { ...prev, timeLeft: remaining };
     });
   }, [duration]);
 
-  // Start timer
-  const startTimer = useCallback(() => {
-    if (timerRef.current) return;
-    startTimeRef.current = Date.now();
-    timerRef.current = setInterval(tick, 100);
-  }, [tick]);
-
-  // Stop timer
-  const stopTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+  // ─── Calculate stats helper (used on every keystroke) ───
+  const calcLiveStats = useCallback((correctChars: number, totalChars: number) => {
+    const elapsedMs = Date.now() - startTimeRef.current;
+    return {
+      wpm: calcWpm(correctChars, elapsedMs),
+      rawWpm: calcWpm(totalChars, elapsedMs),
+      accuracy: calcAccuracy(correctChars, totalChars),
+    };
   }, []);
 
-  // Handle keydown — uses refs to avoid stale closures
+  // ─── Handle keydown ───
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Ignore if finished
     if (isFinishedRef.current) return;
-
-    // Ignore modifier-only keys (except Backspace)
     if (e.key.length > 1 && e.key !== "Backspace") return;
 
-    // Start timer on first valid keystroke (skip if timer disabled)
+    // Start on first keystroke
     if (!isRunningRef.current && e.key.length === 1) {
       isRunningRef.current = true;
-      setState((prev) => ({ ...prev, isRunning: true }));
+      startTimeRef.current = Date.now();
       if (duration != null) {
-        startTimeRef.current = Date.now();
         timerRef.current = setInterval(tick, 100);
       }
     }
@@ -141,11 +93,17 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
 
     setState((prev) => {
       const { typed, isCorrect, isComplete } = processKeystroke(
-        prev.typed,
-        textRef.current,
-        e.key,
+        prev.typed, textRef.current, e.key,
       );
 
+      const newErrors = prev.errors + (isCorrect ? 0 : 1);
+      const newCurrentIndex = typed.length;
+      const correctChars = newCurrentIndex - newErrors;
+
+      // Calculate live stats
+      const stats = calcLiveStats(correctChars, newCurrentIndex);
+
+      // Stop timer on complete
       if (isComplete && timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -154,40 +112,39 @@ export function useTyping({ text, duration, onFinish }: TypingConfig) {
       return {
         ...prev,
         typed,
-        currentIndex: typed.length,
-        errors: prev.errors + (isCorrect ? 0 : 1),
+        currentIndex: newCurrentIndex,
+        errors: newErrors,
+        wpm: stats.wpm,
+        rawWpm: stats.rawWpm,
+        accuracy: stats.accuracy,
+        isRunning: true,
         isFinished: isComplete,
       };
     });
-  }, [tick]);
+  }, [tick, calcLiveStats, duration]);
 
-  // Attach keyboard listener
+  // ─── Keyboard listener ───
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      stopTimer();
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     };
-  }, [handleKeyDown, stopTimer]);
+  }, [handleKeyDown]);
 
-  // Reset
+  // ─── Reset ───
   const reset = useCallback(() => {
-    stopTimer();
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     isFinishedRef.current = false;
     isRunningRef.current = false;
+    startTimeRef.current = 0;
     setState({
-      typed: "",
-      currentIndex: 0,
-      errors: 0,
-      wpm: 0,
-      rawWpm: 0,
-      accuracy: 100,
-      consistency: 100,
+      typed: "", currentIndex: 0, errors: 0,
+      wpm: 0, rawWpm: 0, accuracy: 100, consistency: 100,
       timeLeft: duration ?? 99999,
-      isRunning: false,
-      isFinished: false,
+      isRunning: false, isFinished: false,
     });
-  }, [duration, stopTimer]);
+  }, [duration]);
 
   return { state, reset };
 }
