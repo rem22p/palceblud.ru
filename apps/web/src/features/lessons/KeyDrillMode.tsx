@@ -143,16 +143,13 @@ export function KeyDrillMode() {
         </div>
       )}
 
-      {/* Keyboard — fixed bottom */}
-      <div style={{
-        position: "fixed", bottom: "0", left: "0", right: "0", zIndex: 100,
-        background: "var(--bg)", borderTop: "1px solid var(--text-dim)",
-      }}>
+      {/* Keyboard — hidden until phase 5 (keymapMode setting) */}
+      {/* <div style={{ ... }}>
         <VisualKeyboard stats={stats} weakestKey={weakest} pressedKey={pressedKey} />
-      </div>
+      </div> */}
 
       {/* Typing area */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "160px" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ maxWidth: "900px", width: "100%", padding: "0 var(--space-md)" }}>
           <TypingDisplay text={text} currentIndex={currentIndex} errors={errorIndices} />
         </div>
