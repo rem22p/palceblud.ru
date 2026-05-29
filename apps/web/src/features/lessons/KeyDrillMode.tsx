@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useTyping } from "@/shared/hooks/useTyping";
 import { TypingDisplay } from "@/shared/components/TypingDisplay";
 import { NumberTicker } from "@/components/ui/number-ticker";
-import { VisualKeyboard } from "./VisualKeyboard";
 import {
   initKeyStats,
   updateKeyStats,
@@ -17,12 +16,20 @@ const HOME_ROW_EN = ["a", "s", "d", "f", "j", "k", "l", ";"];
 const FULL_ALPHABET_EN = "abcdefghijklmnopqrstuvwxyz,./;'".split("");
 const WORDS_PER_SET = 25;
 
+function letterColor(stats: KeyStatsMap, key: string, isWeakest: boolean): { bg: string; text: string } {
+  const s = stats[key];
+  if (!s?.unlocked) return { bg: "transparent", text: "var(--text-dim)" };
+  if (isWeakest) return { bg: "rgba(212,120,110,0.15)", text: "var(--error)" };
+  if (s.tests >= 5 && s.accuracy >= 100) return { bg: "rgba(126,184,126,0.12)", text: "var(--success)" };
+  if (s.tests >= 1) return { bg: "rgba(202,154,107,0.12)", text: "var(--accent)" };
+  return { bg: "rgba(202,154,107,0.06)", text: "var(--accent)" };
+}
+
 export function KeyDrillMode() {
   const [stats, setStats] = useState<KeyStatsMap>(() => initKeyStats(HOME_ROW_EN, FULL_ALPHABET_EN));
   const [sessionKey, setSessionKey] = useState(0);
   const [sessionWpm, setSessionWpm] = useState<number | null>(null);
   const [justUnlocked, setJustUnlocked] = useState<string | null>(null);
-  const [pressedKey, setPressedKey] = useState<string | undefined>();
 
   const unlockedKeys = useMemo(
     () => Object.entries(stats).filter(([, s]) => s.unlocked).map(([k]) => k),
@@ -30,7 +37,6 @@ export function KeyDrillMode() {
   );
   const weakest = useMemo(() => getWeakestKey(stats), [stats]);
 
-  // Generate words from unlocked keys, forcing weakest key
   const text = useMemo(
     () => generateDrillWords(unlockedKeys, weakest, WORDS_PER_SET).join(" "),
     [unlockedKeys, weakest, sessionKey],
@@ -39,38 +45,25 @@ export function KeyDrillMode() {
   const { state, reset } = useTyping({ text });
   const { typed, currentIndex, errors, wpm, rawWpm, accuracy, isRunning, isFinished } = state;
 
-  // Highlight pressed key on keyboard
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key.length === 1) setPressedKey(e.key.toLowerCase());
-    };
-    const up = () => setPressedKey(undefined);
-    window.addEventListener("keydown", handler);
-    window.addEventListener("keyup", up);
-    return () => {
-      window.removeEventListener("keydown", handler);
-      window.removeEventListener("keyup", up);
-    };
-  }, []);
+  const errorIndices = useMemo(() => {
+    const a: number[] = [];
+    for (let i = 0; i < typed.length; i++) if (typed[i] !== text[i]) a.push(i);
+    return a;
+  }, [typed, text]);
 
-  // Process session result
   const handleSessionEnd = useCallback(() => {
     if (!isFinished || sessionWpm != null) return;
-
     setSessionWpm(wpm);
 
-    // Update stats per unlocked key
     let newStats = { ...stats };
     for (const key of unlockedKeys) {
       newStats = updateKeyStats(newStats, key, wpm, accuracy);
     }
     setStats(newStats);
 
-    // Check unlock
     if (shouldUnlockNext(newStats)) {
       const nextStats = unlockNextKey(newStats, FULL_ALPHABET_EN);
       setStats(nextStats);
-      // Find which key was just unlocked
       for (const [k, s] of Object.entries(nextStats)) {
         if (s.unlocked && !stats[k]?.unlocked) {
           setJustUnlocked(k);
@@ -89,28 +82,13 @@ export function KeyDrillMode() {
     setSessionWpm(null);
   };
 
-  const errorIndices = useMemo(() => {
-    const a: number[] = [];
-    for (let i = 0; i < typed.length; i++) if (typed[i] !== text[i]) a.push(i);
-    return a;
-  }, [typed, text]);
-
   const progress = typed.split(" ").filter(Boolean).length;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-      {/* Header */}
-      <div style={{
-        display: "flex", justifyContent: "center", paddingTop: "var(--space-md)",
-      }}>
-        <div className="glass" style={{ display: "inline-flex", gap: "0.25rem", padding: "0.4rem" }}>
-          <span className="label">keys:</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-size-body)", color: "var(--accent)" }}>
-            {unlockedKeys.length}/{FULL_ALPHABET_EN.length}
-          </span>
-        </div>
-
-        {(isRunning || isFinished) && (
+      {/* Stats bar — fixed top-left */}
+      {(isRunning || isFinished) && (
+        <div style={{ position: "fixed", top: "var(--space-md)", left: "var(--space-md)", zIndex: 100 }}>
           <div className="glass" style={{ display: "inline-flex", gap: "var(--space-md)", padding: "0.75rem 1.5rem" }}>
             {[
               { label: "COUNT", value: progress, suffix: `/${WORDS_PER_SET}`, color: "var(--accent)" },
@@ -128,7 +106,64 @@ export function KeyDrillMode() {
               </div>
             ))}
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Letter panel — right side */}
+      <div style={{
+        position: "fixed", top: "var(--space-md)", right: "var(--space-md)", zIndex: 100,
+        maxWidth: "340px", width: "100%",
+      }}>
+        <div className="glass" style={{ padding: "var(--space-md)" }}>
+          <p className="label" style={{ marginBottom: "var(--space-sm)" }}>
+            клавиши · {unlockedKeys.length}/{FULL_ALPHABET_EN.length}
+          </p>
+
+          {/* Letter grid */}
+          <div style={{
+            display: "flex", flexWrap: "wrap", gap: "3px",
+            fontFamily: "var(--font-mono)", fontSize: "var(--font-size-label)",
+          }}>
+            {FULL_ALPHABET_EN.map((key) => {
+              const s = stats[key];
+              const isWeak = weakest === key;
+              const c = letterColor(stats, key, isWeak);
+              return (
+                <span
+                  key={key}
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    width: "1.8rem", height: "1.8rem", borderRadius: "4px",
+                    color: c.text, background: c.bg,
+                    fontWeight: isWeak ? 700 : s?.unlocked ? 600 : 400,
+                    border: isWeak ? "1px solid var(--error)" : s?.unlocked ? "1px solid rgba(202,154,107,0.2)" : "1px solid transparent",
+                    transition: "all var(--duration-fast) var(--ease-out)",
+                  }}
+                >
+                  {key.toUpperCase()}
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Weakest key highlight */}
+          {weakest && isRunning && (
+            <div style={{
+              marginTop: "var(--space-sm)", padding: "0.5rem 0.75rem",
+              background: "rgba(212,120,110,0.08)", borderRadius: "8px",
+              fontFamily: "var(--font-mono)", fontSize: "var(--font-size-body)",
+              display: "flex", alignItems: "center", gap: "0.5rem",
+            }}>
+              <span style={{ color: "var(--text-muted)" }}>слабое:</span>
+              <span style={{ color: "var(--error)", fontWeight: 700, fontSize: "var(--font-size-lead)" }}>
+                {weakest.toUpperCase()}
+              </span>
+              <span style={{ color: "var(--text-muted)", marginLeft: "auto" }}>
+                {stats[weakest].tests}/5 тестов
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Just unlocked toast */}
@@ -141,11 +176,6 @@ export function KeyDrillMode() {
           <span style={{ color: "var(--text-secondary)", marginLeft: "0.5rem" }}>разблокировано</span>
         </div>
       )}
-
-      {/* Keyboard — hidden until phase 5 (keymapMode setting) */}
-      {/* <div style={{ ... }}>
-        <VisualKeyboard stats={stats} weakestKey={weakest} pressedKey={pressedKey} />
-      </div> */}
 
       {/* Typing area */}
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
