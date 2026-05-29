@@ -109,10 +109,10 @@ export function KeyDrillMode() {
         </div>
       )}
 
-      {/* Letter panel — right side */}
+      {/* Letter panel — left side, below tabs */}
       <div style={{
-        position: "fixed", top: "var(--space-md)", right: "var(--space-md)", zIndex: 100,
-        maxWidth: "340px", width: "100%",
+        position: "fixed", top: "calc(var(--space-md) + 70px)", left: "var(--space-md)", zIndex: 99,
+        maxWidth: "360px", width: "100%",
       }}>
         <div className="glass" style={{ padding: "var(--space-md)" }}>
           <p className="label" style={{ marginBottom: "var(--space-sm)" }}>
